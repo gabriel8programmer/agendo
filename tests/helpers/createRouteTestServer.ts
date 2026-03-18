@@ -34,11 +34,13 @@ export function createRouteTestServer(handler: RouteHandler): Server {
         }
       }
 
+      // Next.js' NextRequest has a slightly different RequestInit typing.
+      // Avoid casting to the DOM RequestInit type to keep `next build` happy.
       const nextReq = new NextRequest(getUrl(req), {
         method: req.method,
         headers,
-        body,
-      } as RequestInit)
+        ...(body ? { body } : {}),
+      })
 
       const response = await handler(nextReq)
 
