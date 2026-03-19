@@ -55,7 +55,7 @@ export function createRouteTestServer(handler: RouteHandler): Server {
       } else {
         res.end()
       }
-    } catch (err) {
+    } catch {
       res.statusCode = 500
       res.setHeader("content-type", "application/json")
       res.end(JSON.stringify({ error: "internal_error" }))
