@@ -1,0 +1,68 @@
+{
+  "users": [
+    {
+      "id": "user-1",
+      "name": "Barbearia do João",
+      "slug": "barbearia-do-joao",
+      "createdAt": "2026-03-19"
+    }
+  ],
+  "services": [
+    {
+      "id": "service-1",
+      "userId": "user-1",
+      "name": "Corte de cabelo",
+      "duration": 30,
+      "price": 30,
+      "createdAt": "2026-03-19"
+    },
+    {
+      "id": "service-2",
+      "userId": "user-1",
+      "name": "Barba",
+      "duration": 20,
+      "price": 20,
+      "createdAt": "2026-03-19"
+    },
+    {
+      "id": "0d55",
+      "userId": "user-1",
+      "name": "Luzes",
+      "duration": 90,
+      "price": 80,
+      "createdAt": "2026-03-20T01:04:19.011Z"
+    }
+  ],
+  "appointments": [
+    { "id": "f1", "userId": "user-1", "serviceId": "service-1", "clientName": "Carlos Silva", "clientWhatsapp": "11999990001", "date": "2026-03-19T12:00:00.000Z", "createdAt": "2026-03-19T10:00:00Z" },
+    { "id": "f2", "userId": "user-1", "serviceId": "service-2", "clientName": "Ana Oliveira", "clientWhatsapp": "11999990002", "date": "2026-03-19T13:30:00.000Z", "createdAt": "2026-03-19T10:00:00Z" },
+    { "id": "f3", "userId": "user-1", "serviceId": "service-1", "clientName": "Bruno Santos", "clientWhatsapp": "11999990003", "date": "2026-03-19T15:00:00.000Z", "createdAt": "2026-03-19T10:00:00Z" },
+    { "id": "f4", "userId": "user-1", "serviceId": "0d55", "clientName": "Daniel Lima", "clientWhatsapp": "11999990004", "date": "2026-03-19T17:30:00.000Z", "createdAt": "2026-03-19T10:00:00Z" },
+    { "id": "f5", "userId": "user-1", "serviceId": "service-1", "clientName": "Eduardo Costa", "clientWhatsapp": "11999990005", "date": "2026-03-19T19:00:00.000Z", "createdAt": "2026-03-19T10:00:00Z" },
+    { "id": "f6", "userId": "user-1", "serviceId": "service-2", "clientName": "Fernanda Mello", "clientWhatsapp": "11999990006", "date": "2026-03-19T20:30:00.000Z", "createdAt": "2026-03-19T10:00:00Z" },
+    { "id": "f7", "userId": "user-1", "serviceId": "service-1", "clientName": "Gabriel Souza", "clientWhatsapp": "11999990007", "date": "2026-03-20T12:00:00.000Z", "createdAt": "2026-03-19T10:00:00Z" },
+    { "id": "f8", "userId": "user-1", "serviceId": "service-2", "clientName": "Helena Rocha", "clientWhatsapp": "11999990008", "date": "2026-03-20T12:30:00.000Z", "createdAt": "2026-03-19T10:00:00Z" },
+    { "id": "f9", "userId": "user-1", "serviceId": "service-1", "clientName": "Igor Ferreira", "clientWhatsapp": "11999990009", "date": "2026-03-20T14:00:00.000Z", "createdAt": "2026-03-19T10:00:00Z" },
+    { "id": "f10", "userId": "user-1", "serviceId": "0d55", "clientName": "Julia Ramos", "clientWhatsapp": "11999990010", "date": "2026-03-20T15:30:00.000Z", "createdAt": "2026-03-19T10:00:00Z" },
+    { "id": "f11", "userId": "user-1", "serviceId": "service-1", "clientName": "Kevin Duarte", "clientWhatsapp": "11999990011", "date": "2026-03-20T17:00:00.000Z", "createdAt": "2026-03-19T10:00:00Z" },
+    { "id": "f12", "userId": "user-1", "serviceId": "service-2", "clientName": "Larissa Paz", "clientWhatsapp": "11999990012", "date": "2026-03-20T18:30:00.000Z", "createdAt": "2026-03-19T10:00:00Z" },
+    { "id": "f13", "userId": "user-1", "serviceId": "service-1", "clientName": "Mauricio Lima", "clientWhatsapp": "11999990013", "date": "2026-03-20T20:00:00.000Z", "createdAt": "2026-03-19T10:00:00Z" },
+    { "id": "f14", "userId": "user-1", "serviceId": "service-1", "clientName": "Nathalia Cruz", "clientWhatsapp": "11999990014", "date": "2026-03-23T12:00:00.000Z", "createdAt": "2026-03-19T10:00:00Z" },
+    { "id": "f15", "userId": "user-1", "serviceId": "service-2", "clientName": "Otavio Neto", "clientWhatsapp": "11999990015", "date": "2026-03-23T13:00:00.000Z", "createdAt": "2026-03-19T10:00:00Z" },
+    { "id": "f16", "userId": "user-1", "serviceId": "service-1", "clientName": "Patricia Gil", "clientWhatsapp": "11999990016", "date": "2026-03-23T14:30:00.000Z", "createdAt": "2026-03-19T10:00:00Z" },
+    { "id": "f17", "userId": "user-1", "serviceId": "0d55", "clientName": "Ricardo Viana", "clientWhatsapp": "11999990017", "date": "2026-03-23T16:00:00.000Z", "createdAt": "2026-03-19T10:00:00Z" },
+    { "id": "f18", "userId": "user-1", "serviceId": "service-1", "clientName": "Sabrina Reis", "clientWhatsapp": "11999990018", "date": "2026-03-23T17:30:00.000Z", "createdAt": "2026-03-19T10:00:00Z" },
+    { "id": "f19", "userId": "user-1", "serviceId": "service-2", "clientName": "Tiago Lemos", "clientWhatsapp": "11999990019", "date": "2026-03-23T19:30:00.000Z", "createdAt": "2026-03-19T10:00:00Z" },
+    { "id": "f20", "userId": "user-1", "serviceId": "service-1", "clientName": "Ursula Meira", "clientWhatsapp": "11999990020", "date": "2026-03-23T20:30:00.000Z", "createdAt": "2026-03-19T10:00:00Z" }
+  ],
+  "availability": [
+    {
+      "id": "availability-1",
+      "userId": "user-1",
+      "startTime": "09:00",
+      "endTime": "18:00",
+      "slotDuration": 30
+    }
+  ],
+  "$schema": "./node_modules/json-server/schema.json"
+}

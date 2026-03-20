@@ -1,48 +1,85 @@
 "use client"
 
-// app/[slug]/page.tsx
-import { useState } from "react"
-import { useParams } from "next/navigation"
+import { useState, useEffect, use } from "react"
 import { Bungee_Shade } from "next/font/google"
 import { FaClock, FaTag, FaCheck, FaPhoneAlt, FaUser } from "react-icons/fa"
 import Card from "@/components/ui/Card"
 import Button from "@/components/ui/Button"
 import Input from "@/components/ui/Input"
+import { getUserBySlug, getServices, getAvailability, getAppointments, createAppointment } from "@/lib/api"
+import { generateSlots } from "@/lib/utils/availability"
+import { User, Service, Availability, Appointment } from "@/types"
+import { formatToUTC, getTodayDate, dayjs } from "@/lib/utils/date"
 
 const agendoFont = Bungee_Shade({
   subsets: ["latin"],
   weight: ["400"],
 })
 
-interface Service {
-  id: string
-  name: string
-  duration: number
-  price: number
-}
+export default function PublicBookingPage({ params: paramsPromise }: { params: Promise<{ slug: string }> }) {
+  const params = use(paramsPromise)
+  const slug = params.slug
 
-const BUSINESS_SLUG = "barbearia-do-joao"
-const BUSINESS_NAME = "Barbearia do João"
-
-const SERVICES: Service[] = [
-  { id: "s1", name: "Corte de cabelo", duration: 30, price: 30 },
-  { id: "s2", name: "Barba", duration: 20, price: 20 },
-  { id: "s3", name: "Corte + barba", duration: 50, price: 45 },
-]
-
-const AVAILABLE_TIMES = ["09:00", "09:30", "10:00", "10:30", "11:00"]
-
-export default function PublicBookingPage() {
-  const params = useParams()
-  const slug = params?.slug as string
+  const [user, setUser] = useState<User | null>(null)
+  const [services, setServices] = useState<Service[]>([])
+  const [availability, setAvailability] = useState<Availability | null>(null)
+  const [occupiedAppointments, setOccupiedAppointments] = useState<Appointment[]>([])
+  const [loading, setLoading] = useState(true)
 
   const [selectedService, setSelectedService] = useState<string | null>(null)
+  const [selectedDate, setSelectedDate] = useState<string>(getTodayDate())
   const [selectedTime, setSelectedTime] = useState<string | null>(null)
   const [clientName, setClientName] = useState("")
   const [whatsapp, setWhatsapp] = useState("")
   const [isConfirmed, setIsConfirmed] = useState(false)
 
-  if (slug !== BUSINESS_SLUG) {
+  useEffect(() => {
+    async function loadData() {
+      try {
+        const userData = await getUserBySlug(slug)
+        if (userData) {
+          setUser(userData)
+          const [servicesData, availabilityData] = await Promise.all([
+            getServices(userData.id),
+            getAvailability(userData.id),
+          ])
+          setServices(servicesData)
+          setAvailability(availabilityData)
+        }
+      } catch (error) {
+        console.error("Error loading user/services/availability:", error)
+      } finally {
+        setLoading(false)
+      }
+    }
+    loadData()
+  }, [slug])
+
+  useEffect(() => {
+    async function loadAppointments() {
+      if (user) {
+        try {
+          const appointmentsData = await getAppointments(user.id, selectedDate)
+          setOccupiedAppointments(appointmentsData)
+          // Reset time when date changes
+          setSelectedTime(null)
+        } catch (error) {
+          console.error("Error loading appointments:", error)
+        }
+      }
+    }
+    loadAppointments()
+  }, [user, selectedDate])
+
+  if (loading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-[#f9fafb] p-4 font-sans text-center">
+        <p className="text-zinc-600">Carregando...</p>
+      </div>
+    )
+  }
+
+  if (!user) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-[#f9fafb] p-4 font-sans text-center">
         <Card className="p-8">
@@ -70,6 +107,7 @@ export default function PublicBookingPage() {
               setIsConfirmed(false)
               setSelectedService(null)
               setSelectedTime(null)
+              setSelectedDate(getTodayDate())
               setClientName("")
               setWhatsapp("")
             }}
@@ -81,7 +119,51 @@ export default function PublicBookingPage() {
     )
   }
 
-  const isFormValid = selectedService && selectedTime && clientName.trim().length > 0
+  const availableTimes = availability ? generateSlots(availability, occupiedAppointments) : []
+  const isFormValid = selectedService && selectedTime && clientName.trim().length > 0 && selectedDate
+
+  const handleConfirm = async () => {
+    if (!selectedService || !selectedTime || !user || !selectedDate) return
+
+    try {
+      await createAppointment({
+        userId: user.id,
+        serviceId: selectedService,
+        clientName,
+        clientWhatsapp: whatsapp,
+        date: formatToUTC(selectedDate, selectedTime),
+      })
+      setIsConfirmed(true)
+    } catch (error) {
+      console.error("Error creating appointment:", error)
+      alert("Erro ao confirmar agendamento. Tente novamente.")
+    }
+  }
+
+  // Generate next 14 days, filtering for Mon-Fri and past dates
+  const generateAvailableDates = () => {
+    const dates = []
+    const today = dayjs().tz("America/Sao_Paulo").startOf("day")
+
+    for (let i = 0; i < 14; i++) {
+      const date = today.add(i, "day")
+      const dayOfWeek = date.day()
+      
+      // 0 = Sunday, 1 = Monday, ..., 5 = Friday, 6 = Saturday
+      const isWeekday = dayOfWeek >= 1 && dayOfWeek <= 5
+      
+      if (isWeekday) {
+        dates.push({
+          value: date.format("YYYY-MM-DD"),
+          label: date.format("ddd D MMM"),
+          isToday: i === 0
+        })
+      }
+    }
+    return dates
+  }
+
+  const availableDates = generateAvailableDates()
 
   return (
     <div className="min-h-screen bg-[#f9fafb] p-4 font-sans md:p-8">
@@ -95,7 +177,7 @@ export default function PublicBookingPage() {
             </h2>
           </div>
           <h1 className="text-3xl font-extrabold tracking-tight text-zinc-900 sm:text-4xl">
-            {BUSINESS_NAME}
+            {user.name}
           </h1>
           <p className="mt-2 text-sm font-medium text-zinc-600 uppercase tracking-widest">
             Agende seu horário em segundos
@@ -112,7 +194,7 @@ export default function PublicBookingPage() {
               <h2 className="text-sm font-bold uppercase tracking-wider">Selecione o Serviço</h2>
             </div>
             <div className="grid gap-3">
-              {SERVICES.map((service) => (
+              {services.map((service) => (
                 <button
                   key={service.id}
                   onClick={() => setSelectedService(service.id)}
@@ -145,7 +227,7 @@ export default function PublicBookingPage() {
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
-                    <p className="text-sm font-bold">R$ {service.price}</p>
+                    {service.price && <p className="text-sm font-bold">R$ {service.price}</p>}
                     {selectedService === service.id && <FaCheck size={12} className="text-white" />}
                   </div>
                 </button>
@@ -153,41 +235,77 @@ export default function PublicBookingPage() {
             </div>
           </section>
 
-          {/* 2. Horários */}
+          {/* 2. Data */}
           {selectedService && (
             <section className="animate-in fade-in slide-in-from-bottom-2 duration-500">
               <div className="mb-3 flex items-center gap-2 text-zinc-900">
                 <span className="flex h-5 w-5 items-center justify-center rounded-full bg-zinc-900 text-[10px] font-bold text-white">
                   2
                 </span>
-                <h2 className="text-sm font-bold uppercase tracking-wider">Escolha o Horário</h2>
+                <h2 className="text-sm font-bold uppercase tracking-wider">Escolha o Dia</h2>
               </div>
-              <Card className="p-4">
-                <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
-                  {AVAILABLE_TIMES.map((time) => (
-                    <button
-                      key={time}
-                      onClick={() => setSelectedTime(time)}
-                      className={`rounded-xl border py-2.5 text-sm font-bold transition-all ${
-                        selectedTime === time
-                          ? "border-zinc-900 bg-zinc-900 text-white shadow-md"
-                          : "border-zinc-100 bg-zinc-50 text-zinc-600 hover:border-zinc-300 hover:bg-white"
-                      }`}
-                    >
-                      {time}
-                    </button>
-                  ))}
-                </div>
-              </Card>
+              <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
+                {availableDates.map((date) => (
+                  <button
+                    key={date.value}
+                    onClick={() => setSelectedDate(date.value)}
+                    className={`flex min-w-[80px] flex-col items-center rounded-xl border p-3 transition-all ${
+                      selectedDate === date.value
+                        ? "border-zinc-900 bg-zinc-900 text-white shadow-md"
+                        : "border-zinc-100 bg-white text-zinc-600 hover:border-zinc-300"
+                    }`}
+                  >
+                    <span className="text-[10px] font-bold uppercase tracking-tighter opacity-70">
+                      {date.isToday ? "Hoje" : date.label.split(" ")[0]}
+                    </span>
+                    <span className="text-sm font-bold capitalize">
+                      {date.label.split(" ").slice(1).join(" ")}
+                    </span>
+                  </button>
+                ))}
+              </div>
             </section>
           )}
 
-          {/* 3. Seus Dados */}
-          {selectedTime && (
+          {/* 3. Horários */}
+          {selectedService && selectedDate && (
             <section className="animate-in fade-in slide-in-from-bottom-2 duration-500">
               <div className="mb-3 flex items-center gap-2 text-zinc-900">
                 <span className="flex h-5 w-5 items-center justify-center rounded-full bg-zinc-900 text-[10px] font-bold text-white">
                   3
+                </span>
+                <h2 className="text-sm font-bold uppercase tracking-wider">Escolha o Horário</h2>
+              </div>
+              <Card className="p-4">
+                {availableTimes.length > 0 ? (
+                  <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
+                    {availableTimes.map((time) => (
+                      <button
+                        key={time}
+                        onClick={() => setSelectedTime(time)}
+                        className={`rounded-xl border py-2.5 text-sm font-bold transition-all ${
+                          selectedTime === time
+                            ? "border-zinc-900 bg-zinc-900 text-white shadow-md"
+                            : "border-zinc-100 bg-white text-zinc-600 hover:border-zinc-300 hover:bg-zinc-50"
+                        }`}
+                      >
+                        {time}
+                      </button>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-center text-sm text-zinc-500">Nenhum horário disponível para este dia.</p>
+                )}
+              </Card>
+            </section>
+          )}
+
+          {/* 4. Seus Dados */}
+          {selectedTime && (
+            <section className="animate-in fade-in slide-in-from-bottom-2 duration-500">
+              <div className="mb-3 flex items-center gap-2 text-zinc-900">
+                <span className="flex h-5 w-5 items-center justify-center rounded-full bg-zinc-900 text-[10px] font-bold text-white">
+                  4
                 </span>
                 <h2 className="text-sm font-bold uppercase tracking-wider">Confirme Seus Dados</h2>
               </div>
@@ -223,7 +341,7 @@ export default function PublicBookingPage() {
                   </div>
 
                   <Button
-                    onClick={() => setIsConfirmed(true)}
+                    onClick={handleConfirm}
                     disabled={!isFormValid}
                     className="mt-4 w-full py-4 text-base active:scale-[0.98]"
                   >

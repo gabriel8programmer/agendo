@@ -1,4 +1,6 @@
-import type { Metadata } from "next"
+"use client"
+
+import { useState, useEffect, useMemo } from "react"
 import {
   FaCalendarAlt,
   FaCalendarCheck,
@@ -11,13 +13,54 @@ import {
 import ButtonLink from "@/components/ui/ButtonLink"
 import Card from "@/components/ui/Card"
 import Header from "@/components/ui/Header"
-
-export const metadata: Metadata = {
-  title: "Dashboard",
-  description: "Resumo da sua agenda",
-}
+import { getAppointments, getServices } from "@/lib/api"
+import { Appointment, Service } from "@/types"
+import { formatToLocalTime, getTodayDate, dayjs } from "@/lib/utils/date"
 
 export default function DashboardPage() {
+  const [appointments, setAppointments] = useState<Appointment[]>([])
+  const [services, setServices] = useState<Service[]>([])
+  const [loading, setLoading] = useState(true)
+  const userId = "user-1"
+
+  useEffect(() => {
+    async function loadDashboard() {
+      try {
+        const today = getTodayDate()
+        const [appointmentsData, servicesData] = await Promise.all([
+          getAppointments(userId, today),
+          getServices(userId),
+        ])
+        setAppointments(appointmentsData)
+        setServices(servicesData)
+      } catch (error) {
+        console.error("Error loading dashboard:", error)
+      } finally {
+        setLoading(false)
+      }
+    }
+    loadDashboard()
+  }, [])
+
+  // Use useMemo to avoid recalculating on every render and avoid state mutation
+  const sortedAppointments = useMemo(() => {
+    return [...appointments].sort((a, b) => a.date.localeCompare(b.date))
+  }, [appointments])
+
+  const nextAppointment = useMemo(() => {
+    const now = dayjs().tz("America/Sao_Paulo")
+    return sortedAppointments.find(app => dayjs(app.date).isAfter(now))
+  }, [sortedAppointments])
+
+  const totalAppointments = appointments.length
+
+  const totalRevenue = useMemo(() => {
+    return appointments.reduce((sum, app) => {
+      const service = services.find(s => s.id === app.serviceId)
+      return sum + (service?.price || 0)
+    }, 0)
+  }, [appointments, services])
+
   return (
     <div className="min-h-screen bg-[#f9fafb] font-sans">
       <Header />
@@ -37,7 +80,7 @@ export default function DashboardPage() {
                   <FaCalendarCheck className="text-zinc-900" aria-hidden />
                   <h2 className="text-sm font-medium text-zinc-700">Agendamentos hoje</h2>
                 </div>
-                <p className="mt-2 text-2xl font-semibold text-zinc-900">3</p>
+                <p className="mt-2 text-2xl font-semibold text-zinc-900">{loading ? "..." : totalAppointments}</p>
               </Card>
 
               <Card className="p-4">
@@ -45,7 +88,9 @@ export default function DashboardPage() {
                   <FaClock className="text-zinc-900" aria-hidden />
                   <h2 className="text-sm font-medium text-zinc-700">Próximo atendimento</h2>
                 </div>
-                <p className="mt-2 text-2xl font-semibold text-zinc-900">14:30</p>
+                <p className="mt-2 text-2xl font-semibold text-zinc-900">
+                  {loading ? "..." : (nextAppointment ? formatToLocalTime(nextAppointment.date) : "--:--")}
+                </p>
               </Card>
 
               <Card className="p-4 sm:col-span-2">
@@ -53,7 +98,9 @@ export default function DashboardPage() {
                   <FaMoneyBillWave className="text-zinc-900" aria-hidden />
                   <h2 className="text-sm font-medium text-zinc-700">Faturamento hoje</h2>
                 </div>
-                <p className="mt-2 text-2xl font-semibold text-zinc-900">R$ 1.200,00</p>
+                <p className="mt-2 text-2xl font-semibold text-zinc-900">
+                  {loading ? "..." : `R$ ${totalRevenue.toFixed(2).replace(".", ",")}`}
+                </p>
               </Card>
             </div>
           </section>
@@ -63,46 +110,33 @@ export default function DashboardPage() {
               Próximos atendimentos
             </h2>
 
-            <ul className="space-y-3">
-              <li className="flex items-center justify-between gap-3 rounded-2xl bg-white px-4 py-3 shadow-sm border border-transparent hover:border-zinc-200 transition-all">
-                <div className="flex items-center gap-3">
-                  <div className="flex h-9 w-9 items-center justify-center rounded-2xl bg-zinc-50 border border-zinc-200">
-                    <FaUser className="text-zinc-400" aria-hidden />
-                  </div>
-                  <div>
-                    <div className="text-sm font-semibold text-zinc-900">Maria Silva</div>
-                    <div className="text-sm text-zinc-600 font-medium">Corte + Barba</div>
-                  </div>
-                </div>
-                <div className="text-sm font-semibold text-zinc-900">09:00</div>
-              </li>
+            {loading ? (
+              <p className="text-center text-sm text-zinc-500 py-4">Carregando...</p>
+            ) : (
+              <ul className="space-y-3">
+                {sortedAppointments.map((app) => {
+                  const service = services.find((s) => s.id === app.serviceId)
+                  return (
+                    <li key={app.id} className="flex items-center justify-between gap-3 rounded-2xl bg-white px-4 py-3 shadow-sm border border-transparent hover:border-zinc-200 transition-all">
+                      <div className="flex items-center gap-3">
+                        <div className="flex h-9 w-9 items-center justify-center rounded-2xl bg-zinc-50 border border-zinc-200">
+                          <FaUser className="text-zinc-400" aria-hidden />
+                        </div>
+                        <div>
+                          <div className="text-sm font-semibold text-zinc-900">{app.clientName}</div>
+                          <div className="text-sm text-zinc-600 font-medium">{service?.name || "Serviço não encontrado"}</div>
+                        </div>
+                      </div>
+                      <div className="text-sm font-semibold text-zinc-900">{formatToLocalTime(app.date)}</div>
+                    </li>
+                  )
+                })}
 
-              <li className="flex items-center justify-between gap-3 rounded-2xl bg-white px-4 py-3 shadow-sm border border-transparent hover:border-zinc-200 transition-all">
-                <div className="flex items-center gap-3">
-                  <div className="flex h-9 w-9 items-center justify-center rounded-2xl bg-zinc-50 border border-zinc-200">
-                    <FaUser className="text-zinc-400" aria-hidden />
-                  </div>
-                  <div>
-                    <div className="text-sm font-semibold text-zinc-900">Carlos Oliveira</div>
-                    <div className="text-sm text-zinc-600 font-medium">Barba</div>
-                  </div>
-                </div>
-                <div className="text-sm font-semibold text-zinc-900">11:30</div>
-              </li>
-
-              <li className="flex items-center justify-between gap-3 rounded-2xl bg-white px-4 py-3 shadow-sm border border-transparent hover:border-zinc-200 transition-all">
-                <div className="flex items-center gap-3">
-                  <div className="flex h-9 w-9 items-center justify-center rounded-2xl bg-zinc-50 border border-zinc-200">
-                    <FaUser className="text-zinc-400" aria-hidden />
-                  </div>
-                  <div>
-                    <div className="text-sm font-semibold text-zinc-900">João Santos</div>
-                    <div className="text-sm text-zinc-600 font-medium">Corte</div>
-                  </div>
-                </div>
-                <div className="text-sm font-semibold text-zinc-900">14:30</div>
-              </li>
-            </ul>
+                {appointments.length === 0 && (
+                  <p className="text-center text-sm text-zinc-500 py-4">Nenhum agendamento para hoje.</p>
+                )}
+              </ul>
+            )}
           </section>
 
           <section>

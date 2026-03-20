@@ -1,7 +1,11 @@
-// app/agenda/page.tsx
+"use client"
+
+import { useState, useEffect } from "react"
 import Card from "@/components/ui/Card"
 import Header from "@/components/ui/Header"
 import { FaChevronLeft, FaChevronRight, FaClock, FaUser, FaPlus } from "react-icons/fa"
+import { getAvailability, getAppointments, getServices } from "@/lib/api"
+import { formatToLocalTime, dayjs } from "@/lib/utils/date"
 
 interface TimeSlot {
   id: string
@@ -10,26 +14,6 @@ interface TimeSlot {
   clientName?: string
   serviceName?: string
 }
-
-const mockTimeSlots: TimeSlot[] = [
-  { id: "1", time: "08:00", status: "available" },
-  {
-    id: "2",
-    time: "09:00",
-    status: "booked",
-    clientName: "Maria Silva",
-    serviceName: "Corte + Barba",
-  },
-  { id: "3", time: "10:00", status: "available" },
-  { id: "4", time: "11:00", status: "available" },
-  { id: "5", time: "12:00", status: "booked", clientName: "Carlos Oliveira", serviceName: "Barba" },
-  { id: "6", time: "13:00", status: "available" },
-  { id: "7", time: "14:00", status: "available" },
-  { id: "8", time: "15:00", status: "booked", clientName: "João Santos", serviceName: "Corte" },
-  { id: "9", time: "16:00", status: "available" },
-  { id: "10", time: "17:00", status: "available" },
-  { id: "11", time: "18:00", status: "available" },
-]
 
 function SlotItem({ slot }: { slot: TimeSlot }) {
   const isAvailable = slot.status === "available"
@@ -80,7 +64,79 @@ function SlotItem({ slot }: { slot: TimeSlot }) {
 }
 
 export default function AgendaPage() {
-  const todayLabel = "Quarta-feira, 18 de Março"
+  const [loading, setLoading] = useState(true)
+  const [slots, setSlots] = useState<TimeSlot[]>([])
+  const [date, setDate] = useState(dayjs().tz("America/Sao_Paulo"))
+  const userId = "user-1"
+
+  useEffect(() => {
+    async function loadAgenda() {
+      setLoading(true)
+      try {
+        const dateString = date.format("YYYY-MM-DD")
+        const [availability, appointments, services] = await Promise.all([
+          getAvailability(userId),
+          getAppointments(userId, dateString),
+          getServices(userId),
+        ])
+
+        if (availability) {
+          const generatedSlots: TimeSlot[] = []
+          let current = parseTimeToMinutes(availability.startTime)
+          const end = parseTimeToMinutes(availability.endTime)
+
+          while (current + availability.slotDuration <= end) {
+            const timeString = formatMinutesToTime(current)
+            const appointment = appointments.find((app) => {
+              const appTime = formatToLocalTime(app.date)
+              return appTime === timeString
+            })
+
+            if (appointment) {
+              const service = services.find((s) => s.id === appointment.serviceId)
+              generatedSlots.push({
+                id: appointment.id,
+                time: timeString,
+                status: "booked",
+                clientName: appointment.clientName,
+                serviceName: service?.name || "Serviço não encontrado",
+              })
+            } else {
+              generatedSlots.push({
+                id: timeString,
+                time: timeString,
+                status: "available",
+              })
+            }
+            current += availability.slotDuration
+          }
+          setSlots(generatedSlots)
+        }
+      } catch (error) {
+        console.error("Error loading agenda:", error)
+      } finally {
+        setLoading(false)
+      }
+    }
+    loadAgenda()
+  }, [date])
+
+  const todayLabel = date.format("dddd, D [de] MMMM")
+
+  function parseTimeToMinutes(time: string): number {
+    const [hours, minutes] = time.split(":").map(Number)
+    return hours * 60 + minutes
+  }
+
+  function formatMinutesToTime(totalMinutes: number): string {
+    const hours = Math.floor(totalMinutes / 60)
+    const minutes = totalMinutes % 60
+    return `${hours.toString().padStart(2, "0")}:${minutes.toString().padStart(2, "0")}`
+  }
+
+  const changeDate = (days: number) => {
+    setDate(date.add(days, "day"))
+  }
 
   return (
     <div className="min-h-screen bg-[#f9fafb] font-sans">
@@ -88,27 +144,40 @@ export default function AgendaPage() {
       <main className="mx-auto max-w-2xl p-4">
         <header className="mb-6 flex flex-col items-center gap-4">
           <div className="flex w-full items-center justify-between rounded-2xl bg-white p-2 shadow-sm border border-zinc-100">
-            <button className="flex h-10 w-10 items-center justify-center rounded-xl text-zinc-600 hover:bg-zinc-50 transition-colors">
+            <button
+              onClick={() => changeDate(-1)}
+              className="flex h-10 w-10 items-center justify-center rounded-xl text-zinc-600 hover:bg-zinc-50 transition-colors"
+            >
               <FaChevronLeft size={14} />
             </button>
             <div className="text-center">
-              <p className="text-sm font-bold text-zinc-900">{todayLabel}</p>
+              <p className="text-sm font-bold text-zinc-900 capitalize">{todayLabel}</p>
               <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400">
                 Agenda do Dia
               </p>
             </div>
-            <button className="flex h-10 w-10 items-center justify-center rounded-xl text-zinc-600 hover:bg-zinc-50 transition-colors">
+            <button
+              onClick={() => changeDate(1)}
+              className="flex h-10 w-10 items-center justify-center rounded-xl text-zinc-600 hover:bg-zinc-50 transition-colors"
+            >
               <FaChevronRight size={14} />
             </button>
           </div>
         </header>
 
         <Card className="p-4 sm:p-6">
-          <div className="space-y-3">
-            {mockTimeSlots.map((slot) => (
-              <SlotItem key={slot.id} slot={slot} />
-            ))}
-          </div>
+          {loading ? (
+            <p className="text-center text-sm text-zinc-500">Carregando...</p>
+          ) : (
+            <div className="space-y-3">
+              {slots.map((slot) => (
+                <SlotItem key={slot.id} slot={slot} />
+              ))}
+              {slots.length === 0 && (
+                <p className="text-center text-sm text-zinc-500">Nenhum horário disponível para este dia.</p>
+              )}
+            </div>
+          )}
         </Card>
       </main>
     </div>

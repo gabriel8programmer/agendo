@@ -1,26 +1,14 @@
-// app/servicos/page.tsx
+"use client"
+
+import { useState, useEffect } from "react"
 import Card from "@/components/ui/Card"
 import Header from "@/components/ui/Header"
 import Input from "@/components/ui/Input"
 import Button from "@/components/ui/Button"
 import PageHeader from "@/components/ui/PageHeader"
 import { FaClock, FaTag, FaPlus, FaList } from "react-icons/fa"
-
-// 1. Reusable Service type
-interface Service {
-  id: number
-  name: string
-  duration: number
-  price: number | null
-}
-
-// 2. Mock list of services
-const mockServices: Service[] = [
-  { id: 1, name: "Corte de Cabelo", duration: 30, price: 50.0 },
-  { id: 2, name: "Barba", duration: 20, price: 30.0 },
-  { id: 3, name: "Corte e Barba", duration: 50, price: 75.0 },
-  { id: 4, name: "Pintura", duration: 60, price: null },
-]
+import { getServices, createService } from "@/lib/api"
+import { Service } from "@/types"
 
 function ServiceItem({ service }: { service: Service }) {
   return (
@@ -38,13 +26,55 @@ function ServiceItem({ service }: { service: Service }) {
         </div>
       </div>
       <p className="text-sm font-bold text-zinc-900">
-        {service.price ? `R$ ${service.price.toFixed(2).replace(".", ",")}` : "A combinar"}
+        {service.price ? `R$ ${Number(service.price).toFixed(2).replace(".", ",")}` : "A combinar"}
       </p>
     </li>
   )
 }
 
 export default function ServicosPage() {
+  const [services, setServices] = useState<Service[]>([])
+  const [loading, setLoading] = useState(true)
+  const [name, setName] = useState("")
+  const [duration, setDuration] = useState("")
+  const [price, setPrice] = useState("")
+  const userId = "user-1" // Mocked userId
+
+  useEffect(() => {
+    async function loadServices() {
+      try {
+        const data = await getServices(userId)
+        setServices(data)
+      } catch (error) {
+        console.error("Error loading services:", error)
+      } finally {
+        setLoading(false)
+      }
+    }
+    loadServices()
+  }, [userId])
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!name || !duration) return
+
+    try {
+      const newService = await createService({
+        userId,
+        name,
+        duration: Number(duration),
+        price: price ? Number(price) : undefined,
+      })
+      setServices((prev) => [...prev, newService])
+      setName("")
+      setDuration("")
+      setPrice("")
+    } catch (error) {
+      console.error("Error creating service:", error)
+      alert("Erro ao criar serviço.")
+    }
+  }
+
   return (
     <div className="min-h-screen bg-[#f9fafb] font-sans">
       <Header />
@@ -60,12 +90,15 @@ export default function ServicosPage() {
                 <h2 className="text-sm font-bold uppercase tracking-wider">Novo Serviço</h2>
               </div>
 
-              <form className="space-y-4">
+              <form className="space-y-4" onSubmit={handleSubmit}>
                 <Input
                   label="Nome do Serviço"
                   id="name"
                   name="name"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
                   placeholder="Ex: Corte de Cabelo"
+                  required
                 />
 
                 <div className="grid grid-cols-2 gap-4">
@@ -74,7 +107,10 @@ export default function ServicosPage() {
                     type="number"
                     id="duration"
                     name="duration"
+                    value={duration}
+                    onChange={(e) => setDuration(e.target.value)}
                     placeholder="30"
+                    required
                   />
 
                   <Input
@@ -82,6 +118,8 @@ export default function ServicosPage() {
                     type="number"
                     id="price"
                     name="price"
+                    value={price}
+                    onChange={(e) => setPrice(e.target.value)}
                     step="0.01"
                     placeholder="0,00"
                   />
@@ -103,13 +141,17 @@ export default function ServicosPage() {
                 <h2 className="text-sm font-bold uppercase tracking-wider">Serviços Cadastrados</h2>
               </div>
 
-              <ul className="space-y-3">
-                {mockServices.map((service) => (
-                  <ServiceItem key={service.id} service={service} />
-                ))}
-              </ul>
+              {loading ? (
+                <p className="text-center text-sm text-zinc-500">Carregando...</p>
+              ) : (
+                <ul className="space-y-3">
+                  {services.map((service) => (
+                    <ServiceItem key={service.id} service={service} />
+                  ))}
+                </ul>
+              )}
 
-              {mockServices.length === 0 && (
+              {!loading && services.length === 0 && (
                 <div className="py-8 text-center text-zinc-500">
                   <p className="text-sm">Nenhum serviço cadastrado.</p>
                 </div>
