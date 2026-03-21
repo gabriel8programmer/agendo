@@ -10,6 +10,7 @@ import { getUserBySlug, getServices, getAvailability, getAppointments, createApp
 import { generateSlots } from "@/lib/utils/availability"
 import { User, Service, Availability, Appointment } from "@/types"
 import { formatToUTC, getTodayDate, dayjs } from "@/lib/utils/date"
+import { useToast } from "@/components/ui/Toast"
 
 const agendoFont = Bungee_Shade({
   subsets: ["latin"],
@@ -25,6 +26,7 @@ export default function PublicBookingPage({ params: paramsPromise }: { params: P
   const [availability, setAvailability] = useState<Availability | null>(null)
   const [occupiedAppointments, setOccupiedAppointments] = useState<Appointment[]>([])
   const [loading, setLoading] = useState(true)
+  const { showToast, ToastComponent } = useToast()
 
   const [selectedService, setSelectedService] = useState<string | null>(null)
   const [selectedDate, setSelectedDate] = useState<string>(getTodayDate())
@@ -61,7 +63,6 @@ export default function PublicBookingPage({ params: paramsPromise }: { params: P
         try {
           const appointmentsData = await getAppointments(user.id, selectedDate)
           setOccupiedAppointments(appointmentsData)
-          // Reset time when date changes
           setSelectedTime(null)
         } catch (error) {
           console.error("Error loading appointments:", error)
@@ -74,7 +75,7 @@ export default function PublicBookingPage({ params: paramsPromise }: { params: P
   if (loading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-[#f9fafb] p-4 font-sans text-center">
-        <p className="text-zinc-600">Carregando...</p>
+        <p className="text-zinc-600 text-sm">Carregando...</p>
       </div>
     )
   }
@@ -84,7 +85,7 @@ export default function PublicBookingPage({ params: paramsPromise }: { params: P
       <div className="flex min-h-screen items-center justify-center bg-[#f9fafb] p-4 font-sans text-center">
         <Card className="p-8">
           <h1 className="text-xl font-bold text-zinc-900">Página não encontrada</h1>
-          <p className="mt-2 text-zinc-600">O negócio solicitado não existe.</p>
+          <p className="mt-2 text-zinc-600 text-sm">O negócio solicitado não existe.</p>
         </Card>
       </div>
     )
@@ -119,7 +120,7 @@ export default function PublicBookingPage({ params: paramsPromise }: { params: P
     )
   }
 
-  const availableTimes = availability ? generateSlots(availability, occupiedAppointments) : []
+  const availableTimes = availability ? generateSlots(availability, occupiedAppointments, selectedDate) : []
   const isFormValid = selectedService && selectedTime && clientName.trim().length > 0 && selectedDate
 
   const handleConfirm = async () => {
@@ -134,13 +135,14 @@ export default function PublicBookingPage({ params: paramsPromise }: { params: P
         date: formatToUTC(selectedDate, selectedTime),
       })
       setIsConfirmed(true)
+      showToast("Agendamento realizado com sucesso!", "success")
     } catch (error) {
       console.error("Error creating appointment:", error)
-      alert("Erro ao confirmar agendamento. Tente novamente.")
+      showToast("Erro ao confirmar agendamento.", "error")
     }
   }
 
-  // Generate next 14 days, filtering for Mon-Fri and past dates
+  // Generate next 14 days, filtering based on availability config
   const generateAvailableDates = () => {
     const dates = []
     const today = dayjs().tz("America/Sao_Paulo").startOf("day")
@@ -149,10 +151,10 @@ export default function PublicBookingPage({ params: paramsPromise }: { params: P
       const date = today.add(i, "day")
       const dayOfWeek = date.day()
       
-      // 0 = Sunday, 1 = Monday, ..., 5 = Friday, 6 = Saturday
-      const isWeekday = dayOfWeek >= 1 && dayOfWeek <= 5
+      // Filtro simplificado: verifica se o dia está no array workDays
+      const isDayOpen = availability?.workDays?.includes(dayOfWeek) ?? false
       
-      if (isWeekday) {
+      if (isDayOpen) {
         dates.push({
           value: date.format("YYYY-MM-DD"),
           label: date.format("ddd D MMM"),
@@ -279,22 +281,25 @@ export default function PublicBookingPage({ params: paramsPromise }: { params: P
               <Card className="p-4">
                 {availableTimes.length > 0 ? (
                   <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
-                    {availableTimes.map((time) => (
+                    {availableTimes.map((slot) => (
                       <button
-                        key={time}
-                        onClick={() => setSelectedTime(time)}
+                        key={slot.time}
+                        onClick={() => slot.isAvailable && setSelectedTime(slot.time)}
+                        disabled={!slot.isAvailable}
                         className={`rounded-xl border py-2.5 text-sm font-bold transition-all ${
-                          selectedTime === time
+                          !slot.isAvailable
+                            ? "border-zinc-50 bg-zinc-50 text-zinc-300 cursor-not-allowed opacity-60"
+                            : selectedTime === slot.time
                             ? "border-zinc-900 bg-zinc-900 text-white shadow-md"
                             : "border-zinc-100 bg-white text-zinc-600 hover:border-zinc-300 hover:bg-zinc-50"
                         }`}
                       >
-                        {time}
+                        {slot.time}
                       </button>
                     ))}
                   </div>
                 ) : (
-                  <p className="text-center text-sm text-zinc-500">Nenhum horário disponível para este dia.</p>
+                  <p className="text-center text-sm text-zinc-500 py-4 italic">Nenhum horário disponível para este dia.</p>
                 )}
               </Card>
             </section>
@@ -357,6 +362,7 @@ export default function PublicBookingPage({ params: paramsPromise }: { params: P
           Powered by Agendo
         </footer>
       </div>
+      {ToastComponent}
     </div>
   )
 }

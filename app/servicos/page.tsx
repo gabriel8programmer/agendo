@@ -9,6 +9,7 @@ import PageHeader from "@/components/ui/PageHeader"
 import { FaClock, FaTag, FaPlus, FaList } from "react-icons/fa"
 import { getServices, createService } from "@/lib/api"
 import { Service } from "@/types"
+import { useToast } from "@/components/ui/Toast"
 
 function ServiceItem({ service }: { service: Service }) {
   return (
@@ -38,6 +39,7 @@ export default function ServicosPage() {
   const [name, setName] = useState("")
   const [duration, setDuration] = useState("")
   const [price, setPrice] = useState("")
+  const { showToast, ToastComponent } = useToast()
   const userId = "user-1" // Mocked userId
 
   useEffect(() => {
@@ -69,9 +71,10 @@ export default function ServicosPage() {
       setName("")
       setDuration("")
       setPrice("")
+      showToast("Serviço cadastrado com sucesso!", "success")
     } catch (error) {
       console.error("Error creating service:", error)
-      alert("Erro ao criar serviço.")
+      showToast("Erro ao criar serviço. Tente novamente.", "error")
     }
   }
 
@@ -160,6 +163,7 @@ export default function ServicosPage() {
           </div>
         </div>
       </main>
+      {ToastComponent}
     </div>
   )
 }

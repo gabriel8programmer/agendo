@@ -10,13 +10,16 @@ import { formatToLocalTime, dayjs } from "@/lib/utils/date"
 interface TimeSlot {
   id: string
   time: string
-  status: "available" | "booked"
+  status: "available" | "booked" | "reserved"
   clientName?: string
   serviceName?: string
 }
 
 function SlotItem({ slot }: { slot: TimeSlot }) {
   const isAvailable = slot.status === "available"
+  const isReserved = slot.status === "reserved"
+
+  if (isReserved) return null // Esconder horários reservados conforme solicitado
 
   return (
     <div
@@ -66,6 +69,7 @@ function SlotItem({ slot }: { slot: TimeSlot }) {
 export default function AgendaPage() {
   const [loading, setLoading] = useState(true)
   const [slots, setSlots] = useState<TimeSlot[]>([])
+  const [isWorkingDay, setIsWorkingDay] = useState(true)
   const [date, setDate] = useState(dayjs().tz("America/Sao_Paulo"))
   const userId = "user-1"
 
@@ -74,6 +78,8 @@ export default function AgendaPage() {
       setLoading(true)
       try {
         const dateString = date.format("YYYY-MM-DD")
+        const dayOfWeek = date.day()
+        
         const [availability, appointments, services] = await Promise.all([
           getAvailability(userId),
           getAppointments(userId, dateString),
@@ -81,36 +87,57 @@ export default function AgendaPage() {
         ])
 
         if (availability) {
-          const generatedSlots: TimeSlot[] = []
+          const isOpen = availability.workDays?.includes(dayOfWeek)
+          setIsWorkingDay(!!isOpen)
+
+          if (!isOpen) {
+            setSlots([])
+            setLoading(false)
+            return
+          }
+
+          // Mapear todos os slots (disponíveis + ocupados)
+          const allGeneratedSlots: TimeSlot[] = []
+          
+          // Precisamos gerar TODOS os slots do expediente para mostrar na agenda do barbeiro
           let current = parseTimeToMinutes(availability.startTime)
           const end = parseTimeToMinutes(availability.endTime)
 
           while (current + availability.slotDuration <= end) {
             const timeString = formatMinutesToTime(current)
-            const appointment = appointments.find((app) => {
-              const appTime = formatToLocalTime(app.date)
-              return appTime === timeString
+            const slotEnd = current + availability.slotDuration
+
+            // Verificar se é horário reservado
+            const isReserved = availability.reservedIntervals?.some(interval => {
+              const resStart = parseTimeToMinutes(interval.startTime)
+              const resEnd = parseTimeToMinutes(interval.endTime)
+              return (current < resEnd && slotEnd > resStart)
             })
 
-            if (appointment) {
-              const service = services.find((s) => s.id === appointment.serviceId)
-              generatedSlots.push({
-                id: appointment.id,
-                time: timeString,
-                status: "booked",
-                clientName: appointment.clientName,
-                serviceName: service?.name || "Serviço não encontrado",
-              })
+            if (isReserved) {
+              allGeneratedSlots.push({ id: timeString, time: timeString, status: "reserved" })
             } else {
-              generatedSlots.push({
-                id: timeString,
-                time: timeString,
-                status: "available",
+              const appointment = appointments.find((app) => {
+                const appTime = app.time || formatToLocalTime(app.date)
+                return appTime === timeString
               })
+
+              if (appointment) {
+                const service = services.find((s) => s.id === appointment.serviceId)
+                allGeneratedSlots.push({
+                  id: appointment.id,
+                  time: timeString,
+                  status: "booked",
+                  clientName: appointment.clientName,
+                  serviceName: service?.name || "Serviço não encontrado",
+                })
+              } else {
+                allGeneratedSlots.push({ id: timeString, time: timeString, status: "available" })
+              }
             }
             current += availability.slotDuration
           }
-          setSlots(generatedSlots)
+          setSlots(allGeneratedSlots)
         }
       } catch (error) {
         console.error("Error loading agenda:", error)
@@ -124,6 +151,7 @@ export default function AgendaPage() {
   const todayLabel = date.format("dddd, D [de] MMMM")
 
   function parseTimeToMinutes(time: string): number {
+    if (!time) return 0
     const [hours, minutes] = time.split(":").map(Number)
     return hours * 60 + minutes
   }
@@ -168,13 +196,21 @@ export default function AgendaPage() {
         <Card className="p-4 sm:p-6">
           {loading ? (
             <p className="text-center text-sm text-zinc-500">Carregando...</p>
+          ) : !isWorkingDay ? (
+            <div className="py-12 text-center">
+              <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-zinc-50 text-zinc-400">
+                <FaClock size={20} />
+              </div>
+              <p className="text-sm font-bold text-zinc-900">Não há atendimento hoje</p>
+              <p className="text-xs text-zinc-500 mt-1">Este dia está configurado como folga.</p>
+            </div>
           ) : (
             <div className="space-y-3">
-              {slots.map((slot) => (
+              {slots.filter(s => s.status !== "reserved").map((slot) => (
                 <SlotItem key={slot.id} slot={slot} />
               ))}
-              {slots.length === 0 && (
-                <p className="text-center text-sm text-zinc-500">Nenhum horário disponível para este dia.</p>
+              {slots.filter(s => s.status !== "reserved").length === 0 && (
+                <p className="text-center text-sm text-zinc-500 italic">Nenhum horário disponível no expediente.</p>
               )}
             </div>
           )}

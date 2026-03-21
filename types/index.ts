@@ -22,13 +22,21 @@ export interface Appointment {
   clientName: string
   clientWhatsapp?: string
   date: string // ISO UTC (ex: 2026-03-20T09:00:00.000Z)
+  time?: string // HH:mm format
   createdAt: string
+}
+
+export interface WorkInterval {
+  startTime: string
+  endTime: string
 }
 
 export interface Availability {
   id: string
   userId: string
-  startTime: string // "09:00"
-  endTime: string // "18:00"
-  slotDuration: number // ex: 30
+  slotDuration: number
+  startTime: string
+  endTime: string
+  workDays: number[]
+  reservedIntervals: WorkInterval[]
 }

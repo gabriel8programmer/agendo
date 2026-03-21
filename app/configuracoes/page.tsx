@@ -6,15 +6,19 @@ import Button from "@/components/ui/Button"
 import Header from "@/components/ui/Header"
 import Input from "@/components/ui/Input"
 import PageHeader from "@/components/ui/PageHeader"
-import { FaStore, FaClock, FaHistory, FaSave } from "react-icons/fa"
+import { FaStore, FaClock, FaHistory, FaSave, FaPlus, FaTrash, FaCoffee } from "react-icons/fa"
 import { getAvailability, updateAvailability, getUserBySlug } from "@/lib/api"
 import { Availability, User } from "@/types"
+import { useToast } from "@/components/ui/Toast"
+
+const DAYS_INITIALS = ["D", "S", "T", "Q", "Q", "S", "S"]
 
 export default function SettingsPage() {
   const [availability, setAvailability] = useState<Availability | null>(null)
   const [user, setUser] = useState<User | null>(null)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
+  const { showToast, ToastComponent } = useToast()
   const userId = "user-1"
 
   useEffect(() => {
@@ -22,7 +26,7 @@ export default function SettingsPage() {
       try {
         const [availabilityData, userData] = await Promise.all([
           getAvailability(userId),
-          getUserBySlug("barbearia-do-joao"), // Mocked slug
+          getUserBySlug("barbearia-do-joao"),
         ])
         setAvailability(availabilityData)
         setUser(userData)
@@ -35,26 +39,60 @@ export default function SettingsPage() {
     loadSettings()
   }, [])
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  const handleToggleDay = (dayIndex: number) => {
+    if (!availability) return
+    let newWorkDays = [...(availability.workDays || [])]
+    
+    if (newWorkDays.includes(dayIndex)) {
+      newWorkDays = newWorkDays.filter(d => d !== dayIndex)
+    } else {
+      newWorkDays.push(dayIndex)
+    }
+
+    setAvailability({
+      ...availability,
+      workDays: newWorkDays.sort((a, b) => a - b),
+    })
+  }
+
+  const handleAddReserved = () => {
+    if (!availability) return
+    const newReserved = [...(availability.reservedIntervals || [])]
+    newReserved.push({ startTime: "12:00", endTime: "13:00" })
+    setAvailability({ ...availability, reservedIntervals: newReserved })
+  }
+
+  const handleRemoveReserved = (index: number) => {
+    if (!availability || !availability.reservedIntervals) return
+    const newReserved = [...availability.reservedIntervals]
+    newReserved.splice(index, 1)
+    setAvailability({ ...availability, reservedIntervals: newReserved })
+  }
+
+  const handleReservedChange = (index: number, field: "startTime" | "endTime", value: string) => {
+    if (!availability || !availability.reservedIntervals) return
+    const newReserved = [...availability.reservedIntervals]
+    newReserved[index][field] = value
+    setAvailability({ ...availability, reservedIntervals: newReserved })
+  }
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!availability) return
 
     setSaving(true)
-    const formData = new FormData(e.currentTarget)
-    const startTime = formData.get("startTime") as string
-    const endTime = formData.get("endTime") as string
-    const slotDuration = Number(formData.get("slotDuration"))
-
     try {
       await updateAvailability(availability.id, {
-        startTime,
-        endTime,
-        slotDuration,
+        workDays: availability.workDays || [],
+        slotDuration: availability.slotDuration,
+        startTime: availability.startTime,
+        endTime: availability.endTime,
+        reservedIntervals: availability.reservedIntervals || [],
       })
-      alert("Configurações salvas com sucesso!")
+      showToast("Configurações salvas com sucesso!", "success")
     } catch (error) {
       console.error("Error updating settings:", error)
-      alert("Erro ao salvar configurações.")
+      showToast("Erro ao salvar configurações.", "error")
     } finally {
       setSaving(false)
     }
@@ -62,11 +100,8 @@ export default function SettingsPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#f9fafb] font-sans">
-        <Header />
-        <main className="mx-auto max-w-2xl p-4 md:p-8">
-          <p className="text-center text-sm text-zinc-500">Carregando...</p>
-        </main>
+      <div className="min-h-screen bg-[#f9fafb] font-sans text-center p-8">
+        <p className="text-zinc-500 text-sm">Carregando configurações...</p>
       </div>
     )
   }
@@ -75,56 +110,120 @@ export default function SettingsPage() {
     <div className="min-h-screen bg-[#f9fafb] font-sans">
       <Header />
       <main className="mx-auto max-w-2xl p-4 md:p-8">
-        <PageHeader label="Configuração" title="Configurações Gerais" />
+        <PageHeader label="Configuração" title="Minha Agenda" />
 
-        <form className="space-y-6" onSubmit={handleSubmit}>
+        <div className="space-y-6">
           {/* Informações do Negócio */}
           <Card className="p-6">
             <div className="mb-6 flex items-center gap-2 text-zinc-900 border-b border-zinc-100 pb-4">
               <FaStore size={14} className="text-zinc-400" />
               <h2 className="text-sm font-bold uppercase tracking-wider">Informações do Negócio</h2>
             </div>
-
-            <div className="space-y-4">
-              <Input
-                label="Nome do Negócio"
-                id="businessName"
-                name="businessName"
-                placeholder="Minha Barbearia"
-                defaultValue={user?.name || ""}
-                disabled
-              />
-              <p className="text-[10px] text-zinc-400 italic">* Nome do negócio não pode ser alterado nesta versão.</p>
-            </div>
+            <Input
+              label="Nome do Negócio"
+              id="businessName"
+              name="businessName"
+              defaultValue={user?.name || ""}
+              disabled
+            />
           </Card>
 
-          {/* Horário de Funcionamento */}
+          {/* Dias de Atendimento */}
           <Card className="p-6">
             <div className="mb-6 flex items-center gap-2 text-zinc-900 border-b border-zinc-100 pb-4">
               <FaClock size={14} className="text-zinc-400" />
-              <h2 className="text-sm font-bold uppercase tracking-wider">
-                Horário de Funcionamento
-              </h2>
+              <h2 className="text-sm font-bold uppercase tracking-wider">Dias de Atendimento</h2>
             </div>
+            <div className="flex justify-between gap-1">
+              {DAYS_INITIALS.map((initial, index) => {
+                const isActive = availability?.workDays?.includes(index) ?? false
 
+                return (
+                  <button
+                    key={index}
+                    type="button"
+                    onClick={() => handleToggleDay(index)}
+                    className={`flex h-9 w-9 items-center justify-center rounded-xl border text-xs font-bold transition-all ${
+                      isActive
+                        ? "border-zinc-900 bg-zinc-900 text-white shadow-md"
+                        : "border-zinc-100 bg-white text-zinc-400 hover:border-zinc-300 shadow-sm"
+                    }`}
+                  >
+                    {initial}
+                  </button>
+                )
+              })}
+            </div>
+          </Card>
+
+          {/* Horário de Expediente Global */}
+          <Card className="p-6">
+            <div className="mb-6 flex items-center gap-2 text-zinc-900 border-b border-zinc-100 pb-4">
+              <FaClock size={14} className="text-zinc-400" />
+              <h2 className="text-sm font-bold uppercase tracking-wider">Horário de Expediente</h2>
+            </div>
             <div className="grid grid-cols-2 gap-4">
               <Input
-                label="Horário Inicial"
+                label="Início"
                 type="time"
-                id="startTime"
-                name="startTime"
-                defaultValue={availability?.startTime || "09:00"}
-                required
+                value={availability?.startTime || "09:00"}
+                onChange={(e) => setAvailability(prev => prev ? ({ ...prev, startTime: e.target.value }) : null)}
               />
-
               <Input
-                label="Horário Final"
+                label="Término"
                 type="time"
-                id="endTime"
-                name="endTime"
-                defaultValue={availability?.endTime || "18:00"}
-                required
+                value={availability?.endTime || "18:00"}
+                onChange={(e) => setAvailability(prev => prev ? ({ ...prev, endTime: e.target.value }) : null)}
               />
+            </div>
+          </Card>
+
+          {/* Horários Reservados */}
+          <Card className="p-6">
+            <div className="mb-6 flex items-center justify-between border-b border-zinc-100 pb-4">
+              <div className="flex items-center gap-2 text-zinc-900">
+                <FaCoffee size={14} className="text-zinc-400" />
+                <h2 className="text-sm font-bold uppercase tracking-wider">Horários Reservados</h2>
+              </div>
+              <button
+                type="button"
+                onClick={handleAddReserved}
+                className="text-[10px] font-bold uppercase tracking-widest text-zinc-500 hover:text-zinc-900 flex items-center gap-1"
+              >
+                <FaPlus size={8} /> Adicionar
+              </button>
+            </div>
+
+            <div className="space-y-3">
+              {availability?.reservedIntervals && availability.reservedIntervals.length > 0 ? (
+                availability.reservedIntervals.map((interval, idx) => (
+                  <div key={idx} className="flex items-end gap-3 group">
+                    <div className="grid grid-cols-2 gap-3 flex-1">
+                      <Input
+                        type="time"
+                        value={interval.startTime}
+                        onChange={(e) => handleReservedChange(idx, "startTime", e.target.value)}
+                      />
+                      <Input
+                        type="time"
+                        value={interval.endTime}
+                        onChange={(e) => handleReservedChange(idx, "endTime", e.target.value)}
+                      />
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveReserved(idx)}
+                      className="mb-2 text-zinc-300 hover:text-red-500 transition-colors"
+                    >
+                      <FaTrash size={14} />
+                    </button>
+                  </div>
+                ))
+              ) : (
+                <p className="text-xs text-zinc-400 italic bg-zinc-50 p-4 rounded-xl text-center border border-dashed border-zinc-200">
+                  Nenhum horário reservado (pausa) configurado.
+                </p>
+              )}
             </div>
           </Card>
 
@@ -132,43 +231,34 @@ export default function SettingsPage() {
           <Card className="p-6">
             <div className="mb-6 flex items-center gap-2 text-zinc-900 border-b border-zinc-100 pb-4">
               <FaHistory size={14} className="text-zinc-400" />
-              <h2 className="text-sm font-bold uppercase tracking-wider">Duração dos Slots</h2>
+              <h2 className="text-sm font-bold uppercase tracking-wider">Configuração de Agenda</h2>
             </div>
-
-            <div className="flex items-end gap-3">
-              <Input
-                label="Duração Padrão (minutos)"
-                type="number"
-                id="slotDuration"
-                name="slotDuration"
-                defaultValue={availability?.slotDuration.toString() || "30"}
-                min="5"
-                step="5"
-                required
-              />
-              <span className="mb-3 text-sm font-medium text-zinc-500 whitespace-nowrap">
-                minutos
-              </span>
-            </div>
+            <Input
+              label="Duração de cada agendamento (minutos)"
+              type="number"
+              value={availability?.slotDuration || 30}
+              onChange={(e) => setAvailability(prev => prev ? ({ ...prev, slotDuration: Number(e.target.value) }) : null)}
+              min="5"
+              step="5"
+            />
           </Card>
 
-          {/* Botão Salvar */}
-          <div className="pt-2">
-            <Button type="submit" className="w-full py-4 text-base" disabled={saving}>
-              {saving ? "Salvando..." : (
-                <>
-                  <FaSave size={16} />
-                  Salvar Configurações
-                </>
-              )}
-            </Button>
-          </div>
-        </form>
+          {/* Salvar */}
+          <Button onClick={handleSubmit} className="w-full py-4 text-base" disabled={saving}>
+            {saving ? "Salvando..." : (
+              <>
+                <FaSave size={16} />
+                Salvar Configurações
+              </>
+            )}
+          </Button>
+        </div>
 
         <footer className="mt-12 text-center text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-400 pb-8">
           Powered by Agendo
         </footer>
       </main>
+      {ToastComponent}
     </div>
   )
 }
