@@ -32,9 +32,7 @@ describe("API /api/services", () => {
     })
 
     it("returns services for a given userId", async () => {
-      const mockServices = [
-        { id: "1", name: "Service 1", duration: 30, userId: "user-1" },
-      ]
+      const mockServices = [{ id: "1", name: "Service 1", duration: 30, userId: "user-1" }]
       vi.mocked(Service.find).mockReturnValue({
         sort: vi.fn().mockResolvedValue(mockServices),
       } as unknown as ReturnType<typeof Service.find>)
@@ -58,7 +56,9 @@ describe("API /api/services", () => {
     it("creates a new service", async () => {
       const newService = { name: "New Service", duration: 60, userId: "user-1" }
       const createdService = { ...newService, id: "2" }
-      vi.mocked(Service.create).mockResolvedValue(createdService as unknown as ReturnType<typeof Service.create>)
+      vi.mocked(Service.create).mockResolvedValue(
+        createdService as unknown as ReturnType<typeof Service.create>
+      )
 
       const server = createRouteTestServer(POST)
       const res = await request(server).post("/api/services").send(newService)

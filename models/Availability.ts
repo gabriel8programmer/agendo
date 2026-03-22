@@ -36,17 +36,19 @@ const AvailabilitySchema = new Schema<IAvailability>(
     toJSON: {
       virtuals: true,
       transform: (_, ret) => {
-        ret.id = ret._id
-        delete ret._id
-        delete ret.__v
+        const obj = ret as Record<string, unknown> & {
+          _id?: unknown
+          __v?: unknown
+        }
+        obj.id = obj._id
+        delete obj._id
+        delete obj.__v
       },
     },
     toObject: { virtuals: true },
   }
 )
 
-const Availability =
-  models.Availability ||
-  model<IAvailability>("Availability", AvailabilitySchema)
+const Availability = models.Availability || model<IAvailability>("Availability", AvailabilitySchema)
 
 export default Availability

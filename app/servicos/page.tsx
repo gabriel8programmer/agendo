@@ -149,7 +149,7 @@ export default function ServicosPage() {
               ) : (
                 <ul className="space-y-3">
                   {services.map((service) => (
-                    <ServiceItem key={service.id} service={service} />
+                    <ServiceItem key={service._id} service={service} />
                   ))}
                 </ul>
               )}

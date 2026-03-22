@@ -6,7 +6,13 @@ import { FaClock, FaTag, FaCheck, FaPhoneAlt, FaUser } from "react-icons/fa"
 import Card from "@/components/ui/Card"
 import Button from "@/components/ui/Button"
 import Input from "@/components/ui/Input"
-import { getUserBySlug, getServices, getAvailability, getAppointments, createAppointment } from "@/lib/api"
+import {
+  getUserBySlug,
+  getServices,
+  getAvailability,
+  getAppointments,
+  createAppointment,
+} from "@/lib/api"
 import { generateSlots } from "@/lib/utils/availability"
 import { User, Service, Availability, Appointment } from "@/types"
 import { formatToUTC, getTodayDate, dayjs } from "@/lib/utils/date"
@@ -17,7 +23,11 @@ const agendoFont = Bungee_Shade({
   weight: ["400"],
 })
 
-export default function PublicBookingPage({ params: paramsPromise }: { params: Promise<{ slug: string }> }) {
+export default function PublicBookingPage({
+  params: paramsPromise,
+}: {
+  params: Promise<{ slug: string }>
+}) {
   const params = use(paramsPromise)
   const slug = params.slug
 
@@ -120,8 +130,11 @@ export default function PublicBookingPage({ params: paramsPromise }: { params: P
     )
   }
 
-  const availableTimes = availability ? generateSlots(availability, occupiedAppointments, selectedDate) : []
-  const isFormValid = selectedService && selectedTime && clientName.trim().length > 0 && selectedDate
+  const availableTimes = availability
+    ? generateSlots(availability, occupiedAppointments, selectedDate)
+    : []
+  const isFormValid =
+    selectedService && selectedTime && clientName.trim().length > 0 && selectedDate
 
   const handleConfirm = async () => {
     if (!selectedService || !selectedTime || !user || !selectedDate) return
@@ -150,15 +163,15 @@ export default function PublicBookingPage({ params: paramsPromise }: { params: P
     for (let i = 0; i < 14; i++) {
       const date = today.add(i, "day")
       const dayOfWeek = date.day()
-      
+
       // Filtro simplificado: verifica se o dia está no array workDays
       const isDayOpen = availability?.workDays?.includes(dayOfWeek) ?? false
-      
+
       if (isDayOpen) {
         dates.push({
           value: date.format("YYYY-MM-DD"),
           label: date.format("ddd D MMM"),
-          isToday: i === 0
+          isToday: i === 0,
         })
       }
     }
@@ -290,8 +303,8 @@ export default function PublicBookingPage({ params: paramsPromise }: { params: P
                           !slot.isAvailable
                             ? "border-zinc-50 bg-zinc-50 text-zinc-300 cursor-not-allowed opacity-60"
                             : selectedTime === slot.time
-                            ? "border-zinc-900 bg-zinc-900 text-white shadow-md"
-                            : "border-zinc-100 bg-white text-zinc-600 hover:border-zinc-300 hover:bg-zinc-50"
+                              ? "border-zinc-900 bg-zinc-900 text-white shadow-md"
+                              : "border-zinc-100 bg-white text-zinc-600 hover:border-zinc-300 hover:bg-zinc-50"
                         }`}
                       >
                         {slot.time}
@@ -299,7 +312,9 @@ export default function PublicBookingPage({ params: paramsPromise }: { params: P
                     ))}
                   </div>
                 ) : (
-                  <p className="text-center text-sm text-zinc-500 py-4 italic">Nenhum horário disponível para este dia.</p>
+                  <p className="text-center text-sm text-zinc-500 py-4 italic">
+                    Nenhum horário disponível para este dia.
+                  </p>
                 )}
               </Card>
             </section>

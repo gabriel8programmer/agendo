@@ -12,10 +12,10 @@ export function generateSlots(
   selectedDate: string // YYYY-MM-DD
 ): Slot[] {
   const { workDays, slotDuration, startTime, endTime, reservedIntervals } = availability
-  
+
   const dateObj = dayjs.tz(selectedDate, "America/Sao_Paulo")
   const dayOfWeek = dateObj.day()
-  
+
   const isOpen = workDays?.includes(dayOfWeek)
 
   if (!isOpen) return []
@@ -29,10 +29,10 @@ export function generateSlots(
     const slotEnd = current + slotDuration
 
     // 1. Verificar se está em um horário reservado (PAUSA/ALMOÇO) -> HIDE
-    const isReservedInterval = reservedIntervals?.some(interval => {
+    const isReservedInterval = reservedIntervals?.some((interval) => {
       const resStart = parseTimeToMinutes(interval.startTime)
       const resEnd = parseTimeToMinutes(interval.endTime)
-      return (current < resEnd && slotEnd > resStart)
+      return current < resEnd && slotEnd > resStart
     })
 
     if (!isReservedInterval) {
@@ -44,7 +44,7 @@ export function generateSlots(
 
       slots.push({
         time: timeString,
-        isAvailable: !isOccupied
+        isAvailable: !isOccupied,
       })
     }
 

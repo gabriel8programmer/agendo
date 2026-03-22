@@ -7,6 +7,7 @@ export interface User {
 }
 
 export interface Service {
+  _id?: string
   id: string
   userId: string
   name: string

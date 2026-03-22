@@ -2,10 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import dbConnect from "@/lib/mongoose"
 import Availability from "@/models/Availability"
 
-export async function PATCH(
-  req: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     await dbConnect()
     const { id } = await params
@@ -17,18 +14,12 @@ export async function PATCH(
     })
 
     if (!availability) {
-      return NextResponse.json(
-        { error: "Disponibilidade não encontrada" },
-        { status: 404 }
-      )
+      return NextResponse.json({ error: "Disponibilidade não encontrada" }, { status: 404 })
     }
 
     return NextResponse.json(availability)
   } catch (error) {
     console.error("Erro ao atualizar disponibilidade:", error)
-    return NextResponse.json(
-      { error: "Erro interno do servidor" },
-      { status: 500 }
-    )
+    return NextResponse.json({ error: "Erro interno do servidor" }, { status: 500 })
   }
 }

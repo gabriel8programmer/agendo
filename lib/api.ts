@@ -67,13 +67,13 @@ export async function createService(data: Omit<Service, "id" | "createdAt">): Pr
  */
 export async function getAppointments(userId: string, date: string): Promise<Appointment[]> {
   const { start, end } = getDayRangeUTC(date)
-  
-  return fetchJson(
-    `${BASE_URL}/appointments?userId=${userId}&date_gte=${start}&date_lte=${end}`
-  )
+
+  return fetchJson(`${BASE_URL}/appointments?userId=${userId}&date_gte=${start}&date_lte=${end}`)
 }
 
-export async function createAppointment(data: Omit<Appointment, "id" | "createdAt">): Promise<Appointment> {
+export async function createAppointment(
+  data: Omit<Appointment, "id" | "createdAt">
+): Promise<Appointment> {
   return fetchJson(`${BASE_URL}/appointments`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -94,7 +94,10 @@ export async function getAvailability(userId: string): Promise<Availability | nu
   }
 }
 
-export async function updateAvailability(id: string, data: Partial<Availability>): Promise<Availability> {
+export async function updateAvailability(
+  id: string,
+  data: Partial<Availability>
+): Promise<Availability> {
   return fetchJson(`${BASE_URL}/availability/${id}`, {
     method: "PATCH",
     headers: { "Content-Type": "application/json" },

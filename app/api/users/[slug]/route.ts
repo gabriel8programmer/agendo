@@ -2,10 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import dbConnect from "@/lib/mongoose"
 import User from "@/models/User"
 
-export async function GET(
-  _req: NextRequest,
-  { params }: { params: Promise<{ slug: string }> }
-) {
+export async function GET(_req: NextRequest, { params }: { params: Promise<{ slug: string }> }) {
   try {
     await dbConnect()
     const { slug } = await params
@@ -19,9 +16,6 @@ export async function GET(
     return NextResponse.json(user)
   } catch (error) {
     console.error("Erro ao buscar usuário por slug:", error)
-    return NextResponse.json(
-      { error: "Erro interno do servidor" },
-      { status: 500 }
-    )
+    return NextResponse.json({ error: "Erro interno do servidor" }, { status: 500 })
   }
 }

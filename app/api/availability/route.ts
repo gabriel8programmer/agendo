@@ -13,7 +13,7 @@ export async function GET(req: NextRequest) {
     }
 
     const availability = await Availability.findOne({ userId })
-    
+
     if (!availability) {
       return NextResponse.json([])
     }
@@ -21,9 +21,6 @@ export async function GET(req: NextRequest) {
     return NextResponse.json([availability])
   } catch (error) {
     console.error("Erro ao buscar disponibilidade:", error)
-    return NextResponse.json(
-      { error: "Erro interno do servidor" },
-      { status: 500 }
-    )
+    return NextResponse.json({ error: "Erro interno do servidor" }, { status: 500 })
   }
 }

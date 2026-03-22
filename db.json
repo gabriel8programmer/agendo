@@ -44,9 +44,7 @@
       "startTime": "09:00",
       "endTime": "18:00",
       "workDays": [1, 2, 3, 4, 5, 6],
-      "reservedIntervals": [
-        { "startTime": "12:00", "endTime": "13:00" }
-      ]
+      "reservedIntervals": [{ "startTime": "12:00", "endTime": "13:00" }]
     }
   ],
   "$schema": "./node_modules/json-server/schema.json"

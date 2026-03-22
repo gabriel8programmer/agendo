@@ -79,7 +79,7 @@ export default function AgendaPage() {
       try {
         const dateString = date.format("YYYY-MM-DD")
         const dayOfWeek = date.day()
-        
+
         const [availability, appointments, services] = await Promise.all([
           getAvailability(userId),
           getAppointments(userId, dateString),
@@ -98,7 +98,7 @@ export default function AgendaPage() {
 
           // Mapear todos os slots (disponíveis + ocupados)
           const allGeneratedSlots: TimeSlot[] = []
-          
+
           // Precisamos gerar TODOS os slots do expediente para mostrar na agenda do barbeiro
           let current = parseTimeToMinutes(availability.startTime)
           const end = parseTimeToMinutes(availability.endTime)
@@ -108,10 +108,10 @@ export default function AgendaPage() {
             const slotEnd = current + availability.slotDuration
 
             // Verificar se é horário reservado
-            const isReserved = availability.reservedIntervals?.some(interval => {
+            const isReserved = availability.reservedIntervals?.some((interval) => {
               const resStart = parseTimeToMinutes(interval.startTime)
               const resEnd = parseTimeToMinutes(interval.endTime)
-              return (current < resEnd && slotEnd > resStart)
+              return current < resEnd && slotEnd > resStart
             })
 
             if (isReserved) {
@@ -206,11 +206,15 @@ export default function AgendaPage() {
             </div>
           ) : (
             <div className="space-y-3">
-              {slots.filter(s => s.status !== "reserved").map((slot) => (
-                <SlotItem key={slot.id} slot={slot} />
-              ))}
-              {slots.filter(s => s.status !== "reserved").length === 0 && (
-                <p className="text-center text-sm text-zinc-500 italic">Nenhum horário disponível no expediente.</p>
+              {slots
+                .filter((s) => s.status !== "reserved")
+                .map((slot) => (
+                  <SlotItem key={slot.id} slot={slot} />
+                ))}
+              {slots.filter((s) => s.status !== "reserved").length === 0 && (
+                <p className="text-center text-sm text-zinc-500 italic">
+                  Nenhum horário disponível no expediente.
+                </p>
               )}
             </div>
           )}

@@ -19,7 +19,7 @@ export default function Toast({ message, type, onClose }: ToastProps) {
     const animFrame = requestAnimationFrame(() => {
       setIsVisible(true)
     })
-    
+
     const timer = setTimeout(() => {
       setIsVisible(false)
       setTimeout(onClose, 300)

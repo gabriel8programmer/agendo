@@ -42,9 +42,9 @@ export default function SettingsPage() {
   const handleToggleDay = (dayIndex: number) => {
     if (!availability) return
     let newWorkDays = [...(availability.workDays || [])]
-    
+
     if (newWorkDays.includes(dayIndex)) {
-      newWorkDays = newWorkDays.filter(d => d !== dayIndex)
+      newWorkDays = newWorkDays.filter((d) => d !== dayIndex)
     } else {
       newWorkDays.push(dayIndex)
     }
@@ -167,13 +167,17 @@ export default function SettingsPage() {
                 label="Início"
                 type="time"
                 value={availability?.startTime || "09:00"}
-                onChange={(e) => setAvailability(prev => prev ? ({ ...prev, startTime: e.target.value }) : null)}
+                onChange={(e) =>
+                  setAvailability((prev) => (prev ? { ...prev, startTime: e.target.value } : null))
+                }
               />
               <Input
                 label="Término"
                 type="time"
                 value={availability?.endTime || "18:00"}
-                onChange={(e) => setAvailability(prev => prev ? ({ ...prev, endTime: e.target.value }) : null)}
+                onChange={(e) =>
+                  setAvailability((prev) => (prev ? { ...prev, endTime: e.target.value } : null))
+                }
               />
             </div>
           </Card>
@@ -237,7 +241,11 @@ export default function SettingsPage() {
               label="Duração de cada agendamento (minutos)"
               type="number"
               value={availability?.slotDuration || 30}
-              onChange={(e) => setAvailability(prev => prev ? ({ ...prev, slotDuration: Number(e.target.value) }) : null)}
+              onChange={(e) =>
+                setAvailability((prev) =>
+                  prev ? { ...prev, slotDuration: Number(e.target.value) } : null
+                )
+              }
               min="5"
               step="5"
             />
@@ -245,7 +253,9 @@ export default function SettingsPage() {
 
           {/* Salvar */}
           <Button onClick={handleSubmit} className="w-full py-4 text-base" disabled={saving}>
-            {saving ? "Salvando..." : (
+            {saving ? (
+              "Salvando..."
+            ) : (
               <>
                 <FaSave size={16} />
                 Salvar Configurações
