@@ -7,7 +7,7 @@ import Header from "@/components/ui/Header"
 import Input from "@/components/ui/Input"
 import PageHeader from "@/components/ui/PageHeader"
 import { FaStore, FaClock, FaHistory, FaSave, FaPlus, FaTrash, FaCoffee } from "react-icons/fa"
-import { getAvailability, updateAvailability, getUserBySlug } from "@/lib/api"
+import { getAvailability, updateAvailability, upsertAvailabilityByUser, getUserBySlug } from "@/lib/api"
 import { normalizeTime24BR } from "@/lib/utils/date"
 import { Availability, User } from "@/types"
 import { useToast } from "@/components/ui/Toast"
@@ -80,10 +80,17 @@ export default function SettingsPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!availability) return
+    const availabilityId =
+      availability.id || (availability as Availability & { _id?: string })._id || ""
+    const normalizedAvailabilityId = String(availabilityId).trim()
+    const hasValidId =
+      normalizedAvailabilityId !== "" &&
+      normalizedAvailabilityId !== "undefined" &&
+      normalizedAvailabilityId !== "null"
 
     setSaving(true)
     try {
-      await updateAvailability(availability.id, {
+      const payload = {
         workDays: availability.workDays || [],
         slotDuration: availability.slotDuration,
         startTime: normalizeTime24BR(availability.startTime),
@@ -92,7 +99,22 @@ export default function SettingsPage() {
           startTime: normalizeTime24BR(i.startTime),
           endTime: normalizeTime24BR(i.endTime),
         })),
-      })
+      }
+
+      const updatedAvailability = hasValidId
+        ? await updateAvailability(normalizedAvailabilityId, payload)
+        : await upsertAvailabilityByUser(userId, payload)
+
+      setAvailability((prev) =>
+        prev
+          ? {
+              ...prev,
+              ...updatedAvailability,
+              id: updatedAvailability.id || prev.id,
+            }
+          : updatedAvailability
+      )
+
       showToast("Configurações salvas com sucesso!", "success")
     } catch (error) {
       console.error("Error updating settings:", error)

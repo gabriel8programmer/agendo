@@ -9,12 +9,31 @@ const getBaseUrl = () => {
 
 const BASE_URL = `${getBaseUrl()}/api`
 
+function isValidEntityId(value: unknown): value is string {
+  if (typeof value !== "string") return false
+  const normalized = value.trim()
+  if (!normalized) return false
+  if (normalized === "undefined" || normalized === "null") return false
+  return true
+}
+
 async function fetchJson(url: string, init?: RequestInit) {
   const res = await fetch(url, init)
   if (!res.ok) {
     const text = await res.text()
     console.error(`Fetch error ${res.status} for ${url}:`, text.slice(0, 100))
-    throw new Error(`Fetch error ${res.status}`)
+    let message = `Fetch error ${res.status}`
+
+    try {
+      const parsed = JSON.parse(text) as { error?: string; message?: string }
+      message = parsed.error || parsed.message || message
+    } catch {
+      if (text.trim()) {
+        message = text.slice(0, 100)
+      }
+    }
+
+    throw new Error(message)
   }
   const contentType = res.headers.get("content-type")
   if (!contentType || !contentType.includes("application/json")) {
@@ -87,7 +106,23 @@ export async function createAppointment(
 export async function getAvailability(userId: string): Promise<Availability | null> {
   try {
     const availabilities = await fetchJson(`${BASE_URL}/availability?userId=${userId}`)
-    return Array.isArray(availabilities) && availabilities.length > 0 ? availabilities[0] : null
+    if (!Array.isArray(availabilities) || availabilities.length === 0) {
+      return null
+    }
+
+    const raw = availabilities[0] as Availability & { _id?: string }
+    const normalizedId = isValidEntityId(raw.id)
+      ? raw.id
+      : isValidEntityId(raw._id)
+        ? raw._id
+        : ""
+
+    return {
+      ...raw,
+      id: normalizedId,
+      reservedIntervals: raw.reservedIntervals || [],
+      workDays: raw.workDays || [],
+    }
   } catch (error) {
     console.error("getAvailability error:", error)
     return null
@@ -98,9 +133,31 @@ export async function updateAvailability(
   id: string,
   data: Partial<Availability>
 ): Promise<Availability> {
+  if (!isValidEntityId(id)) {
+    throw new Error("ID de disponibilidade inválido")
+  }
+
   return fetchJson(`${BASE_URL}/availability/${id}`, {
     method: "PATCH",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(data),
+  })
+}
+
+export async function upsertAvailabilityByUser(
+  userId: string,
+  data: Partial<Availability>
+): Promise<Availability> {
+  if (!isValidEntityId(userId)) {
+    throw new Error("userId inválido")
+  }
+
+  return fetchJson(`${BASE_URL}/availability`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      userId,
+      ...data,
+    }),
   })
 }

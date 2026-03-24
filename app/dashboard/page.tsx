@@ -120,11 +120,16 @@ export default function DashboardPage() {
               <p className="text-center text-sm text-zinc-500 py-4">Carregando...</p>
             ) : (
               <ul className="space-y-3">
-                {sortedAppointments.map((app) => {
+                {sortedAppointments.map((app, index) => {
                   const service = services.find((s) => s.id === app.serviceId)
+                  const appointmentKey =
+                    app.id ||
+                    (app as Appointment & { _id?: string })._id ||
+                    `${app.userId}-${app.serviceId}-${app.date}-${app.clientName}-${index}`
+
                   return (
                     <li
-                      key={app.id}
+                      key={appointmentKey}
                       className="flex items-center justify-between gap-3 rounded-2xl bg-white px-4 py-3 shadow-sm border border-transparent hover:border-zinc-200 transition-all"
                     >
                       <div className="flex items-center gap-3">
@@ -148,9 +153,9 @@ export default function DashboardPage() {
                 })}
 
                 {appointments.length === 0 && (
-                  <p className="text-center text-sm text-zinc-500 py-4">
+                  <li className="text-center text-sm text-zinc-500 py-4">
                     Nenhum agendamento para hoje.
-                  </p>
+                  </li>
                 )}
               </ul>
             )}
