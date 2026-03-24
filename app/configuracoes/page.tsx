@@ -160,7 +160,7 @@ export default function SettingsPage() {
               <FaClock size={14} className="text-zinc-400" />
               <h2 className="text-sm font-bold uppercase tracking-wider">Dias de Atendimento</h2>
             </div>
-            <div className="flex justify-between gap-1">
+            <div className="flex gap-2">
               {DAYS_INITIALS.map((initial, index) => {
                 const isActive = availability?.workDays?.includes(index) ?? false
 
@@ -169,7 +169,7 @@ export default function SettingsPage() {
                     key={index}
                     type="button"
                     onClick={() => handleToggleDay(index)}
-                    className={`flex h-9 w-9 items-center justify-center rounded-xl border text-xs font-bold transition-all ${
+                    className={`flex flex-1 h-9 w-9 items-center justify-center rounded-xl border text-xs font-bold transition-all ${
                       isActive
                         ? "border-zinc-900 bg-zinc-900 text-white shadow-md"
                         : "border-zinc-100 bg-white text-zinc-400 hover:border-zinc-300 shadow-sm"

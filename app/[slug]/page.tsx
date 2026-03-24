@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect, use } from "react"
-import { Bungee_Shade } from "next/font/google"
+import Image from "next/image"
 import { FaClock, FaTag, FaCheck, FaPhoneAlt, FaUser } from "react-icons/fa"
 import Card from "@/components/ui/Card"
 import Button from "@/components/ui/Button"
@@ -17,11 +17,6 @@ import { generateSlots } from "@/lib/utils/availability"
 import { User, Service, Availability, Appointment } from "@/types"
 import { formatToUTC, getTodayDate, dayjs } from "@/lib/utils/date"
 import { useToast } from "@/components/ui/Toast"
-
-const agendoFont = Bungee_Shade({
-  subsets: ["latin"],
-  weight: ["400"],
-})
 
 export default function PublicBookingPage({
   params: paramsPromise,
@@ -195,11 +190,13 @@ export default function PublicBookingPage({
       <div className="mx-auto max-w-xl">
         <header className="mb-10 text-center">
           <div className="mb-4 flex justify-center">
-            <h2
-              className={`${agendoFont.className} text-xl text-zinc-400 opacity-50 tracking-widest`}
-            >
-              Agendo
-            </h2>
+            <Image
+              src="/logo.svg"
+              alt="Agendo"
+              width={132}
+              height={40}
+              className="h-8 w-auto opacity-50"
+            />
           </div>
           <h1 className="text-3xl font-extrabold tracking-tight text-zinc-900 sm:text-4xl">
             {user.name}

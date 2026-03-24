@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import Link from "next/link"
-import { Bungee_Shade } from "next/font/google"
+import Image from "next/image"
 import {
   FaEllipsisV,
   FaCalendarAlt,
@@ -11,11 +11,6 @@ import {
   FaChartLine,
   FaSignOutAlt,
 } from "react-icons/fa"
-
-const agendoFont = Bungee_Shade({
-  subsets: ["latin"],
-  weight: ["400"],
-})
 
 export default function Header() {
   const [isOpen, setIsOpen] = useState(false)
@@ -31,11 +26,7 @@ export default function Header() {
     <header className="sticky top-0 z-50 w-full border-b border-zinc-100 bg-white/80 backdrop-blur-md">
       <div className="mx-auto flex max-w-5xl items-center justify-between px-4 py-3">
         <Link href="/dashboard" className="transition-opacity hover:opacity-80">
-          <h1
-            className={`${agendoFont.className} text-2xl font-semibold text-zinc-900 [text-shadow:0_1px_0_rgba(0,0,0,0.05)]`}
-          >
-            Agendo
-          </h1>
+          <Image src="/logo.svg" alt="Agendo" width={138} height={40} className="h-8 w-auto" />
         </Link>
 
         <div className="relative">

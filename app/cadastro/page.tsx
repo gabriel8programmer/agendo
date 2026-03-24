@@ -1,13 +1,12 @@
 "use client"
 
 import Image from "next/image"
-import { FcGoogle } from "react-icons/fc"
 import Card from "@/components/ui/Card"
 import Input from "@/components/ui/Input"
 import Button from "@/components/ui/Button"
 import ButtonLink from "@/components/ui/ButtonLink"
 
-export default function LoginPage() {
+export default function RegisterPage() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-[#f9fafb] p-4 font-sans">
       <main className="w-full max-w-md">
@@ -17,11 +16,21 @@ export default function LoginPage() {
               <Image src="/logo.svg" alt="Agendo" width={220} height={64} className="h-14 w-auto" />
             </div>
             <p className="mt-1 text-center text-sm font-medium text-zinc-600 uppercase tracking-widest">
-              Gerencie seus compromissos
+              Crie sua conta
             </p>
           </header>
 
           <form className="space-y-4">
+            <Input
+              label="Nome"
+              id="name"
+              name="name"
+              type="text"
+              autoComplete="name"
+              placeholder="Seu nome completo"
+              required
+            />
+
             <Input
               label="Email"
               id="email"
@@ -37,39 +46,29 @@ export default function LoginPage() {
               id="password"
               name="password"
               type="password"
-              autoComplete="current-password"
+              autoComplete="new-password"
               placeholder="••••••••"
               required
             />
 
-            <Button type="button" className="w-full py-3">
-              Entrar
+            <Input
+              label="Confirmar Senha"
+              id="confirmPassword"
+              name="confirmPassword"
+              type="password"
+              autoComplete="new-password"
+              placeholder="••••••••"
+              required
+            />
+
+            <Button type="submit" className="w-full py-3">
+              Criar Conta
             </Button>
 
-            <div className="pt-1 text-right">
-              <a
-                href="#"
-                className="text-sm font-semibold text-zinc-600 hover:text-zinc-900 transition-colors"
-              >
-                Esqueceu a senha?
-              </a>
-            </div>
-
-            <div className="flex items-center gap-3 py-2">
-              <div className="h-px flex-1 bg-zinc-100" />
-              <span className="text-xs font-bold uppercase tracking-widest text-zinc-400">ou</span>
-              <div className="h-px flex-1 bg-zinc-100" />
-            </div>
-
-            <Button type="button" variant="secondary" className="w-full py-3">
-              <FcGoogle aria-hidden size={18} />
-              Login com Google
-            </Button>
-
-            <div className="pt-6 text-center">
-              <p className="text-sm font-medium text-zinc-500">Não tem uma conta?</p>
-              <ButtonLink href="/cadastro" variant="secondary" className="mt-3 w-full">
-                Criar Conta
+            <div className="pt-3 text-center">
+              <p className="text-sm font-medium text-zinc-500">Já tem uma conta?</p>
+              <ButtonLink href="/login" variant="secondary" className="mt-3 w-full">
+                Entrar
               </ButtonLink>
             </div>
           </form>
