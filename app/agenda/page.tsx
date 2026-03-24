@@ -124,8 +124,10 @@ export default function AgendaPage() {
 
               if (appointment) {
                 const service = services.find((s) => s.id === appointment.serviceId)
+                const appointmentId =
+                  appointment.id || (appointment as { _id?: string })._id || `${timeString}-booked`
                 allGeneratedSlots.push({
-                  id: appointment.id,
+                  id: String(appointmentId),
                   time: timeString,
                   status: "booked",
                   clientName: appointment.clientName,
@@ -209,7 +211,7 @@ export default function AgendaPage() {
               {slots
                 .filter((s) => s.status !== "reserved")
                 .map((slot) => (
-                  <SlotItem key={slot.id} slot={slot} />
+                  <SlotItem key={`${slot.time}-${slot.status}-${slot.id}`} slot={slot} />
                 ))}
               {slots.filter((s) => s.status !== "reserved").length === 0 && (
                 <p className="text-center text-sm text-zinc-500 italic">

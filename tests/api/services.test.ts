@@ -32,16 +32,35 @@ describe("API /api/services", () => {
     })
 
     it("returns services for a given userId", async () => {
-      const mockServices = [{ id: "1", name: "Service 1", duration: 30, userId: "user-1" }]
+      const createdAt = new Date("2026-01-01T12:00:00.000Z")
+      const leanDocs = [
+        {
+          _id: "service-1",
+          name: "Service 1",
+          duration: 30,
+          userId: "user-1",
+          createdAt,
+        },
+      ]
       vi.mocked(Service.find).mockReturnValue({
-        sort: vi.fn().mockResolvedValue(mockServices),
+        sort: vi.fn().mockReturnValue({
+          lean: vi.fn().mockResolvedValue(leanDocs),
+        }),
       } as unknown as ReturnType<typeof Service.find>)
 
       const server = createRouteTestServer(GET)
       const res = await request(server).get("/api/services?userId=user-1")
 
       expect(res.status).toBe(200)
-      expect(res.body).toEqual(mockServices)
+      expect(res.body).toEqual([
+        {
+          id: "service-1",
+          name: "Service 1",
+          duration: 30,
+          userId: "user-1",
+          createdAt: createdAt.toISOString(),
+        },
+      ])
       expect(Service.find).toHaveBeenCalledWith({ userId: "user-1" })
     })
   })

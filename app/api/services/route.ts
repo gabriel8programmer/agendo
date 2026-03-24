@@ -12,7 +12,15 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: "userId é obrigatório" }, { status: 400 })
     }
 
-    const services = await Service.find({ userId }).sort({ createdAt: -1 })
+    const docs = await Service.find({ userId }).sort({ createdAt: -1 }).lean()
+    const services = docs.map((d) => ({
+      id: String(d._id),
+      userId: d.userId,
+      name: d.name,
+      duration: d.duration,
+      price: d.price,
+      createdAt: d.createdAt instanceof Date ? d.createdAt.toISOString() : String(d.createdAt),
+    }))
     return NextResponse.json(services)
   } catch (error) {
     console.error("Erro ao buscar serviços:", error)
@@ -25,17 +33,36 @@ export async function POST(req: NextRequest) {
     await dbConnect()
     const body = await req.json()
 
-    if (!body.userId || !body.name || !body.duration) {
+    if (!body.userId || !body.name || body.duration === undefined || body.duration === null) {
       return NextResponse.json({ error: "Campos obrigatórios ausentes" }, { status: 400 })
     }
 
-    // Garantia extra: se o body não tiver _id, geramos um aqui
-    // Isso resolve o erro "document must have an _id" se o hot-reload do schema falhar
-    if (!body._id && !body.id) {
-      body._id = `service_${Math.random().toString(36).substr(2, 9)}`
+    const duration = Number(body.duration)
+    if (!Number.isFinite(duration) || duration <= 0) {
+      return NextResponse.json({ error: "Duração inválida" }, { status: 400 })
     }
 
-    const service = await Service.create(body)
+    // Não repassar _id/id/createdAt do cliente: o Mongoose gera ObjectId e timestamps.
+    // Um _id string arbitrário (ex: "service_abc123") quebra o cast para ObjectId e gera 500.
+    const payload: {
+      userId: string
+      name: string
+      duration: number
+      price?: number
+    } = {
+      userId: String(body.userId),
+      name: String(body.name).trim(),
+      duration,
+    }
+
+    if (body.price !== undefined && body.price !== null && body.price !== "") {
+      const price = Number(body.price)
+      if (Number.isFinite(price) && price >= 0) {
+        payload.price = price
+      }
+    }
+
+    const service = await Service.create(payload)
     return NextResponse.json(service, { status: 201 })
   } catch (error) {
     console.error("Erro ao criar serviço:", error)

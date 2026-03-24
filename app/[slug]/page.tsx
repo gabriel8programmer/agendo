@@ -50,10 +50,20 @@ export default function PublicBookingPage({
       try {
         const userData = await getUserBySlug(slug)
         if (userData) {
-          setUser(userData)
+          const userId = userData.id || (userData as User & { _id?: string })._id || ""
+          if (!userId) {
+            console.error("Usuário sem id: resposta da API /users/[slug] incompleta", userData)
+            setLoading(false)
+            return
+          }
+          const normalizedUser: User = {
+            ...userData,
+            id: String(userId),
+          }
+          setUser(normalizedUser)
           const [servicesData, availabilityData] = await Promise.all([
-            getServices(userData.id),
-            getAvailability(userData.id),
+            getServices(normalizedUser.id),
+            getAvailability(normalizedUser.id),
           ])
           setServices(servicesData)
           setAvailability(availabilityData)

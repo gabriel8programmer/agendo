@@ -8,6 +8,7 @@ import Input from "@/components/ui/Input"
 import PageHeader from "@/components/ui/PageHeader"
 import { FaStore, FaClock, FaHistory, FaSave, FaPlus, FaTrash, FaCoffee } from "react-icons/fa"
 import { getAvailability, updateAvailability, getUserBySlug } from "@/lib/api"
+import { normalizeTime24BR } from "@/lib/utils/date"
 import { Availability, User } from "@/types"
 import { useToast } from "@/components/ui/Toast"
 
@@ -85,9 +86,12 @@ export default function SettingsPage() {
       await updateAvailability(availability.id, {
         workDays: availability.workDays || [],
         slotDuration: availability.slotDuration,
-        startTime: availability.startTime,
-        endTime: availability.endTime,
-        reservedIntervals: availability.reservedIntervals || [],
+        startTime: normalizeTime24BR(availability.startTime),
+        endTime: normalizeTime24BR(availability.endTime),
+        reservedIntervals: (availability.reservedIntervals || []).map((i) => ({
+          startTime: normalizeTime24BR(i.startTime),
+          endTime: normalizeTime24BR(i.endTime),
+        })),
       })
       showToast("Configurações salvas com sucesso!", "success")
     } catch (error) {
@@ -166,6 +170,7 @@ export default function SettingsPage() {
               <Input
                 label="Início"
                 type="time"
+                step={60}
                 value={availability?.startTime || "09:00"}
                 onChange={(e) =>
                   setAvailability((prev) => (prev ? { ...prev, startTime: e.target.value } : null))
@@ -174,6 +179,7 @@ export default function SettingsPage() {
               <Input
                 label="Término"
                 type="time"
+                step={60}
                 value={availability?.endTime || "18:00"}
                 onChange={(e) =>
                   setAvailability((prev) => (prev ? { ...prev, endTime: e.target.value } : null))
@@ -205,11 +211,13 @@ export default function SettingsPage() {
                     <div className="grid grid-cols-2 gap-3 flex-1">
                       <Input
                         type="time"
+                        step={60}
                         value={interval.startTime}
                         onChange={(e) => handleReservedChange(idx, "startTime", e.target.value)}
                       />
                       <Input
                         type="time"
+                        step={60}
                         value={interval.endTime}
                         onChange={(e) => handleReservedChange(idx, "endTime", e.target.value)}
                       />

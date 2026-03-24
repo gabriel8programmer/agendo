@@ -7,13 +7,22 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ slu
     await dbConnect()
     const { slug } = await params
 
-    const user = await User.findOne({ slug })
+    // lean() + payload explícito: o front usa user.id em getServices/getAvailability.
+    // NextResponse.json(doc) com Document Mongoose às vezes não expõe `id` como o toJSON do schema.
+    const user = await User.findOne({ slug }).lean()
 
     if (!user) {
       return NextResponse.json({ error: "Usuário não encontrado" }, { status: 404 })
     }
 
-    return NextResponse.json(user)
+    return NextResponse.json({
+      id: String(user._id),
+      name: user.name,
+      slug: user.slug,
+      email: user.email,
+      createdAt:
+        user.createdAt instanceof Date ? user.createdAt.toISOString() : String(user.createdAt),
+    })
   } catch (error) {
     console.error("Erro ao buscar usuário por slug:", error)
     return NextResponse.json({ error: "Erro interno do servidor" }, { status: 500 })

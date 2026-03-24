@@ -18,7 +18,7 @@ export async function GET(req: NextRequest) {
       return NextResponse.json([])
     }
 
-    return NextResponse.json([availability])
+    return NextResponse.json([availability.toJSON()])
   } catch (error) {
     console.error("Erro ao buscar disponibilidade:", error)
     return NextResponse.json({ error: "Erro interno do servidor" }, { status: 500 })

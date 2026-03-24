@@ -39,4 +39,21 @@ export function getTodayDate(): string {
   return dayjs().tz(TIMEZONE).format("YYYY-MM-DD")
 }
 
+/**
+ * Garante horário no formato brasileiro 24h (00:00–23:59), sem AM/PM.
+ * Aceita "H:mm" ou "HH:mm" vindos do input nativo.
+ */
+export function normalizeTime24BR(input: string): string {
+  if (!input || typeof input !== "string") return "00:00"
+  const trimmed = input.trim()
+  const match = /^(\d{1,2}):(\d{2})(?::\d{2})?$/.exec(trimmed)
+  if (!match) return "00:00"
+  let h = parseInt(match[1], 10)
+  let m = parseInt(match[2], 10)
+  if (!Number.isFinite(h) || !Number.isFinite(m)) return "00:00"
+  h = Math.min(23, Math.max(0, h))
+  m = Math.min(59, Math.max(0, m))
+  return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`
+}
+
 export { dayjs }
