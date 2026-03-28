@@ -118,14 +118,14 @@ export async function POST(req: NextRequest) {
     }
 
     // 7. Criar agendamento
-    if (!body._id && !body.id) {
-      body._id = `app_${Math.random().toString(36).substr(2, 9)}`
-    }
-
+    // Deixe o MongoDB gerar o _id (ObjectId). Forçar string aqui causa erro de cast.
     const appointment = await Appointment.create(body)
     return NextResponse.json(appointment, { status: 201 })
   } catch (error) {
     console.error("Erro ao criar agendamento:", error)
+    if (error instanceof Error && (error.name === "CastError" || error.name === "ValidationError")) {
+      return NextResponse.json({ error: "Dados de agendamento inválidos" }, { status: 400 })
+    }
     return NextResponse.json({ error: "Erro interno do servidor" }, { status: 500 })
   }
 }

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react"
 import Image from "next/image"
+import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { parseCookies, setCookie } from "nookies"
 import { FcGoogle } from "react-icons/fc"
@@ -24,6 +25,14 @@ export default function LoginPage() {
       router.replace("/dashboard")
     }
   }, [router])
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+    const oauthError = params.get("error")
+    if (oauthError) {
+      setError("Não foi possível autenticar com Google. Tente novamente.")
+    }
+  }, [])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -50,7 +59,7 @@ export default function LoginPage() {
         <Card className="p-8">
           <header className="mb-8">
             <div className="flex justify-center">
-              <Image src="/logo.svg" alt="Agendo" width={220} height={64} className="h-14 w-auto" />
+              <Image src="/logo.svg" alt="Agendo" width={180} height={52} className="h-12 w-auto" />
             </div>
             <p className="mt-1 text-center text-sm font-medium text-zinc-600 uppercase tracking-widest">
               Gerencie seus compromissos
@@ -89,12 +98,12 @@ export default function LoginPage() {
             </Button>
 
             <div className="pt-1 text-right">
-              <a
-                href="#"
+              <Link
+                href="/esqueci-senha"
                 className="text-sm font-semibold text-zinc-600 hover:text-zinc-900 transition-colors"
               >
                 Esqueceu a senha?
-              </a>
+              </Link>
             </div>
 
             <div className="flex items-center gap-3 py-2">
@@ -103,9 +112,16 @@ export default function LoginPage() {
               <div className="h-px flex-1 bg-zinc-100" />
             </div>
 
-            <Button type="button" variant="secondary" className="w-full py-3" disabled>
+            <Button
+              type="button"
+              variant="secondary"
+              className="w-full py-3"
+              onClick={() => {
+                window.location.href = "/api/auth/google"
+              }}
+            >
               <FcGoogle aria-hidden size={18} />
-              Login com Google (em breve)
+              Login com Google
             </Button>
 
             <div className="pt-6 text-center">

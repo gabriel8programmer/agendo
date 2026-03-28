@@ -56,7 +56,7 @@ export default function RegisterPage() {
         <Card className="p-8">
           <header className="mb-8">
             <div className="flex justify-center">
-              <Image src="/logo.svg" alt="Agendo" width={220} height={64} className="h-14 w-auto" />
+              <Image src="/logo.svg" alt="Agendo" width={180} height={52} className="h-12 w-auto" />
             </div>
             <p className="mt-1 text-center text-sm font-medium text-zinc-600 uppercase tracking-widest">
               Crie sua conta

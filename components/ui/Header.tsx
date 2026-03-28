@@ -42,7 +42,7 @@ export default function Header() {
     <header className="sticky top-0 z-50 w-full border-b border-zinc-100 bg-white/80 backdrop-blur-md">
       <div className="mx-auto flex max-w-5xl items-center justify-between px-4 py-3">
         <Link href="/dashboard" className="transition-opacity hover:opacity-80">
-          <Image src="/logo.svg" alt="Agendo" width={138} height={40} className="h-8 w-auto" />
+          <Image src="/logo.svg" alt="Agendo" width={120} height={34} className="h-7 w-auto" />
         </Link>
 
         <div className="relative">

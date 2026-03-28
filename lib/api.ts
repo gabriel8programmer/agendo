@@ -17,11 +17,18 @@ function isValidEntityId(value: unknown): value is string {
   return true
 }
 
-async function fetchJson(url: string, init?: RequestInit) {
+type FetchJsonOptions = {
+  silenceStatusCodes?: number[]
+}
+
+async function fetchJson(url: string, init?: RequestInit, options?: FetchJsonOptions) {
   const res = await fetch(url, init)
   if (!res.ok) {
     const text = await res.text()
-    console.error(`Fetch error ${res.status} for ${url}:`, text.slice(0, 100))
+    const shouldSilence = options?.silenceStatusCodes?.includes(res.status) ?? false
+    if (!shouldSilence) {
+      console.error(`Fetch error ${res.status} for ${url}:`, text.slice(0, 100))
+    }
     let message = `Fetch error ${res.status}`
 
     try {
@@ -196,7 +203,7 @@ export async function logoutSession(): Promise<{ ok: boolean }> {
 }
 
 export async function getCurrentSession(): Promise<AuthPayload> {
-  return fetchJson(`${BASE_URL}/auth/me`)
+  return fetchJson(`${BASE_URL}/auth/me`, undefined, { silenceStatusCodes: [401] })
 }
 
 export async function updateCurrentUserProfile(data: {
@@ -206,6 +213,33 @@ export async function updateCurrentUserProfile(data: {
 }): Promise<AuthPayload> {
   return fetchJson(`${BASE_URL}/users/me`, {
     method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+  })
+}
+
+export async function requestPasswordReset(email: string): Promise<{ ok: boolean; requestId: string }> {
+  return fetchJson(`${BASE_URL}/auth/password-reset/request`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email }),
+  })
+}
+
+export async function getPasswordResetStatus(requestId: string): Promise<{
+  status: "pending" | "verified" | "used" | "expired" | "not_found"
+  verified: boolean
+}> {
+  return fetchJson(`${BASE_URL}/auth/password-reset/status?requestId=${encodeURIComponent(requestId)}`)
+}
+
+export async function confirmPasswordReset(data: {
+  requestId: string
+  password: string
+  confirmPassword: string
+}): Promise<{ ok: boolean }> {
+  return fetchJson(`${BASE_URL}/auth/password-reset/confirm`, {
+    method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(data),
   })

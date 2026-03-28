@@ -94,3 +94,10 @@ export function toSafeSlug(value: string) {
     .replace(/^-+|-+$/g, "")
 }
 
+export function generateOpaqueToken(bytes = 32) {
+  return crypto.randomBytes(bytes).toString("hex")
+}
+
+export function hashOpaqueToken(token: string) {
+  return crypto.createHash("sha256").update(token).digest("hex")
+}
