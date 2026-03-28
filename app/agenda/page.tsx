@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react"
 import Card from "@/components/ui/Card"
 import Header from "@/components/ui/Header"
+import { useAuth } from "@/components/providers/AuthProvider"
 import { FaChevronLeft, FaChevronRight, FaClock, FaUser, FaPlus } from "react-icons/fa"
 import { getAvailability, getAppointments, getServices } from "@/lib/api"
 import { formatToLocalTime, dayjs } from "@/lib/utils/date"
@@ -67,13 +68,23 @@ function SlotItem({ slot }: { slot: TimeSlot }) {
 }
 
 export default function AgendaPage() {
+  const { user, loading: authLoading } = useAuth()
   const [loading, setLoading] = useState(true)
   const [slots, setSlots] = useState<TimeSlot[]>([])
   const [isWorkingDay, setIsWorkingDay] = useState(true)
   const [date, setDate] = useState(dayjs().tz("America/Sao_Paulo"))
-  const userId = "user-1"
 
   useEffect(() => {
+    if (authLoading) return
+
+    if (!user?.id) {
+      setSlots([])
+      setIsWorkingDay(false)
+      setLoading(false)
+      return
+    }
+    const userId = user.id
+
     async function loadAgenda() {
       setLoading(true)
       try {
@@ -148,7 +159,7 @@ export default function AgendaPage() {
       }
     }
     loadAgenda()
-  }, [date])
+  }, [authLoading, date, user?.id])
 
   const todayLabel = date.format("dddd, D [de] MMMM")
 
@@ -196,7 +207,7 @@ export default function AgendaPage() {
         </header>
 
         <Card className="p-4 sm:p-6">
-          {loading ? (
+          {loading || authLoading ? (
             <p className="text-center text-sm text-zinc-500">Carregando...</p>
           ) : !isWorkingDay ? (
             <div className="py-12 text-center">

@@ -199,7 +199,7 @@ export default function PublicBookingPage({
             />
           </div>
           <h1 className="text-3xl font-extrabold tracking-tight text-zinc-900 sm:text-4xl">
-            {user.name}
+            {user.companyName || user.name}
           </h1>
           <p className="mt-2 text-sm font-medium text-zinc-600 uppercase tracking-widest">
             Agende seu horário em segundos

@@ -2,16 +2,22 @@ import { Schema, model, models, Document } from "mongoose"
 
 export interface IUser extends Document {
   name: string
+  companyName: string
   slug: string
-  email?: string
+  slugLocked: boolean
+  email: string
+  passwordHash?: string
   createdAt: Date
 }
 
 const UserSchema = new Schema<IUser>(
   {
     name: { type: String, required: true },
+    companyName: { type: String, required: true },
     slug: { type: String, required: true, unique: true },
-    email: { type: String },
+    slugLocked: { type: Boolean, default: false },
+    email: { type: String, required: true, unique: true },
+    passwordHash: { type: String },
   },
   {
     timestamps: { createdAt: true, updatedAt: false },

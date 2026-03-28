@@ -13,18 +13,30 @@ import {
 import ButtonLink from "@/components/ui/ButtonLink"
 import Card from "@/components/ui/Card"
 import Header from "@/components/ui/Header"
+import { useAuth } from "@/components/providers/AuthProvider"
 import { getAppointments, getServices } from "@/lib/api"
 import { Appointment, Service } from "@/types"
 import { formatToLocalTime, getTodayDate, dayjs } from "@/lib/utils/date"
 
 export default function DashboardPage() {
+  const { user, loading: authLoading } = useAuth()
   const [appointments, setAppointments] = useState<Appointment[]>([])
   const [services, setServices] = useState<Service[]>([])
   const [loading, setLoading] = useState(true)
-  const userId = "user-1"
 
   useEffect(() => {
+    if (authLoading) return
+
+    if (!user?.id) {
+      setAppointments([])
+      setServices([])
+      setLoading(false)
+      return
+    }
+    const userId = user.id
+
     async function loadDashboard() {
+      setLoading(true)
       try {
         const today = getTodayDate()
         const [appointmentsData, servicesData] = await Promise.all([
@@ -40,7 +52,7 @@ export default function DashboardPage() {
       }
     }
     loadDashboard()
-  }, [])
+  }, [authLoading, user?.id])
 
   // Use useMemo to avoid recalculating on every render and avoid state mutation
   const sortedAppointments = useMemo(() => {
@@ -61,6 +73,8 @@ export default function DashboardPage() {
     }, 0)
   }, [appointments, services])
 
+  const isPageLoading = loading || authLoading
+
   return (
     <div className="min-h-screen bg-[#f9fafb] font-sans">
       <Header />
@@ -70,7 +84,7 @@ export default function DashboardPage() {
             <p className="text-sm font-medium text-zinc-600 uppercase tracking-widest">
               Resumo do dia
             </p>
-            <h1 className="text-xl font-bold text-zinc-900">Bom dia, João</h1>
+            <h1 className="text-xl font-bold text-zinc-900">Bom dia, {user?.name || "Profissional"}</h1>
           </header>
 
           <section className="mb-6">
@@ -81,7 +95,7 @@ export default function DashboardPage() {
                   <h2 className="text-sm font-medium text-zinc-700">Agendamentos hoje</h2>
                 </div>
                 <p className="mt-2 text-2xl font-semibold text-zinc-900">
-                  {loading ? "..." : totalAppointments}
+                  {isPageLoading ? "..." : totalAppointments}
                 </p>
               </Card>
 
@@ -91,7 +105,7 @@ export default function DashboardPage() {
                   <h2 className="text-sm font-medium text-zinc-700">Próximo atendimento</h2>
                 </div>
                 <p className="mt-2 text-2xl font-semibold text-zinc-900">
-                  {loading
+                  {isPageLoading
                     ? "..."
                     : nextAppointment
                       ? formatToLocalTime(nextAppointment.date)
@@ -105,7 +119,7 @@ export default function DashboardPage() {
                   <h2 className="text-sm font-medium text-zinc-700">Faturamento hoje</h2>
                 </div>
                 <p className="mt-2 text-2xl font-semibold text-zinc-900">
-                  {loading ? "..." : `R$ ${totalRevenue.toFixed(2).replace(".", ",")}`}
+                  {isPageLoading ? "..." : `R$ ${totalRevenue.toFixed(2).replace(".", ",")}`}
                 </p>
               </Card>
             </div>
@@ -116,7 +130,7 @@ export default function DashboardPage() {
               Próximos atendimentos
             </h2>
 
-            {loading ? (
+            {isPageLoading ? (
               <p className="text-center text-sm text-zinc-500 py-4">Carregando...</p>
             ) : (
               <ul className="space-y-3">

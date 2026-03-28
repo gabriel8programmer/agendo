@@ -3,6 +3,8 @@
 import { useState } from "react"
 import Link from "next/link"
 import Image from "next/image"
+import { useRouter } from "next/navigation"
+import { destroyCookie } from "nookies"
 import {
   FaEllipsisV,
   FaCalendarAlt,
@@ -11,9 +13,11 @@ import {
   FaChartLine,
   FaSignOutAlt,
 } from "react-icons/fa"
+import { logoutSession } from "@/lib/api"
 
 export default function Header() {
   const [isOpen, setIsOpen] = useState(false)
+  const router = useRouter()
 
   const menuItems = [
     { label: "Dashboard", href: "/dashboard", icon: FaChartLine },
@@ -21,6 +25,18 @@ export default function Header() {
     { label: "Serviços", href: "/servicos", icon: FaWrench },
     { label: "Configurações", href: "/configuracoes", icon: FaCog },
   ]
+
+  const handleLogout = async () => {
+    try {
+      await logoutSession()
+    } catch (error) {
+      console.error("Erro ao encerrar sessão:", error)
+    } finally {
+      destroyCookie(null, "agendo_logged", { path: "/" })
+      setIsOpen(false)
+      router.push("/login")
+    }
+  }
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-zinc-100 bg-white/80 backdrop-blur-md">
@@ -55,14 +71,14 @@ export default function Header() {
                     </Link>
                   ))}
                   <div className="my-2 h-px bg-zinc-100" />
-                  <Link
-                    href="/login"
-                    onClick={() => setIsOpen(false)}
-                    className="flex items-center gap-3 rounded-xl px-4 py-2.5 text-sm font-semibold text-zinc-500 hover:bg-red-50 hover:text-red-600 transition-colors"
+                  <button
+                    type="button"
+                    onClick={handleLogout}
+                    className="flex w-full items-center gap-3 rounded-xl px-4 py-2.5 text-sm font-semibold text-zinc-500 hover:bg-red-50 hover:text-red-600 transition-colors"
                   >
                     <FaSignOutAlt size={14} />
                     Sair
-                  </Link>
+                  </button>
                 </div>
               </div>
             </>

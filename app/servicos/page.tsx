@@ -6,6 +6,7 @@ import Header from "@/components/ui/Header"
 import Input from "@/components/ui/Input"
 import Button from "@/components/ui/Button"
 import PageHeader from "@/components/ui/PageHeader"
+import { useAuth } from "@/components/providers/AuthProvider"
 import { FaClock, FaTag, FaPlus, FaList } from "react-icons/fa"
 import { getServices, createService } from "@/lib/api"
 import { Service } from "@/types"
@@ -34,16 +35,26 @@ function ServiceItem({ service }: { service: Service }) {
 }
 
 export default function ServicosPage() {
+  const { user, loading: authLoading } = useAuth()
   const [services, setServices] = useState<Service[]>([])
   const [loading, setLoading] = useState(true)
   const [name, setName] = useState("")
   const [duration, setDuration] = useState("")
   const [price, setPrice] = useState("")
   const { showToast, ToastComponent } = useToast()
-  const userId = "user-1" // Mocked userId
 
   useEffect(() => {
+    if (authLoading) return
+
+    if (!user?.id) {
+      setServices([])
+      setLoading(false)
+      return
+    }
+    const userId = user.id
+
     async function loadServices() {
+      setLoading(true)
       try {
         const data = await getServices(userId)
         setServices(data)
@@ -54,11 +65,12 @@ export default function ServicosPage() {
       }
     }
     loadServices()
-  }, [userId])
+  }, [authLoading, user?.id])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!name || !duration) return
+    if (!name || !duration || !user?.id) return
+    const userId = user.id
 
     try {
       const newService = await createService({
@@ -144,7 +156,7 @@ export default function ServicosPage() {
                 <h2 className="text-sm font-bold uppercase tracking-wider">Serviços Cadastrados</h2>
               </div>
 
-              {loading ? (
+              {loading || authLoading ? (
                 <p className="text-center text-sm text-zinc-500">Carregando...</p>
               ) : (
                 <ul className="space-y-3">

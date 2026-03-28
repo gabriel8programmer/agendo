@@ -18,6 +18,7 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ slu
     return NextResponse.json({
       id: String(user._id),
       name: user.name,
+      companyName: user.companyName,
       slug: user.slug,
       email: user.email,
       createdAt:

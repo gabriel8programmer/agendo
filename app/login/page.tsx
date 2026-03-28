@@ -1,13 +1,49 @@
 "use client"
 
+import { useEffect, useState } from "react"
 import Image from "next/image"
+import { useRouter } from "next/navigation"
+import { parseCookies, setCookie } from "nookies"
 import { FcGoogle } from "react-icons/fc"
 import Card from "@/components/ui/Card"
 import Input from "@/components/ui/Input"
 import Button from "@/components/ui/Button"
 import ButtonLink from "@/components/ui/ButtonLink"
+import { loginWithEmail } from "@/lib/api"
 
 export default function LoginPage() {
+  const router = useRouter()
+  const [email, setEmail] = useState("")
+  const [password, setPassword] = useState("")
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState("")
+
+  useEffect(() => {
+    const cookies = parseCookies()
+    if (cookies.agendo_logged === "1") {
+      router.replace("/dashboard")
+    }
+  }, [router])
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setError("")
+    setLoading(true)
+
+    try {
+      await loginWithEmail({ email, password })
+      setCookie(null, "agendo_logged", "1", {
+        maxAge: 60 * 60 * 24 * 7,
+        path: "/",
+      })
+      router.push("/dashboard")
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Erro ao autenticar")
+    } finally {
+      setLoading(false)
+    }
+  }
+
   return (
     <div className="flex min-h-screen items-center justify-center bg-[#f9fafb] p-4 font-sans">
       <main className="w-full max-w-md">
@@ -21,7 +57,7 @@ export default function LoginPage() {
             </p>
           </header>
 
-          <form className="space-y-4">
+          <form className="space-y-4" onSubmit={handleSubmit}>
             <Input
               label="Email"
               id="email"
@@ -29,6 +65,8 @@ export default function LoginPage() {
               type="email"
               autoComplete="email"
               placeholder="seuemail@exemplo.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
               required
             />
 
@@ -39,11 +77,15 @@ export default function LoginPage() {
               type="password"
               autoComplete="current-password"
               placeholder="••••••••"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
               required
             />
 
-            <Button type="button" className="w-full py-3">
-              Entrar
+            {error && <p className="text-sm text-red-500">{error}</p>}
+
+            <Button type="submit" className="w-full py-3" disabled={loading}>
+              {loading ? "Entrando..." : "Entrar"}
             </Button>
 
             <div className="pt-1 text-right">
@@ -61,9 +103,9 @@ export default function LoginPage() {
               <div className="h-px flex-1 bg-zinc-100" />
             </div>
 
-            <Button type="button" variant="secondary" className="w-full py-3">
+            <Button type="button" variant="secondary" className="w-full py-3" disabled>
               <FcGoogle aria-hidden size={18} />
-              Login com Google
+              Login com Google (em breve)
             </Button>
 
             <div className="pt-6 text-center">

@@ -6,31 +6,70 @@ import Button from "@/components/ui/Button"
 import Header from "@/components/ui/Header"
 import Input from "@/components/ui/Input"
 import PageHeader from "@/components/ui/PageHeader"
+import { useAuth } from "@/components/providers/AuthProvider"
 import { FaStore, FaClock, FaHistory, FaSave, FaPlus, FaTrash, FaCoffee } from "react-icons/fa"
-import { getAvailability, updateAvailability, upsertAvailabilityByUser, getUserBySlug } from "@/lib/api"
+import {
+  getAvailability,
+  updateAvailability,
+  upsertAvailabilityByUser,
+  updateCurrentUserProfile,
+} from "@/lib/api"
 import { normalizeTime24BR } from "@/lib/utils/date"
-import { Availability, User } from "@/types"
+import { Availability } from "@/types"
 import { useToast } from "@/components/ui/Toast"
 
 const DAYS_INITIALS = ["D", "S", "T", "Q", "Q", "S", "S"]
 
 export default function SettingsPage() {
+  const { user: authUser, loading: authLoading, refreshUser } = useAuth()
   const [availability, setAvailability] = useState<Availability | null>(null)
-  const [user, setUser] = useState<User | null>(null)
+  const [personName, setPersonName] = useState("")
+  const [companyName, setCompanyName] = useState("")
+  const [businessSlug, setBusinessSlug] = useState("")
+  const [slugLocked, setSlugLocked] = useState(false)
+  const [loadedUserId, setLoadedUserId] = useState("")
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const { showToast, ToastComponent } = useToast()
-  const userId = "user-1"
 
   useEffect(() => {
+    if (authLoading) return
+
+    if (!authUser?.id) {
+      setAvailability(null)
+      setPersonName("")
+      setCompanyName("")
+      setBusinessSlug("")
+      setSlugLocked(false)
+      setLoadedUserId("")
+      setLoading(false)
+      return
+    }
+    const currentUser = authUser
+    const userId = authUser.id
+
     async function loadSettings() {
+      setLoading(true)
       try {
-        const [availabilityData, userData] = await Promise.all([
-          getAvailability(userId),
-          getUserBySlug("barbearia-do-joao"),
-        ])
-        setAvailability(availabilityData)
-        setUser(userData)
+        const availabilityData = await getAvailability(userId)
+        setAvailability(
+          availabilityData || {
+            id: "",
+            userId,
+            slotDuration: 30,
+            startTime: "09:00",
+            endTime: "18:00",
+            workDays: [1, 2, 3, 4, 5],
+            reservedIntervals: [],
+          }
+        )
+        if (loadedUserId !== userId) {
+          setPersonName(currentUser.name || "")
+          setCompanyName(currentUser.companyName || currentUser.name || "")
+          setBusinessSlug(currentUser.slug || "")
+          setSlugLocked(Boolean(currentUser.slugLocked))
+          setLoadedUserId(userId)
+        }
       } catch (error) {
         console.error("Error loading settings:", error)
       } finally {
@@ -38,7 +77,7 @@ export default function SettingsPage() {
       }
     }
     loadSettings()
-  }, [])
+  }, [authLoading, authUser, loadedUserId])
 
   const handleToggleDay = (dayIndex: number) => {
     if (!availability) return
@@ -79,7 +118,8 @@ export default function SettingsPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!availability) return
+    if (!availability || !authUser?.id) return
+    const userId = authUser.id
     const availabilityId =
       availability.id || (availability as Availability & { _id?: string })._id || ""
     const normalizedAvailabilityId = String(availabilityId).trim()
@@ -87,9 +127,29 @@ export default function SettingsPage() {
       normalizedAvailabilityId !== "" &&
       normalizedAvailabilityId !== "undefined" &&
       normalizedAvailabilityId !== "null"
+    const sanitizedSlug = businessSlug.trim()
+    const sanitizedCompanyName = companyName.trim()
+    const sanitizedPersonName = personName.trim()
+
+    if (!sanitizedPersonName || !sanitizedCompanyName || !sanitizedSlug) {
+      showToast("Preencha nome, nome da empresa e slug.", "error")
+      return
+    }
 
     setSaving(true)
     try {
+      const profileResponse = await updateCurrentUserProfile({
+        name: sanitizedPersonName,
+        companyName: sanitizedCompanyName,
+        slug: sanitizedSlug,
+      })
+      setPersonName(profileResponse.user.name || sanitizedPersonName)
+      setCompanyName(profileResponse.user.companyName || sanitizedCompanyName)
+      setBusinessSlug(profileResponse.user.slug || sanitizedSlug)
+      setSlugLocked(Boolean(profileResponse.user.slugLocked))
+      setLoadedUserId(userId)
+      await refreshUser()
+
       const payload = {
         workDays: availability.workDays || [],
         slotDuration: availability.slotDuration,
@@ -114,17 +174,16 @@ export default function SettingsPage() {
             }
           : updatedAvailability
       )
-
       showToast("Configurações salvas com sucesso!", "success")
     } catch (error) {
       console.error("Error updating settings:", error)
-      showToast("Erro ao salvar configurações.", "error")
+      showToast(error instanceof Error ? error.message : "Erro ao salvar configurações.", "error")
     } finally {
       setSaving(false)
     }
   }
 
-  if (loading) {
+  if (loading || authLoading) {
     return (
       <div className="min-h-screen bg-[#f9fafb] font-sans text-center p-8">
         <p className="text-zinc-500 text-sm">Carregando configurações...</p>
@@ -146,12 +205,36 @@ export default function SettingsPage() {
               <h2 className="text-sm font-bold uppercase tracking-wider">Informações do Negócio</h2>
             </div>
             <Input
-              label="Nome do Negócio"
-              id="businessName"
-              name="businessName"
-              defaultValue={user?.name || ""}
-              disabled
+              label="Nome da Pessoa"
+              id="personName"
+              name="personName"
+              value={personName}
+              onChange={(e) => setPersonName(e.target.value)}
             />
+            <div className="mt-4">
+              <Input
+                label="Nome da Empresa"
+                id="companyName"
+                name="companyName"
+                value={companyName}
+                onChange={(e) => setCompanyName(e.target.value)}
+              />
+            </div>
+            <div className="mt-4">
+              <Input
+                label="Slug do Negócio (URL)"
+                id="businessSlug"
+                name="businessSlug"
+                value={businessSlug}
+                onChange={(e) => setBusinessSlug(e.target.value)}
+                disabled={slugLocked}
+              />
+              <p className="mt-1 text-xs text-zinc-500">
+                {slugLocked
+                  ? "Slug já definido e bloqueado para novas alterações."
+                  : "Você pode definir o slug uma única vez."}
+              </p>
+            </div>
           </Card>
 
           {/* Dias de Atendimento */}

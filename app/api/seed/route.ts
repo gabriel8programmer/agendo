@@ -26,10 +26,14 @@ export async function GET() {
 
     // 3. Inserir Usuários
     const users = data.users.map(
-      (u: { id: string; name: string; slug: string; createdAt: string }) => ({
+      (u: { id: string; name: string; slug: string; createdAt: string; email?: string }) => ({
         _id: u.id,
         name: u.name,
+        companyName: u.name,
         slug: u.slug,
+        slugLocked: false,
+        email: u.email || `${u.slug}@agendo.local`,
+        passwordHash: "seed-user-sem-senha-real",
         createdAt: new Date(u.createdAt),
       })
     )

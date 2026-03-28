@@ -161,3 +161,52 @@ export async function upsertAvailabilityByUser(
     }),
   })
 }
+
+type AuthPayload = {
+  user: User
+}
+
+export async function registerWithEmail(data: {
+  name: string
+  email: string
+  password: string
+}): Promise<AuthPayload> {
+  return fetchJson(`${BASE_URL}/auth/register`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+  })
+}
+
+export async function loginWithEmail(data: {
+  email: string
+  password: string
+}): Promise<AuthPayload> {
+  return fetchJson(`${BASE_URL}/auth/login`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+  })
+}
+
+export async function logoutSession(): Promise<{ ok: boolean }> {
+  return fetchJson(`${BASE_URL}/auth/logout`, {
+    method: "POST",
+  })
+}
+
+export async function getCurrentSession(): Promise<AuthPayload> {
+  return fetchJson(`${BASE_URL}/auth/me`)
+}
+
+export async function updateCurrentUserProfile(data: {
+  name?: string
+  companyName?: string
+  slug?: string
+}): Promise<AuthPayload> {
+  return fetchJson(`${BASE_URL}/users/me`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+  })
+}

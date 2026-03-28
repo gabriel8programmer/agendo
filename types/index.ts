@@ -1,9 +1,11 @@
 export interface User {
   id: string
   name: string
+  companyName?: string
   slug: string
+  slugLocked?: boolean
   email?: string
-  createdAt: string
+  createdAt?: string
 }
 
 export interface Service {
