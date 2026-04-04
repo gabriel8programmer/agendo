@@ -1,39 +1,75 @@
-## 📅 Agendo
+## Agendo
 
-Micro SaaS de **agendamento online** (foco inicial: profissionais autônomos, ex: barbearias).
+Micro SaaS de agendamento online (foco inicial: profissionais autônomos como barbearias).
 
-### ✨ Objetivo (MVP)
+## Funcionalidades atuais
 
-- 🧾 Cadastro de serviços
-- 🗓️ Gestão de agenda
-- 🔗 Link público para agendamento
-- ✅ Criação de agendamentos por clientes
+- Autenticação com email/senha e Google OAuth
+- Recuperação de senha por email com verificação de link
+- Dashboard com resumo diário e próximos atendimentos
+- Agenda com bloqueios de horário reservado e ação rápida de WhatsApp
+- Configurações de negócio e disponibilidade (dias, horários, pausas)
+- Página pública de agendamento por `slug`
+- Gestão de serviços com:
+  - criação
+  - edição por modal ao clicar no item
+  - remoção em lote com confirmação
+- Telemetria básica via Vercel Analytics
+- Rate limit básico em login e solicitação de recuperação de senha
 
-### 🧰 Stack
+## Páginas principais
 
-- ⚡ Next.js (App Router)
-- 🧠 TypeScript
-- 🎨 TailwindCSS
-- 🧩 Backend no próprio Next.js (Route Handlers)
-- 🧪 Testes: Vitest + Supertest
+- `/` Página inicial
+- `/login` Login
+- `/cadastro` Cadastro de usuário
+- `/esqueci-senha` Solicitar redefinição de senha
+- `/esqueci-senha/aguardando` Espera/verificação + definição de nova senha
+- `/dashboard` Resumo da operação
+- `/agenda` Agenda diária
+- `/servicos` Cadastro/edição/remoção de serviços
+- `/configuracoes` Dados do negócio + disponibilidade
+- `/:slug` Página pública para clientes agendarem
 
-### 🚀 Como rodar
+## Stack
 
-Instale as dependências:
+- Next.js 16 (App Router)
+- TypeScript
+- TailwindCSS
+- MongoDB (Mongoose)
+- Vitest + Supertest
+
+## Variáveis de ambiente
+
+Use `.env.local` baseado em `.env.example`:
+
+```env
+MONGODB_URI=
+
+GOOGLE_CLIENT_ID=
+GOOGLE_CLIENT_SECRET=
+AUTH_SECRET=
+APP_URL=
+
+SMTP_HOST=
+SMTP_PORT=
+SMTP_USER=
+SMTP_PASS=
+SMTP_FROM=
+
+# opcional para testar analytics fora de produção
+ENABLE_ANALYTICS=0
+```
+
+## Como rodar localmente
 
 ```bash
 npm install
-```
-
-Rode o servidor:
-
-```bash
 npm run dev
 ```
 
 Acesse `http://localhost:3000`.
 
-### ✅ Scripts úteis
+## Scripts úteis
 
 ```bash
 # qualidade
@@ -51,43 +87,12 @@ npm run build
 npm run start
 ```
 
-### 🧪 Testes de API (App Router)
+## Qualidade e testes
 
-- 🧩 Testes ficam em `tests/`
-- 🛣️ Rotas ficam em `app/api/**/route.ts`
-- ❤️ Exemplo: `GET /api/health`
+- Testes de API em `tests/`
+- Rotas em `app/api/**/route.ts`
+- Commits no padrão Conventional Commits
 
-### 📁 Estrutura (visão geral)
+## Deploy
 
-```
-app/
-  api/
-lib/
-services/
-utils/
-tests/
-```
-
-### 📝 Padrões do projeto
-
-- 🧹 Formatação: Prettier + EditorConfig (evita diffs só por quebra de linha)
-- 🧾 Commits: Conventional Commits (semânticos)
-
-## Getting Started
-
-> Esta seção é o template padrão do Next.js. Podemos remover quando o projeto estiver mais avançado.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Deploy recomendado: Vercel.
