@@ -88,6 +88,44 @@ export async function createService(data: Omit<Service, "id" | "createdAt">): Pr
   })
 }
 
+export async function updateService(
+  id: string,
+  data: {
+    name?: string
+    duration?: number
+    price?: number | null
+  }
+): Promise<Service> {
+  if (!isValidEntityId(id)) {
+    throw new Error("ID de serviço inválido")
+  }
+
+  return fetchJson(`${BASE_URL}/services/${id}`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+  })
+}
+
+export async function deleteServicesBulk(data: {
+  userId: string
+  ids: string[]
+}): Promise<{ ok: boolean; deletedCount: number }> {
+  if (!isValidEntityId(data.userId)) {
+    throw new Error("userId inválido")
+  }
+
+  if (!Array.isArray(data.ids) || data.ids.length === 0) {
+    throw new Error("Nenhum serviço selecionado")
+  }
+
+  return fetchJson(`${BASE_URL}/services`, {
+    method: "DELETE",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+  })
+}
+
 /**
  * @param date YYYY-MM-DD
  */

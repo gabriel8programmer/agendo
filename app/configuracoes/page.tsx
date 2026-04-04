@@ -1,13 +1,23 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import Image from "next/image"
 import Card from "@/components/ui/Card"
 import Button from "@/components/ui/Button"
 import Header from "@/components/ui/Header"
 import Input from "@/components/ui/Input"
 import PageHeader from "@/components/ui/PageHeader"
 import { useAuth } from "@/components/providers/AuthProvider"
-import { FaStore, FaClock, FaHistory, FaSave, FaPlus, FaTrash, FaCoffee } from "react-icons/fa"
+import {
+  FaStore,
+  FaClock,
+  FaHistory,
+  FaSave,
+  FaPlus,
+  FaTrash,
+  FaCoffee,
+  FaExclamationTriangle,
+} from "react-icons/fa"
 import {
   getAvailability,
   updateAvailability,
@@ -31,6 +41,12 @@ export default function SettingsPage() {
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const { showToast, ToastComponent } = useToast()
+  const hasSavedAvailability =
+    !!availability &&
+    typeof availability.id === "string" &&
+    availability.id.trim() !== "" &&
+    availability.id !== "undefined" &&
+    availability.id !== "null"
 
   useEffect(() => {
     if (authLoading) return
@@ -198,6 +214,23 @@ export default function SettingsPage() {
         <PageHeader label="Configuração" title="Minha Agenda" />
 
         <div className="space-y-6">
+          {!hasSavedAvailability && (
+            <Card className="border border-amber-200 bg-amber-50 p-4">
+              <div className="flex items-start gap-3">
+                <FaExclamationTriangle className="mt-0.5 text-amber-600" aria-hidden />
+                <div>
+                  <p className="text-sm font-semibold text-amber-900">
+                    Primeiro passo: salve sua configuração inicial
+                  </p>
+                  <p className="mt-1 text-sm text-amber-800">
+                    Seus agendamentos só serão liberados depois que você salvar os dias e horários
+                    desta página.
+                  </p>
+                </div>
+              </div>
+            </Card>
+          )}
+
           {/* Informações do Negócio */}
           <Card className="p-6">
             <div className="mb-6 flex items-center gap-2 text-zinc-900 border-b border-zinc-100 pb-4">
@@ -308,6 +341,10 @@ export default function SettingsPage() {
                 <FaPlus size={8} /> Adicionar
               </button>
             </div>
+            <p className="mb-4 rounded-xl border border-zinc-200 bg-zinc-50 px-3 py-2 text-xs text-zinc-600">
+              Use este espaço para bloquear períodos em que você não atende, como almoço, pausa
+              entre turnos ou compromissos pessoais.
+            </p>
 
             <div className="space-y-3">
               {availability?.reservedIntervals && availability.reservedIntervals.length > 0 ? (
@@ -330,9 +367,10 @@ export default function SettingsPage() {
                     <button
                       type="button"
                       onClick={() => handleRemoveReserved(idx)}
-                      className="mb-2 text-zinc-300 hover:text-red-500 transition-colors"
+                      className="mb-1 inline-flex h-9 w-9 items-center justify-center rounded-full border border-red-200 bg-red-50 text-red-600 transition-colors hover:bg-red-100 hover:text-red-700"
+                      aria-label="Remover horário reservado"
                     >
-                      <FaTrash size={14} />
+                      <FaTrash size={16} />
                     </button>
                   </div>
                 ))
@@ -377,8 +415,11 @@ export default function SettingsPage() {
           </Button>
         </div>
 
-        <footer className="mt-12 text-center text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-400 pb-8">
-          Powered by Agendo
+        <footer className="mt-12 pb-8">
+          <div className="flex flex-col items-center justify-center gap-2 rounded-2xl border border-zinc-200 bg-white px-4 py-3 text-center">
+            <Image src="/logo.svg" alt="Agendo" width={72} height={22} className="h-5 w-auto" />
+            <p className="text-xs text-zinc-500">Seu negócio organizado, cliente bem atendido.</p>
+          </div>
         </footer>
       </main>
       {ToastComponent}

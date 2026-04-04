@@ -5,6 +5,7 @@ import Availability from "@/models/Availability"
 import { formatToLocalTime, dayjs } from "@/lib/utils/date"
 import { parseTimeToMinutes } from "@/lib/utils/availability"
 import { WorkInterval } from "@/types"
+import { trackServerEvent } from "@/lib/telemetry/server"
 
 export async function GET(req: NextRequest) {
   try {
@@ -120,6 +121,9 @@ export async function POST(req: NextRequest) {
     // 7. Criar agendamento
     // Deixe o MongoDB gerar o _id (ObjectId). Forçar string aqui causa erro de cast.
     const appointment = await Appointment.create(body)
+    trackServerEvent("booking_confirmed", {
+      has_whatsapp: Boolean(body.clientWhatsapp),
+    })
     return NextResponse.json(appointment, { status: 201 })
   } catch (error) {
     console.error("Erro ao criar agendamento:", error)

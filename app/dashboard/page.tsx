@@ -5,8 +5,10 @@ import {
   FaCalendarAlt,
   FaCalendarCheck,
   FaClock,
+  FaExclamationTriangle,
   FaMoneyBillWave,
   FaUser,
+  FaWhatsapp,
   FaWrench,
 } from "react-icons/fa"
 
@@ -14,15 +16,41 @@ import ButtonLink from "@/components/ui/ButtonLink"
 import Card from "@/components/ui/Card"
 import Header from "@/components/ui/Header"
 import { useAuth } from "@/components/providers/AuthProvider"
-import { getAppointments, getServices } from "@/lib/api"
-import { Appointment, Service } from "@/types"
+import { getAppointments, getAvailability, getServices } from "@/lib/api"
+import { Appointment, Availability, Service } from "@/types"
 import { formatToLocalTime, getTodayDate, dayjs } from "@/lib/utils/date"
+
+function parseTimeToMinutes(time: string): number {
+  const match = /^([01]\d|2[0-3]):([0-5]\d)$/.exec(time)
+  if (!match) return -1
+  return Number(match[1]) * 60 + Number(match[2])
+}
+
+function hasValidAvailability(availability: Availability | null): boolean {
+  if (!availability) return false
+  if (!Array.isArray(availability.workDays) || availability.workDays.length === 0) return false
+  if (!Number.isFinite(availability.slotDuration) || availability.slotDuration <= 0) return false
+
+  const start = parseTimeToMinutes(availability.startTime)
+  const end = parseTimeToMinutes(availability.endTime)
+
+  return start >= 0 && end >= 0 && start < end
+}
+
+function toWhatsAppUrl(phone?: string) {
+  if (!phone) return null
+  const digits = phone.replace(/\D/g, "")
+  if (!digits) return null
+  const normalized = digits.startsWith("55") ? digits : `55${digits}`
+  return `https://wa.me/${normalized}`
+}
 
 export default function DashboardPage() {
   const { user, loading: authLoading } = useAuth()
   const [appointments, setAppointments] = useState<Appointment[]>([])
   const [services, setServices] = useState<Service[]>([])
   const [loading, setLoading] = useState(true)
+  const [needsAvailabilitySetup, setNeedsAvailabilitySetup] = useState(false)
 
   useEffect(() => {
     if (authLoading) return
@@ -30,6 +58,7 @@ export default function DashboardPage() {
     if (!user?.id) {
       setAppointments([])
       setServices([])
+      setNeedsAvailabilitySetup(false)
       setLoading(false)
       return
     }
@@ -39,12 +68,14 @@ export default function DashboardPage() {
       setLoading(true)
       try {
         const today = getTodayDate()
-        const [appointmentsData, servicesData] = await Promise.all([
+        const [appointmentsData, servicesData, availabilityData] = await Promise.all([
           getAppointments(userId, today),
           getServices(userId),
+          getAvailability(userId),
         ])
         setAppointments(appointmentsData)
         setServices(servicesData)
+        setNeedsAvailabilitySetup(!hasValidAvailability(availabilityData))
       } catch (error) {
         console.error("Error loading dashboard:", error)
       } finally {
@@ -84,8 +115,32 @@ export default function DashboardPage() {
             <p className="text-sm font-medium text-zinc-600 uppercase tracking-widest">
               Resumo do dia
             </p>
-            <h1 className="text-xl font-bold text-zinc-900">Bom dia, {user?.name || "Profissional"}</h1>
+            <h1 className="text-xl font-bold text-zinc-900">Bom dia, {user?.name.split(' ')[0] || "Profissional"}</h1>
           </header>
+
+          {!isPageLoading && needsAvailabilitySetup && (
+            <section className="mb-6 rounded-2xl border border-amber-200 bg-amber-50 p-4">
+              <div className="flex items-start gap-3">
+                <FaExclamationTriangle className="mt-0.5 text-amber-600" aria-hidden />
+                <div className="w-full">
+                  <p className="text-sm font-semibold text-amber-900">
+                    Configure seus dias e horários para receber agendamentos
+                  </p>
+                  <p className="mt-1 text-sm text-amber-800">
+                    Sua agenda ainda não está pronta. Defina os dias de atendimento e o horário
+                    padrão para habilitar novos agendamentos.
+                  </p>
+                  <ButtonLink
+                    href="/configuracoes"
+                    variant="secondary"
+                    className="mt-3 w-full sm:w-auto"
+                  >
+                    Configurar horários
+                  </ButtonLink>
+                </div>
+              </div>
+            </section>
+          )}
 
           <section className="mb-6">
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -136,6 +191,7 @@ export default function DashboardPage() {
               <ul className="space-y-3">
                 {sortedAppointments.map((app, index) => {
                   const service = services.find((s) => s.id === app.serviceId)
+                  const whatsappUrl = toWhatsAppUrl(app.clientWhatsapp)
                   const appointmentKey =
                     app.id ||
                     (app as Appointment & { _id?: string })._id ||
@@ -154,13 +210,28 @@ export default function DashboardPage() {
                           <div className="text-sm font-semibold text-zinc-900">
                             {app.clientName}
                           </div>
-                          <div className="text-sm text-zinc-600 font-medium">
-                            {service?.name || "Serviço não encontrado"}
+                          <div className="flex items-center gap-2">
+                            <div className="text-sm text-zinc-600 font-medium">
+                              {service?.name || "Serviço não encontrado"}
+                            </div>
                           </div>
                         </div>
                       </div>
-                      <div className="text-sm font-semibold text-zinc-900">
+                      <div className="flex items-center gap-2">
+                        {whatsappUrl && (
+                          <a
+                            href={whatsappUrl}
+                            target="_blank"
+                            rel="noreferrer"
+                            aria-label={`Conversar com ${app.clientName} no WhatsApp`}
+                            className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-emerald-200 bg-emerald-50 text-emerald-700 transition-all hover:border-emerald-300 hover:bg-emerald-100"
+                          >
+                            <FaWhatsapp size={18} />
+                          </a>
+                        )}
+                        <div className="text-sm font-semibold text-zinc-900">
                         {formatToLocalTime(app.date)}
+                        </div>
                       </div>
                     </li>
                   )

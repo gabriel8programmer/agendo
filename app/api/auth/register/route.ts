@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import dbConnect from "@/lib/mongoose"
 import User from "@/models/User"
 import { createSessionToken, hashPassword, SESSION_COOKIE, SESSION_HINT_COOKIE, toSafeSlug } from "@/lib/auth"
+import { trackServerEvent } from "@/lib/telemetry/server"
 
 function sanitizeUser(user: {
   _id?: unknown
@@ -99,6 +100,14 @@ export async function POST(req: NextRequest) {
       sameSite: "lax",
       path: "/",
       maxAge: 60 * 60 * 24 * 7,
+    })
+
+    trackServerEvent("signup_success", {
+      provider: "email",
+    })
+    trackServerEvent("login_success", {
+      provider: "email",
+      source: "register",
     })
 
     return res

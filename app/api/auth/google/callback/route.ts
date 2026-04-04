@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import dbConnect from "@/lib/mongoose"
 import User from "@/models/User"
 import { createSessionToken, SESSION_COOKIE, SESSION_HINT_COOKIE, toSafeSlug } from "@/lib/auth"
+import { trackServerEvent } from "@/lib/telemetry/server"
 
 const OAUTH_STATE_COOKIE = "agendo_oauth_state"
 
@@ -159,6 +160,10 @@ export async function GET(req: NextRequest) {
     sameSite: "lax",
     path: "/",
     maxAge: 0,
+  })
+
+  trackServerEvent("login_success", {
+    provider: "google",
   })
 
   return res

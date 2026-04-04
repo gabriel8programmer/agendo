@@ -1,6 +1,6 @@
 import request from "supertest"
 import { describe, expect, it, vi, beforeEach } from "vitest"
-import { GET, POST } from "@/app/api/services/route"
+import { GET, POST, DELETE } from "@/app/api/services/route"
 import { createRouteTestServer } from "@/tests/helpers/createRouteTestServer"
 import Service from "@/models/Service"
 import dbConnect from "@/lib/mongoose"
@@ -14,6 +14,7 @@ vi.mock("@/models/Service", () => ({
   default: {
     find: vi.fn(),
     create: vi.fn(),
+    deleteMany: vi.fn(),
   },
 }))
 
@@ -85,6 +86,51 @@ describe("API /api/services", () => {
       expect(res.status).toBe(201)
       expect(res.body).toEqual(createdService)
       expect(Service.create).toHaveBeenCalledWith(expect.objectContaining(newService))
+    })
+  })
+
+  describe("DELETE", () => {
+    it("returns 400 if userId is missing", async () => {
+      const server = createRouteTestServer(DELETE)
+      const res = await request(server).delete("/api/services").send({
+        ids: ["service-1"],
+      })
+
+      expect(res.status).toBe(400)
+      expect(res.body.error).toBe("userId é obrigatório")
+    })
+
+    it("returns 400 if no service id is provided", async () => {
+      const server = createRouteTestServer(DELETE)
+      const res = await request(server).delete("/api/services").send({
+        userId: "user-1",
+        ids: [],
+      })
+
+      expect(res.status).toBe(400)
+      expect(res.body.error).toBe("Nenhum serviço selecionado")
+    })
+
+    it("deletes selected services", async () => {
+      vi.mocked(Service.deleteMany).mockResolvedValue({
+        deletedCount: 2,
+      } as never)
+
+      const server = createRouteTestServer(DELETE)
+      const res = await request(server).delete("/api/services").send({
+        userId: "user-1",
+        ids: ["service-1", "service-2"],
+      })
+
+      expect(res.status).toBe(200)
+      expect(res.body).toEqual({
+        ok: true,
+        deletedCount: 2,
+      })
+      expect(Service.deleteMany).toHaveBeenCalledWith({
+        userId: "user-1",
+        _id: { $in: ["service-1", "service-2"] },
+      })
     })
   })
 })

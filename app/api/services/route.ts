@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import dbConnect from "@/lib/mongoose"
 import Service from "@/models/Service"
+import { trackServerEvent } from "@/lib/telemetry/server"
 
 export async function GET(req: NextRequest) {
   try {
@@ -63,9 +64,52 @@ export async function POST(req: NextRequest) {
     }
 
     const service = await Service.create(payload)
+    trackServerEvent("service_created", {
+      duration: service.duration,
+      has_price: Number.isFinite(service.price),
+    })
     return NextResponse.json(service, { status: 201 })
   } catch (error) {
     console.error("Erro ao criar serviço:", error)
+    return NextResponse.json({ error: "Erro interno do servidor" }, { status: 500 })
+  }
+}
+
+export async function DELETE(req: NextRequest) {
+  try {
+    await dbConnect()
+    const body = (await req.json()) as {
+      userId?: string
+      ids?: string[]
+    }
+
+    const userId = typeof body.userId === "string" ? body.userId.trim() : ""
+    const ids = Array.isArray(body.ids)
+      ? body.ids
+          .filter((id): id is string => typeof id === "string")
+          .map((id) => id.trim())
+          .filter((id) => id !== "" && id !== "undefined" && id !== "null")
+      : []
+
+    if (!userId) {
+      return NextResponse.json({ error: "userId é obrigatório" }, { status: 400 })
+    }
+
+    if (ids.length === 0) {
+      return NextResponse.json({ error: "Nenhum serviço selecionado" }, { status: 400 })
+    }
+
+    const result = await Service.deleteMany({
+      userId,
+      _id: { $in: ids },
+    })
+
+    return NextResponse.json({
+      ok: true,
+      deletedCount: result.deletedCount || 0,
+    })
+  } catch (error) {
+    console.error("Erro ao remover serviços:", error)
     return NextResponse.json({ error: "Erro interno do servidor" }, { status: 500 })
   }
 }

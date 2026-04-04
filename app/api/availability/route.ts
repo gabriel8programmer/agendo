@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import dbConnect from "@/lib/mongoose"
 import Availability from "@/models/Availability"
+import { trackServerEvent } from "@/lib/telemetry/server"
 
 function isValidId(value: unknown): boolean {
   if (typeof value !== "string") return false
@@ -87,6 +88,10 @@ export async function PATCH(req: NextRequest) {
     })
 
     const serialized = serializeAvailability(availability)
+    trackServerEvent("availability_saved", {
+      source: "upsert_by_user",
+      has_work_days: Array.isArray(serialized.workDays) && serialized.workDays.length > 0,
+    })
     return NextResponse.json(serialized)
   } catch (error) {
     console.error("Erro ao atualizar disponibilidade por userId:", error)

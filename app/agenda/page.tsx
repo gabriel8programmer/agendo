@@ -1,10 +1,19 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import ButtonLink from "@/components/ui/ButtonLink"
 import Card from "@/components/ui/Card"
 import Header from "@/components/ui/Header"
 import { useAuth } from "@/components/providers/AuthProvider"
-import { FaChevronLeft, FaChevronRight, FaClock, FaUser, FaPlus } from "react-icons/fa"
+import {
+  FaChevronLeft,
+  FaChevronRight,
+  FaClock,
+  FaUser,
+  FaPlus,
+  FaExclamationTriangle,
+  FaWhatsapp,
+} from "react-icons/fa"
 import { getAvailability, getAppointments, getServices } from "@/lib/api"
 import { formatToLocalTime, dayjs } from "@/lib/utils/date"
 
@@ -14,11 +23,21 @@ interface TimeSlot {
   status: "available" | "booked" | "reserved"
   clientName?: string
   serviceName?: string
+  clientWhatsapp?: string
+}
+
+function toWhatsAppUrl(phone?: string) {
+  if (!phone) return null
+  const digits = phone.replace(/\D/g, "")
+  if (!digits) return null
+  const normalized = digits.startsWith("55") ? digits : `55${digits}`
+  return `https://wa.me/${normalized}`
 }
 
 function SlotItem({ slot }: { slot: TimeSlot }) {
   const isAvailable = slot.status === "available"
   const isReserved = slot.status === "reserved"
+  const whatsappUrl = toWhatsAppUrl(slot.clientWhatsapp)
 
   if (isReserved) return null // Esconder horários reservados conforme solicitado
 
@@ -59,8 +78,21 @@ function SlotItem({ slot }: { slot: TimeSlot }) {
       </div>
 
       {!isAvailable && (
-        <div className="rounded-lg bg-zinc-200 px-2 py-1 text-[10px] font-bold uppercase tracking-tight text-zinc-600">
-          Ocupado
+        <div className="flex items-center gap-2">
+          {whatsappUrl && (
+            <a
+              href={whatsappUrl}
+              target="_blank"
+              rel="noreferrer"
+              aria-label={`Conversar com ${slot.clientName} no WhatsApp`}
+              className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-emerald-200 bg-emerald-50 text-emerald-700 transition-all hover:border-emerald-300 hover:bg-emerald-100"
+            >
+              <FaWhatsapp size={18} />
+            </a>
+          )}
+          <div className="rounded-lg bg-zinc-200 px-2 py-1 text-[10px] font-bold uppercase tracking-tight text-zinc-600">
+            Ocupado
+          </div>
         </div>
       )}
     </div>
@@ -72,6 +104,7 @@ export default function AgendaPage() {
   const [loading, setLoading] = useState(true)
   const [slots, setSlots] = useState<TimeSlot[]>([])
   const [isWorkingDay, setIsWorkingDay] = useState(true)
+  const [needsAvailabilitySetup, setNeedsAvailabilitySetup] = useState(false)
   const [date, setDate] = useState(dayjs().tz("America/Sao_Paulo"))
 
   useEffect(() => {
@@ -80,6 +113,7 @@ export default function AgendaPage() {
     if (!user?.id) {
       setSlots([])
       setIsWorkingDay(false)
+      setNeedsAvailabilitySetup(false)
       setLoading(false)
       return
     }
@@ -96,6 +130,27 @@ export default function AgendaPage() {
           getAppointments(userId, dateString),
           getServices(userId),
         ])
+
+        const startMinutes = parseTimeToMinutes(availability?.startTime || "")
+        const endMinutes = parseTimeToMinutes(availability?.endTime || "")
+        const hasValidAvailability =
+          !!availability &&
+          Array.isArray(availability.workDays) &&
+          availability.workDays.length > 0 &&
+          Number.isFinite(availability.slotDuration) &&
+          availability.slotDuration > 0 &&
+          startMinutes >= 0 &&
+          endMinutes >= 0 &&
+          startMinutes < endMinutes
+
+        if (!hasValidAvailability) {
+          setNeedsAvailabilitySetup(true)
+          setIsWorkingDay(false)
+          setSlots([])
+          setLoading(false)
+          return
+        }
+        setNeedsAvailabilitySetup(false)
 
         if (availability) {
           const isOpen = availability.workDays?.includes(dayOfWeek)
@@ -142,6 +197,7 @@ export default function AgendaPage() {
                   time: timeString,
                   status: "booked",
                   clientName: appointment.clientName,
+                  clientWhatsapp: appointment.clientWhatsapp,
                   serviceName: service?.name || "Serviço não encontrado",
                 })
               } else {
@@ -164,8 +220,10 @@ export default function AgendaPage() {
   const todayLabel = date.format("dddd, D [de] MMMM")
 
   function parseTimeToMinutes(time: string): number {
-    if (!time) return 0
-    const [hours, minutes] = time.split(":").map(Number)
+    const match = /^([01]\d|2[0-3]):([0-5]\d)$/.exec(time)
+    if (!match) return -1
+    const hours = Number(match[1])
+    const minutes = Number(match[2])
     return hours * 60 + minutes
   }
 
@@ -209,6 +267,27 @@ export default function AgendaPage() {
         <Card className="p-4 sm:p-6">
           {loading || authLoading ? (
             <p className="text-center text-sm text-zinc-500">Carregando...</p>
+          ) : needsAvailabilitySetup ? (
+            <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4">
+              <div className="flex items-start gap-3">
+                <FaExclamationTriangle className="mt-0.5 text-amber-600" aria-hidden />
+                <div>
+                  <p className="text-sm font-semibold text-amber-900">
+                    Configure sua agenda para começar a receber agendamentos
+                  </p>
+                  <p className="mt-1 text-sm text-amber-800">
+                    Defina os dias de atendimento e horário padrão em Configurações.
+                  </p>
+                  <ButtonLink
+                    href="/configuracoes"
+                    variant="secondary"
+                    className="mt-3 w-full sm:w-auto"
+                  >
+                    Configurar agenda
+                  </ButtonLink>
+                </div>
+              </div>
+            </div>
           ) : !isWorkingDay ? (
             <div className="py-12 text-center">
               <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-zinc-50 text-zinc-400">

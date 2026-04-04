@@ -10,10 +10,12 @@ import Card from "@/components/ui/Card"
 import Input from "@/components/ui/Input"
 import Button from "@/components/ui/Button"
 import ButtonLink from "@/components/ui/ButtonLink"
+import { useAuth } from "@/components/providers/AuthProvider"
 import { loginWithEmail } from "@/lib/api"
 
 export default function LoginPage() {
   const router = useRouter()
+  const { refreshUser } = useAuth()
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [loading, setLoading] = useState(false)
@@ -45,6 +47,7 @@ export default function LoginPage() {
         maxAge: 60 * 60 * 24 * 7,
         path: "/",
       })
+      await refreshUser()
       router.push("/dashboard")
     } catch (err) {
       setError(err instanceof Error ? err.message : "Erro ao autenticar")

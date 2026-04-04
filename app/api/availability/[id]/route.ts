@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import dbConnect from "@/lib/mongoose"
 import Availability from "@/models/Availability"
+import { trackServerEvent } from "@/lib/telemetry/server"
 
 export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
@@ -24,6 +25,11 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     if (!normalizedId || normalizedId === "undefined" || normalizedId === "null") {
       return NextResponse.json({ error: "Disponibilidade sem identificador válido" }, { status: 500 })
     }
+
+    trackServerEvent("availability_saved", {
+      source: "update_by_id",
+      has_work_days: Array.isArray(payload.workDays) && payload.workDays.length > 0,
+    })
 
     return NextResponse.json({
       id: normalizedId,

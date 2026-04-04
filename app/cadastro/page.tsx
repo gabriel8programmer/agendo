@@ -8,10 +8,12 @@ import Card from "@/components/ui/Card"
 import Input from "@/components/ui/Input"
 import Button from "@/components/ui/Button"
 import ButtonLink from "@/components/ui/ButtonLink"
+import { useAuth } from "@/components/providers/AuthProvider"
 import { registerWithEmail } from "@/lib/api"
 
 export default function RegisterPage() {
   const router = useRouter()
+  const { refreshUser } = useAuth()
   const [name, setName] = useState("")
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
@@ -42,6 +44,7 @@ export default function RegisterPage() {
         maxAge: 60 * 60 * 24 * 7,
         path: "/",
       })
+      await refreshUser()
       router.push("/dashboard")
     } catch (err) {
       setError(err instanceof Error ? err.message : "Erro ao criar conta")

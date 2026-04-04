@@ -18,6 +18,40 @@ import { User, Service, Availability, Appointment } from "@/types"
 import { formatToUTC, getTodayDate, dayjs } from "@/lib/utils/date"
 import { useToast } from "@/components/ui/Toast"
 
+const BRAZIL_COUNTRY_CODE = "55"
+
+function normalizeBrazilPhoneDigits(value: string) {
+  let digits = value.replace(/\D/g, "")
+
+  if (digits.startsWith(BRAZIL_COUNTRY_CODE)) {
+    digits = digits.slice(BRAZIL_COUNTRY_CODE.length)
+  }
+
+  return digits.slice(0, 11)
+}
+
+function formatBrazilPhoneForInput(digits: string) {
+  const area = digits.slice(0, 2)
+  const local = digits.slice(2)
+
+  if (!area) return "+55 "
+  if (!local) return `+55 (${area}`
+
+  if (local.length <= 4) {
+    return `+55 (${area}) ${local}`
+  }
+
+  if (local.length <= 8) {
+    return `+55 (${area}) ${local.slice(0, 4)}-${local.slice(4)}`
+  }
+
+  return `+55 (${area}) ${local.slice(0, 5)}-${local.slice(5, 9)}`
+}
+
+function toE164BrazilPhone(digits: string) {
+  return `+${BRAZIL_COUNTRY_CODE}${digits}`
+}
+
 export default function PublicBookingPage({
   params: paramsPromise,
 }: {
@@ -37,7 +71,7 @@ export default function PublicBookingPage({
   const [selectedDate, setSelectedDate] = useState<string>(getTodayDate())
   const [selectedTime, setSelectedTime] = useState<string | null>(null)
   const [clientName, setClientName] = useState("")
-  const [whatsapp, setWhatsapp] = useState("")
+  const [whatsappDigits, setWhatsappDigits] = useState("")
   const [isConfirmed, setIsConfirmed] = useState(false)
 
   useEffect(() => {
@@ -125,7 +159,7 @@ export default function PublicBookingPage({
               setSelectedTime(null)
               setSelectedDate(getTodayDate())
               setClientName("")
-              setWhatsapp("")
+              setWhatsappDigits("")
             }}
           >
             Novo agendamento
@@ -138,18 +172,23 @@ export default function PublicBookingPage({
   const availableTimes = availability
     ? generateSlots(availability, occupiedAppointments, selectedDate)
     : []
+  const isWhatsappValid = whatsappDigits.length === 10 || whatsappDigits.length === 11
   const isFormValid =
-    selectedService && selectedTime && clientName.trim().length > 0 && selectedDate
+    selectedService &&
+    selectedTime &&
+    clientName.trim().length > 0 &&
+    selectedDate &&
+    isWhatsappValid
 
   const handleConfirm = async () => {
-    if (!selectedService || !selectedTime || !user || !selectedDate) return
+    if (!selectedService || !selectedTime || !user || !selectedDate || !isWhatsappValid) return
 
     try {
       await createAppointment({
         userId: user.id,
         serviceId: selectedService,
         clientName,
-        clientWhatsapp: whatsapp,
+        clientWhatsapp: toE164BrazilPhone(whatsappDigits),
         date: formatToUTC(selectedDate, selectedTime),
       })
       setIsConfirmed(true)
@@ -359,13 +398,18 @@ export default function PublicBookingPage({
                       type="tel"
                       id="whatsapp"
                       name="whatsapp"
-                      value={whatsapp}
-                      onChange={(e) => setWhatsapp(e.target.value)}
-                      placeholder="(00) 00000-0000"
+                      value={formatBrazilPhoneForInput(whatsappDigits)}
+                      onChange={(e) => setWhatsappDigits(normalizeBrazilPhoneDigits(e.target.value))}
+                      placeholder="+55 (11) 91234-5678"
                       className="pl-10"
                       required
                     />
                   </div>
+                  {!isWhatsappValid && (
+                    <p className="text-xs text-red-500">
+                      Informe um número válido com DDD (ex: +55 (11) 91234-5678).
+                    </p>
+                  )}
 
                   <Button
                     onClick={handleConfirm}
@@ -380,8 +424,11 @@ export default function PublicBookingPage({
           )}
         </div>
 
-        <footer className="mt-12 text-center text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-400">
-          Powered by Agendo
+        <footer className="mt-12">
+          <div className="flex flex-col items-center justify-center gap-2 rounded-2xl border border-zinc-200 bg-white px-4 py-3 text-center">
+            <Image src="/logo.svg" alt="Agendo" width={72} height={22} className="h-5 w-auto" />
+            <p className="text-xs text-zinc-500">Agendamento simples e rápido para seus clientes.</p>
+          </div>
         </footer>
       </div>
       {ToastComponent}
