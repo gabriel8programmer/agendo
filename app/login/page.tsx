@@ -95,6 +95,11 @@ export default function LoginPage() {
             />
 
             {error && <p className="text-sm text-red-500">{error}</p>}
+            {error.includes("Muitas tentativas") && (
+              <p className="text-xs text-zinc-500">
+                Se você esqueceu a senha, use a opção de recuperação para continuar.
+              </p>
+            )}
 
             <Button type="submit" className="w-full py-3" disabled={loading}>
               {loading ? "Entrando..." : "Entrar"}

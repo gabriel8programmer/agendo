@@ -61,6 +61,11 @@ export default function ForgotPasswordPage() {
             />
 
             {error && <p className="text-sm text-red-500">{error}</p>}
+            {error.includes("Muitas tentativas") && (
+              <p className="text-xs text-zinc-500">
+                Aguarde o tempo informado para tentar novamente e evitar bloqueio temporário.
+              </p>
+            )}
 
             <Button type="submit" className="w-full py-3" disabled={loading}>
               {loading ? "Enviando..." : "Enviar link de verificação"}

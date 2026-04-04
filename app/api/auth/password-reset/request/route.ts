@@ -5,8 +5,14 @@ import PasswordResetRequest from "@/models/PasswordResetRequest"
 import { buildVerifyEmailTemplate } from "@/lib/email/templates/verifyEmailTemplate"
 import { sendEmail } from "@/lib/email/mailer"
 import { generateOpaqueToken, hashOpaqueToken } from "@/lib/auth"
+import { buildRateLimitKey, consumeRateLimit, getClientIp } from "@/lib/security/rateLimit"
 
 const RESET_TTL_MINUTES = 30
+const PASSWORD_RESET_RATE_LIMIT = {
+  windowMs: 5 * 60 * 1000,
+  maxAttempts: 5,
+  blockMs: 5 * 60 * 1000,
+}
 
 function getAppUrl(req: NextRequest) {
   return process.env.APP_URL || req.nextUrl.origin
@@ -20,6 +26,22 @@ export async function POST(req: NextRequest) {
 
     if (!email) {
       return NextResponse.json({ error: "Email é obrigatório" }, { status: 400 })
+    }
+
+    const ip = getClientIp(req)
+    const rateLimitKey = buildRateLimitKey("password-reset-request", ip, email)
+    const rateLimit = consumeRateLimit(rateLimitKey, PASSWORD_RESET_RATE_LIMIT)
+    if (!rateLimit.allowed) {
+      const retryInMin = Math.ceil(rateLimit.retryAfterSec / 60)
+      return NextResponse.json(
+        {
+          error: `Muitas tentativas para recuperação de senha. Tente novamente em ${retryInMin} minuto(s).`,
+        },
+        {
+          status: 429,
+          headers: { "Retry-After": String(rateLimit.retryAfterSec) },
+        }
+      )
     }
 
     const user = await User.findOne({ email })

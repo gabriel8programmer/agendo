@@ -15,6 +15,7 @@ import {
   verifySessionToken,
   toSafeSlug,
 } from "@/lib/auth"
+import { clearRateLimitStore } from "@/lib/security/rateLimit"
 
 vi.mock("@/lib/mongoose", () => ({
   default: vi.fn(),
@@ -44,6 +45,7 @@ vi.mock("@/lib/auth", () => ({
 describe("API /api/auth", () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    clearRateLimitStore()
     vi.mocked(dbConnect).mockResolvedValue({} as unknown as typeof import("mongoose"))
   })
 
@@ -168,6 +170,28 @@ describe("API /api/auth", () => {
 
       expect(res.status).toBe(403)
       expect(res.body.error).toBe("Usuário já autenticado com Google. Faça login com Google.")
+    })
+
+    it("returns 429 after too many attempts", async () => {
+      vi.mocked(User.findOne).mockResolvedValue(null as never)
+      const server = createRouteTestServer(loginPOST)
+
+      for (let i = 0; i < 5; i += 1) {
+        const res = await request(server).post("/api/auth/login").send({
+          email: "joao@email.com",
+          password: "123456",
+        })
+        expect(res.status).toBe(401)
+      }
+
+      const blocked = await request(server).post("/api/auth/login").send({
+        email: "joao@email.com",
+        password: "123456",
+      })
+
+      expect(blocked.status).toBe(429)
+      expect(blocked.body.error).toContain("Muitas tentativas de login")
+      expect(blocked.headers["retry-after"]).toBeDefined()
     })
   })
 

@@ -2,7 +2,19 @@ import { NextRequest, NextResponse } from "next/server"
 import dbConnect from "@/lib/mongoose"
 import User from "@/models/User"
 import { createSessionToken, SESSION_COOKIE, SESSION_HINT_COOKIE, verifyPassword } from "@/lib/auth"
+import {
+  buildRateLimitKey,
+  consumeRateLimit,
+  getClientIp,
+  resetRateLimit,
+} from "@/lib/security/rateLimit"
 import { trackServerEvent } from "@/lib/telemetry/server"
+
+const LOGIN_RATE_LIMIT = {
+  windowMs: 5 * 60 * 1000,
+  maxAttempts: 5,
+  blockMs: 5 * 60 * 1000,
+}
 
 function sanitizeUser(user: {
   _id?: unknown
@@ -36,6 +48,20 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Email e senha são obrigatórios" }, { status: 400 })
     }
 
+    const ip = getClientIp(req)
+    const rateLimitKey = buildRateLimitKey("login", ip, email)
+    const rateLimit = consumeRateLimit(rateLimitKey, LOGIN_RATE_LIMIT)
+    if (!rateLimit.allowed) {
+      const retryInMin = Math.ceil(rateLimit.retryAfterSec / 60)
+      return NextResponse.json(
+        { error: `Muitas tentativas de login. Tente novamente em ${retryInMin} minuto(s).` },
+        {
+          status: 429,
+          headers: { "Retry-After": String(rateLimit.retryAfterSec) },
+        }
+      )
+    }
+
     const user = await User.findOne({ email })
     if (!user) {
       return NextResponse.json({ error: "Credenciais inválidas" }, { status: 401 })
@@ -52,6 +78,8 @@ export async function POST(req: NextRequest) {
     if (!isValid) {
       return NextResponse.json({ error: "Credenciais inválidas" }, { status: 401 })
     }
+
+    resetRateLimit(rateLimitKey)
 
     const safeUser = sanitizeUser(user)
     const token = createSessionToken({

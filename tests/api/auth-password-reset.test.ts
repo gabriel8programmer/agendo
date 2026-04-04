@@ -9,6 +9,7 @@ import User from "@/models/User"
 import PasswordResetRequest from "@/models/PasswordResetRequest"
 import { sendEmail } from "@/lib/email/mailer"
 import { hashPassword } from "@/lib/auth"
+import { clearRateLimitStore } from "@/lib/security/rateLimit"
 
 vi.mock("@/lib/mongoose", () => ({
   default: vi.fn(),
@@ -52,6 +53,7 @@ vi.mock("@/lib/auth", () => ({
 describe("API /api/auth/password-reset", () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    clearRateLimitStore()
     vi.mocked(dbConnect).mockResolvedValue({} as unknown as typeof import("mongoose"))
   })
 
@@ -99,5 +101,25 @@ describe("API /api/auth/password-reset", () => {
     expect(res.body.error).toBe("Usuário já autenticado com Google. Faça login com Google.")
     expect(hashPassword).not.toHaveBeenCalled()
     expect(User.collection.updateOne).not.toHaveBeenCalled()
+  })
+
+  it("returns 429 after too many reset requests", async () => {
+    vi.mocked(User.findOne).mockResolvedValue(null as never)
+
+    const server = createRouteTestServer(passwordResetRequestPOST)
+    for (let i = 0; i < 5; i += 1) {
+      const res = await request(server).post("/api/auth/password-reset/request").send({
+        email: "joao@email.com",
+      })
+      expect(res.status).toBe(200)
+    }
+
+    const blocked = await request(server).post("/api/auth/password-reset/request").send({
+      email: "joao@email.com",
+    })
+
+    expect(blocked.status).toBe(429)
+    expect(blocked.body.error).toContain("Muitas tentativas para recuperação de senha")
+    expect(blocked.headers["retry-after"]).toBeDefined()
   })
 })
