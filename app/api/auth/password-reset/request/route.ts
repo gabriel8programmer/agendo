@@ -22,9 +22,16 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Email é obrigatório" }, { status: 400 })
     }
 
+    const user = await User.findOne({ email })
+    if (user && !user.passwordHash) {
+      return NextResponse.json(
+        { error: "Usuário já autenticado com Google. Faça login com Google." },
+        { status: 400 }
+      )
+    }
+
     const requestId = generateOpaqueToken(24)
     const expiresAt = new Date(Date.now() + RESET_TTL_MINUTES * 60 * 1000)
-    const user = await User.findOne({ email })
 
     if (user) {
       const verifyToken = generateOpaqueToken(32)
@@ -69,4 +76,3 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Erro interno do servidor" }, { status: 500 })
   }
 }
-

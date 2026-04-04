@@ -36,8 +36,15 @@ export async function POST(req: NextRequest) {
     }
 
     const user = await User.findOne({ email })
-    if (!user || !user.passwordHash) {
+    if (!user) {
       return NextResponse.json({ error: "Credenciais inválidas" }, { status: 401 })
+    }
+
+    if (!user.passwordHash) {
+      return NextResponse.json(
+        { error: "Usuário já autenticado com Google. Faça login com Google." },
+        { status: 403 }
+      )
     }
 
     const isValid = await verifyPassword(password, user.passwordHash)

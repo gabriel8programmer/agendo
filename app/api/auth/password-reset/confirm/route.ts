@@ -50,6 +50,18 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Usuário não encontrado para esta solicitação" }, { status: 404 })
     }
 
+    const user = await User.findById(resetRequest.userId)
+    if (!user) {
+      return NextResponse.json({ error: "Usuário não encontrado para esta solicitação" }, { status: 404 })
+    }
+
+    if (!user.passwordHash) {
+      return NextResponse.json(
+        { error: "Usuário já autenticado com Google. Faça login com Google." },
+        { status: 400 }
+      )
+    }
+
     const passwordHash = await hashPassword(password)
     await User.collection.updateOne(
       { _id: resetRequest.userId as never },
@@ -69,4 +81,3 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Erro interno do servidor" }, { status: 500 })
   }
 }
-

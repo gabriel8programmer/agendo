@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import Image from "next/image"
+import { useRouter } from "next/navigation"
 import ButtonLink from "@/components/ui/ButtonLink"
 import Button from "@/components/ui/Button"
 import Card from "@/components/ui/Card"
@@ -9,20 +10,23 @@ import Input from "@/components/ui/Input"
 import { requestPasswordReset } from "@/lib/api"
 
 export default function ForgotPasswordPage() {
+  const router = useRouter()
   const [email, setEmail] = useState("")
   const [loading, setLoading] = useState(false)
-  const [success, setSuccess] = useState("")
   const [error, setError] = useState("")
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError("")
-    setSuccess("")
     setLoading(true)
 
     try {
-      await requestPasswordReset(email)
-      setSuccess("Se o email existir, enviaremos um link de verificação em instantes.")
+      const result = await requestPasswordReset(email)
+      const search = new URLSearchParams({
+        requestId: result.requestId,
+        email: email.trim(),
+      })
+      router.push(`/esqueci-senha/aguardando?${search.toString()}`)
     } catch (err) {
       setError(err instanceof Error ? err.message : "Não foi possível enviar o email agora.")
     } finally {
@@ -57,7 +61,6 @@ export default function ForgotPasswordPage() {
             />
 
             {error && <p className="text-sm text-red-500">{error}</p>}
-            {success && <p className="text-sm text-emerald-700">{success}</p>}
 
             <Button type="submit" className="w-full py-3" disabled={loading}>
               {loading ? "Enviando..." : "Enviar link de verificação"}
@@ -74,4 +77,3 @@ export default function ForgotPasswordPage() {
     </div>
   )
 }
-

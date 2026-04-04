@@ -152,6 +152,23 @@ describe("API /api/auth", () => {
         })
       )
     })
+
+    it("returns 403 when user is Google-only", async () => {
+      vi.mocked(User.findOne).mockResolvedValueOnce({
+        _id: "user-1",
+        email: "google@example.com",
+        passwordHash: "",
+      } as never)
+
+      const server = createRouteTestServer(loginPOST)
+      const res = await request(server).post("/api/auth/login").send({
+        email: "google@example.com",
+        password: "123456",
+      })
+
+      expect(res.status).toBe(403)
+      expect(res.body.error).toBe("Usuário já autenticado com Google. Faça login com Google.")
+    })
   })
 
   describe("GET /api/auth/me", () => {
