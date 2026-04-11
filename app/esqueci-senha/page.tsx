@@ -70,6 +70,9 @@ export default function ForgotPasswordPage() {
             <Button type="submit" className="w-full py-3" disabled={loading}>
               {loading ? "Enviando..." : "Enviar link de verificação"}
             </Button>
+            <p className="text-xs text-zinc-500">
+              Dica: o e-mail pode cair em Spam ou Promoções. Verifique essas pastas também.
+            </p>
 
             <div className="pt-3 text-center">
               <ButtonLink href="/login" variant="secondary" className="w-full">

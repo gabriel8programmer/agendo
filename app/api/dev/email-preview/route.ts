@@ -6,7 +6,8 @@ export async function GET(req: NextRequest) {
   const url =
     req.nextUrl.searchParams.get("url") ||
     "http://localhost:3000/redefinir-senha/verificar?token=exemplo"
-  const logoUrl = req.nextUrl.searchParams.get("logoUrl") || `${req.nextUrl.origin}/logo-dark.svg`
+  const assetsUrl = process.env.PUBLIC_ASSETS_URL || req.nextUrl.origin
+  const logoUrl = req.nextUrl.searchParams.get("logoUrl") || `${assetsUrl}/logo-dark.svg`
 
   const { html } = buildVerifyEmailTemplate({
     recipientName: name,

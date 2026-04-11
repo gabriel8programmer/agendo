@@ -18,6 +18,10 @@ function getAppUrl(req: NextRequest) {
   return process.env.APP_URL || req.nextUrl.origin
 }
 
+function getAssetsUrl(req: NextRequest) {
+  return process.env.PUBLIC_ASSETS_URL || getAppUrl(req)
+}
+
 export async function POST(req: NextRequest) {
   try {
     await dbConnect()
@@ -72,7 +76,7 @@ export async function POST(req: NextRequest) {
         verifyUrl,
         recipientName: user.name,
         productName: "Agendo",
-        logoUrl: `${getAppUrl(req)}/logo.svg`,
+        logoUrl: `${getAssetsUrl(req)}/logo-dark.svg`,
       })
 
       await sendEmail({

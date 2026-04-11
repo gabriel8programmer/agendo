@@ -19,9 +19,6 @@ vi.mock("@/models/User", () => ({
   default: {
     findOne: vi.fn(),
     findById: vi.fn(),
-    collection: {
-      updateOne: vi.fn(),
-    },
   },
 }))
 
@@ -100,7 +97,42 @@ describe("API /api/auth/password-reset", () => {
     expect(res.status).toBe(400)
     expect(res.body.error).toBe("Usuário já autenticado com Google. Faça login com Google.")
     expect(hashPassword).not.toHaveBeenCalled()
-    expect(User.collection.updateOne).not.toHaveBeenCalled()
+    expect(User.findById).toHaveBeenCalledTimes(1)
+  })
+
+  it("updates user password hash when reset is confirmed", async () => {
+    const saveResetRequest = vi.fn()
+    const saveUser = vi.fn()
+    const userDoc = {
+      _id: "user-1",
+      passwordHash: "old-hash",
+      save: saveUser,
+    }
+
+    vi.mocked(PasswordResetRequest.findOne).mockResolvedValue({
+      requestId: "request-1",
+      userId: "user-1",
+      verifiedAt: new Date(),
+      usedAt: undefined,
+      expiresAt: new Date(Date.now() + 1000 * 60),
+      save: saveResetRequest,
+    } as never)
+
+    vi.mocked(User.findById).mockResolvedValue(userDoc as never)
+    vi.mocked(hashPassword).mockResolvedValue("new-hash")
+
+    const server = createRouteTestServer(passwordResetConfirmPOST)
+    const res = await request(server).post("/api/auth/password-reset/confirm").send({
+      requestId: "request-1",
+      password: "123456",
+      confirmPassword: "123456",
+    })
+
+    expect(res.status).toBe(200)
+    expect(res.body.ok).toBe(true)
+    expect(userDoc.passwordHash).toBe("new-hash")
+    expect(saveUser).toHaveBeenCalledTimes(1)
+    expect(saveResetRequest).toHaveBeenCalledTimes(1)
   })
 
   it("returns 429 after too many reset requests", async () => {

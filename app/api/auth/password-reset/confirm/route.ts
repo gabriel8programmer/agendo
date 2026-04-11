@@ -63,14 +63,8 @@ export async function POST(req: NextRequest) {
     }
 
     const passwordHash = await hashPassword(password)
-    await User.collection.updateOne(
-      { _id: resetRequest.userId as never },
-      {
-        $set: {
-          passwordHash,
-        },
-      }
-    )
+    user.passwordHash = passwordHash
+    await user.save()
 
     resetRequest.usedAt = new Date()
     await resetRequest.save()

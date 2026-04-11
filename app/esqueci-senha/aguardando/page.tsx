@@ -123,6 +123,9 @@ export default function WaitForVerificationPage() {
                     Assim que você clicar no link, esta página libera automaticamente o formulário
                     de nova senha.
                   </p>
+                  <p className="text-xs text-zinc-500">
+                    Se não encontrar o e-mail, verifique também as pastas Spam e Promoções.
+                  </p>
                   <p className="text-xs text-zinc-500">Verificando status a cada 5 segundos...</p>
                 </>
               )}
