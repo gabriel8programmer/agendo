@@ -1,11 +1,11 @@
 "use client"
 
 import { useState, useEffect, use } from "react"
-import Image from "next/image"
-import { FaClock, FaTag, FaCheck, FaPhoneAlt, FaUser } from "react-icons/fa"
+import { FaClock, FaTag, FaCheck, FaPhoneAlt, FaUser, FaMoon, FaSun } from "react-icons/fa"
 import Card from "@/components/ui/Card"
 import Button from "@/components/ui/Button"
 import Input from "@/components/ui/Input"
+import BrandLogo from "@/components/ui/BrandLogo"
 import {
   getUserBySlug,
   getServices,
@@ -17,8 +17,10 @@ import { generateSlots } from "@/lib/utils/availability"
 import { User, Service, Availability, Appointment } from "@/types"
 import { formatToUTC, getTodayDate, dayjs } from "@/lib/utils/date"
 import { useToast } from "@/components/ui/Toast"
+import { useTheme } from "@/components/providers/ThemeProvider"
 
 const BRAZIL_COUNTRY_CODE = "55"
+const BRAZIL_PHONE_PLACEHOLDER = "+55 (__) _____-____"
 
 function normalizeBrazilPhoneDigits(value: string) {
   let digits = value.replace(/\D/g, "")
@@ -66,6 +68,8 @@ export default function PublicBookingPage({
   const [occupiedAppointments, setOccupiedAppointments] = useState<Appointment[]>([])
   const [loading, setLoading] = useState(true)
   const { showToast, ToastComponent } = useToast()
+  const { theme, toggleTheme } = useTheme()
+  const isDark = theme === "dark"
 
   const [selectedService, setSelectedService] = useState<string | null>(null)
   const [selectedDate, setSelectedDate] = useState<string>(getTodayDate())
@@ -228,14 +232,18 @@ export default function PublicBookingPage({
     <div className="min-h-screen bg-[#f9fafb] p-4 font-sans md:p-8">
       <div className="mx-auto max-w-xl">
         <header className="mb-10 text-center">
+          <div className="mb-3 flex justify-end">
+            <button
+              type="button"
+              onClick={toggleTheme}
+              className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-zinc-200 bg-white text-zinc-600 transition-colors hover:bg-zinc-50"
+              aria-label={theme === "dark" ? "Ativar tema claro" : "Ativar tema escuro"}
+            >
+              {theme === "dark" ? <FaSun size={16} /> : <FaMoon size={16} />}
+            </button>
+          </div>
           <div className="mb-4 flex justify-center">
-            <Image
-              src="/logo.svg"
-              alt="Agendo"
-              width={132}
-              height={40}
-              className="h-8 w-auto opacity-50"
-            />
+            <BrandLogo width={132} height={40} className="h-8 w-auto opacity-50" />
           </div>
           <h1 className="text-3xl font-extrabold tracking-tight text-zinc-900 sm:text-4xl">
             {user.companyName || user.name}
@@ -261,16 +269,24 @@ export default function PublicBookingPage({
                   onClick={() => setSelectedService(service.id)}
                   className={`flex items-center justify-between rounded-2xl border p-4 text-left transition-all ${
                     selectedService === service.id
-                      ? "border-zinc-900 bg-zinc-900 text-white shadow-md"
-                      : "border-zinc-100 bg-white text-zinc-900 hover:border-zinc-300 shadow-sm"
+                      ? isDark
+                        ? "border-zinc-500 bg-zinc-100 text-zinc-900 shadow-md ring-1 ring-zinc-500"
+                        : "border-zinc-900 bg-zinc-900 text-white shadow-md"
+                      : isDark
+                        ? "border-zinc-700 bg-zinc-900 text-zinc-100 hover:border-zinc-500 shadow-sm"
+                        : "border-zinc-100 bg-white text-zinc-900 hover:border-zinc-300 shadow-sm"
                   }`}
                 >
                   <div className="flex items-center gap-3">
                     <div
                       className={`flex h-10 w-10 items-center justify-center rounded-xl ${
                         selectedService === service.id
-                          ? "bg-white/10 text-white"
-                          : "bg-zinc-50 text-zinc-400"
+                          ? isDark
+                            ? "bg-zinc-900 text-zinc-100"
+                            : "bg-white/10 text-white"
+                          : isDark
+                            ? "bg-zinc-800 text-zinc-400"
+                            : "bg-zinc-50 text-zinc-400"
                       }`}
                     >
                       <FaTag size={14} />
@@ -279,7 +295,11 @@ export default function PublicBookingPage({
                       <p className="text-sm font-bold">{service.name}</p>
                       <div
                         className={`flex items-center gap-1 text-xs ${
-                          selectedService === service.id ? "text-zinc-300" : "text-zinc-500"
+                          selectedService === service.id
+                            ? isDark
+                              ? "text-zinc-700"
+                              : "text-zinc-300"
+                            : "text-zinc-500"
                         }`}
                       >
                         <FaClock size={10} />
@@ -289,7 +309,9 @@ export default function PublicBookingPage({
                   </div>
                   <div className="flex items-center gap-2">
                     {service.price && <p className="text-sm font-bold">R$ {service.price}</p>}
-                    {selectedService === service.id && <FaCheck size={12} className="text-white" />}
+                    {selectedService === service.id && (
+                      <FaCheck size={12} className={isDark ? "text-zinc-900" : "text-white"} />
+                    )}
                   </div>
                 </button>
               ))}
@@ -312,8 +334,12 @@ export default function PublicBookingPage({
                     onClick={() => setSelectedDate(date.value)}
                     className={`flex min-w-[80px] flex-col items-center rounded-xl border p-3 transition-all ${
                       selectedDate === date.value
-                        ? "border-zinc-900 bg-zinc-900 text-white shadow-md"
-                        : "border-zinc-100 bg-white text-zinc-600 hover:border-zinc-300"
+                        ? isDark
+                          ? "border-zinc-500 bg-zinc-100 text-zinc-900 shadow-md ring-1 ring-zinc-500"
+                          : "border-zinc-900 bg-zinc-900 text-white shadow-md"
+                        : isDark
+                          ? "border-zinc-700 bg-zinc-900 text-zinc-300 hover:border-zinc-500"
+                          : "border-zinc-100 bg-white text-zinc-600 hover:border-zinc-300"
                     }`}
                   >
                     <span className="text-[10px] font-bold uppercase tracking-tighter opacity-70">
@@ -349,8 +375,12 @@ export default function PublicBookingPage({
                           !slot.isAvailable
                             ? "border-zinc-50 bg-zinc-50 text-zinc-300 cursor-not-allowed opacity-60"
                             : selectedTime === slot.time
-                              ? "border-zinc-900 bg-zinc-900 text-white shadow-md"
-                              : "border-zinc-100 bg-white text-zinc-600 hover:border-zinc-300 hover:bg-zinc-50"
+                              ? isDark
+                                ? "border-zinc-500 bg-zinc-100 text-zinc-900 shadow-md ring-1 ring-zinc-500"
+                                : "border-zinc-900 bg-zinc-900 text-white shadow-md"
+                              : isDark
+                                ? "border-zinc-700 bg-zinc-900 text-zinc-300 hover:border-zinc-500 hover:bg-zinc-800"
+                                : "border-zinc-100 bg-white text-zinc-600 hover:border-zinc-300 hover:bg-zinc-50"
                         }`}
                       >
                         {slot.time}
@@ -378,7 +408,9 @@ export default function PublicBookingPage({
               <Card className="p-6">
                 <div className="space-y-4">
                   <div className="relative">
-                    <FaUser className="absolute left-3 top-9.5 text-zinc-400" size={14} />
+                    <span className="pointer-events-none absolute left-3 top-[calc(50%+10px)] z-10 -translate-y-1/2 inline-flex h-8 w-8 items-center justify-center rounded-lg bg-zinc-100 text-zinc-500">
+                      <FaUser size={12} />
+                    </span>
                     <Input
                       label="Seu Nome"
                       id="name"
@@ -386,22 +418,24 @@ export default function PublicBookingPage({
                       value={clientName}
                       onChange={(e) => setClientName(e.target.value)}
                       placeholder="Nome completo"
-                      className="pl-10"
+                      className="pl-12"
                       required
                     />
                   </div>
 
                   <div className="relative">
-                    <FaPhoneAlt className="absolute left-3 top-9.5 text-zinc-400" size={14} />
+                    <span className="pointer-events-none absolute left-3 top-[calc(50%+10px)] z-10 -translate-y-1/2 inline-flex h-8 w-8 items-center justify-center rounded-lg bg-zinc-100 text-zinc-500">
+                      <FaPhoneAlt size={12} />
+                    </span>
                     <Input
                       label="WhatsApp"
                       type="tel"
                       id="whatsapp"
                       name="whatsapp"
-                      value={formatBrazilPhoneForInput(whatsappDigits)}
+                      value={whatsappDigits ? formatBrazilPhoneForInput(whatsappDigits) : ""}
                       onChange={(e) => setWhatsappDigits(normalizeBrazilPhoneDigits(e.target.value))}
-                      placeholder="+55 (11) 91234-5678"
-                      className="pl-10"
+                      placeholder={BRAZIL_PHONE_PLACEHOLDER}
+                      className="pl-12"
                       required
                     />
                   </div>
@@ -426,7 +460,7 @@ export default function PublicBookingPage({
 
         <footer className="mt-12">
           <div className="flex flex-col items-center justify-center gap-2 rounded-2xl border border-zinc-200 bg-white px-4 py-3 text-center">
-            <Image src="/logo.svg" alt="Agendo" width={72} height={22} className="h-5 w-auto" />
+            <BrandLogo width={72} height={22} className="h-5 w-auto" />
             <p className="text-xs text-zinc-500">Agendamento simples e rápido para seus clientes.</p>
           </div>
         </footer>

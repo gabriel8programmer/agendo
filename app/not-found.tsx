@@ -1,6 +1,6 @@
-import Image from "next/image"
 import ButtonLink from "@/components/ui/ButtonLink"
 import Card from "@/components/ui/Card"
+import BrandLogo from "@/components/ui/BrandLogo"
 
 export default function NotFound() {
   return (
@@ -8,7 +8,7 @@ export default function NotFound() {
       <main className="w-full max-w-md">
         <Card className="p-8 text-center">
           <div className="mb-6 flex justify-center">
-            <Image src="/logo.svg" alt="Agendo" width={180} height={52} className="h-12 w-auto" />
+            <BrandLogo width={180} height={52} className="h-12 w-auto" />
           </div>
 
           <p className="text-xs font-bold uppercase tracking-[0.2em] text-zinc-500">Erro 404</p>

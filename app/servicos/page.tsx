@@ -7,8 +7,10 @@ import Input from "@/components/ui/Input"
 import Button from "@/components/ui/Button"
 import PageHeader from "@/components/ui/PageHeader"
 import { useAuth } from "@/components/providers/AuthProvider"
+import { useTheme } from "@/components/providers/ThemeProvider"
 import { FaClock, FaTag, FaPlus, FaList, FaTimes, FaPen, FaTrash } from "react-icons/fa"
 import { getServices, createService, updateService, deleteServicesBulk } from "@/lib/api"
+import { inputStyles } from "@/lib/utils/styles"
 import { Service } from "@/types"
 import { useToast } from "@/components/ui/Toast"
 
@@ -30,12 +32,19 @@ function ServiceItem({
   onClick,
   selectionMode,
   selected,
+  isDark,
 }: {
   service: Service
   onClick: () => void
   selectionMode: boolean
   selected: boolean
+  isDark: boolean
 }) {
+  const selectedStyle = selectionMode && selected
+  const selectedContainerClass = isDark ? "border-red-900 bg-red-900/40" : "border-red-300 bg-red-50"
+  const selectedTextClass = isDark ? "text-red-100" : "text-zinc-900"
+  const selectedMutedTextClass = isDark ? "text-red-200" : "text-zinc-500"
+
   return (
     <li>
       <button
@@ -43,37 +52,51 @@ function ServiceItem({
         onClick={onClick}
         className={`flex w-full items-center justify-between gap-4 rounded-2xl px-4 py-3 text-left shadow-sm border transition-all ${
           selectionMode
-            ? selected
-              ? "border-red-300 bg-red-50"
+            ? selectedStyle
+              ? selectedContainerClass
               : "border-zinc-200 bg-white"
-            : "border-transparent bg-white hover:border-zinc-200"
+            : "border-zinc-100 bg-white hover:border-zinc-200"
         }`}
       >
         <div className="flex items-center gap-3">
           {selectionMode && (
             <div
               className={`flex h-5 w-5 items-center justify-center rounded border text-[10px] font-bold ${
-                selected
-                  ? "border-red-500 bg-red-500 text-white"
+                selectedStyle
+                  ? isDark
+                    ? "border-red-200 bg-red-200 text-red-900"
+                    : "border-red-500 bg-red-500 text-white"
                   : "border-zinc-300 bg-white text-transparent"
               }`}
             >
               ✓
             </div>
           )}
-          <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-zinc-50 border border-zinc-100 text-zinc-400">
+          <div
+            className={`flex h-10 w-10 items-center justify-center rounded-2xl border ${
+              selectedStyle
+                ? "border-red-700 bg-red-700 text-red-100"
+                : "border-zinc-100 bg-zinc-50 text-zinc-400"
+            }`}
+          >
             <FaTag size={14} />
           </div>
           <div>
-            <p className="text-sm font-semibold text-zinc-900">{service.name}</p>
-            <div className="flex items-center gap-1 text-xs text-zinc-500">
+            <p className={`text-sm font-semibold ${selectedStyle ? selectedTextClass : "text-zinc-900"}`}>
+              {service.name}
+            </p>
+            <div
+              className={`flex items-center gap-1 text-xs ${
+                selectedStyle ? selectedMutedTextClass : "text-zinc-500"
+              }`}
+            >
               <FaClock size={10} />
               <span>{service.duration} min</span>
             </div>
           </div>
         </div>
         <div className="flex items-center gap-3">
-          <p className="text-sm font-bold text-zinc-900">
+          <p className={`text-sm font-bold ${selectedStyle ? selectedTextClass : "text-zinc-900"}`}>
             {service.price ? `R$ ${Number(service.price).toFixed(2).replace(".", ",")}` : "A combinar"}
           </p>
           {!selectionMode && (
@@ -90,6 +113,8 @@ function ServiceItem({
 
 export default function ServicosPage() {
   const { user, loading: authLoading } = useAuth()
+  const { theme } = useTheme()
+  const isDark = theme === "dark"
   const [services, setServices] = useState<Service[]>([])
   const [loading, setLoading] = useState(true)
   const [name, setName] = useState("")
@@ -109,6 +134,7 @@ export default function ServicosPage() {
   const [deleting, setDeleting] = useState(false)
   const [showDeleteConfirmModal, setShowDeleteConfirmModal] = useState(false)
   const { showToast, ToastComponent } = useToast()
+  const hasSelectedServices = selectedServiceIds.length > 0
 
   useEffect(() => {
     if (authLoading) return
@@ -294,7 +320,7 @@ export default function ServicosPage() {
 
                 <div className="grid grid-cols-2 gap-4">
                   <div className="w-full">
-                    <label htmlFor="durationMode" className="mb-1 block text-sm font-semibold text-zinc-800">
+                    <label htmlFor="durationMode" className={inputStyles.label}>
                       Duração
                     </label>
                     <select
@@ -310,7 +336,7 @@ export default function ServicosPage() {
                           setDurationPreset(value)
                         }
                       }}
-                      className="w-full rounded-xl border border-zinc-200 bg-white px-3 py-2.5 text-sm text-zinc-900 outline-none transition placeholder:text-zinc-400 focus:border-zinc-500 focus:ring-2 focus:ring-zinc-200"
+                      className={`${inputStyles.base} pr-9`}
                     >
                       {DURATION_OPTIONS.map((option) => (
                         <option key={option.value} value={option.value}>
@@ -346,7 +372,10 @@ export default function ServicosPage() {
                   />
                 )}
 
-                <Button type="submit" className="w-full mt-2">
+                <Button
+                  type="submit"
+                  className="mt-2 w-full"
+                >
                   <FaPlus size={12} />
                   Salvar Serviço
                 </Button>
@@ -368,8 +397,9 @@ export default function ServicosPage() {
                   className={`inline-flex items-center gap-1 rounded-full px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider transition-colors ${
                     selectionMode
                       ? "bg-zinc-900 text-white hover:bg-zinc-800"
-                      : "border border-red-200 bg-red-50 text-red-700 hover:bg-red-100"
-                  }`}
+                    : isDark
+                      ? "border border-red-900 bg-red-900/40 text-red-300"
+                      : "border border-red-200 bg-red-50 text-red-700"                  }`}
                 >
                   <FaTrash size={10} />
                   {selectionMode ? "Cancelar remoção" : "Remover serviços"}
@@ -377,19 +407,34 @@ export default function ServicosPage() {
               </div>
 
               {selectionMode && (
-                <div className="mb-4 rounded-xl border border-red-200 bg-red-50 p-3">
-                  <p className="text-xs font-semibold text-red-700">
+                <div
+                  className={`mb-4 rounded-xl p-3 ${
+                    isDark
+                      ? "border border-red-900 bg-red-900/40"
+                      : "border border-red-200 bg-red-50"
+                  }`}
+                >
+                  <p className={`text-xs font-semibold ${isDark ? "text-red-100" : "text-red-700"}`}>
                     Selecione os serviços que deseja remover.
                   </p>
                   <div className="mt-2 flex items-center justify-between gap-3">
-                    <p className="text-xs text-red-700">
+                    <p className={`text-xs ${isDark ? "text-red-200" : "text-red-700"}`}>
                       {selectedServiceIds.length} serviço(s) selecionado(s)
                     </p>
                     <Button
                       type="button"
                       onClick={() => setShowDeleteConfirmModal(true)}
                       disabled={selectedServiceIds.length === 0 || deleting}
-                      className="bg-red-600 hover:bg-red-700"
+                      variant={selectedServiceIds.length === 0 ? 'secondary': 'primary'}
+                      className={
+                        hasSelectedServices
+                          ? isDark
+                            ? "bg-red-800 text-white hover:bg-red-900"
+                            : "bg-red-600 text-white hover:bg-red-700"
+                          : isDark
+                            ? "bg-zinc-800 text-zinc-200 hover:bg-zinc-800 disabled:bg-zinc-800 disabled:text-zinc-200"
+                            : "bg-zinc-50 text-zinc-900 hover:bg-zinc-50 disabled:bg-zinc-50 disabled:text-zinc-900"
+                      }
                     >
                       {deleting ? "Removendo..." : "Excluir selecionados"}
                     </Button>
@@ -407,6 +452,7 @@ export default function ServicosPage() {
                       service={service}
                       selectionMode={selectionMode}
                       selected={selectedServiceIds.includes(getServiceId(service))}
+                      isDark={isDark}
                       onClick={() =>
                         selectionMode ? handleToggleServiceSelection(service) : handleOpenEdit(service)
                       }
@@ -426,19 +472,37 @@ export default function ServicosPage() {
       </main>
 
       {showDeleteConfirmModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-zinc-900/40 p-4">
-          <Card className="w-full max-w-md p-6">
-            <div className="mb-5 flex items-center justify-between border-b border-zinc-100 pb-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-zinc-900/40 p-4 backdrop-blur-sm">
+          <Card
+            className={`w-full max-w-md p-6 ${
+              isDark ? "border border-zinc-700 bg-red-950/30" : "border border-zinc-200 bg-red-50"
+            }`}
+          >
+            <div
+              className={`mb-5 flex items-center justify-between border-b pb-4 ${
+                isDark ? "border-zinc-700" : "border-zinc-200"
+              }`}
+            >
               <div>
-                <p className="text-xs font-bold uppercase tracking-widest text-zinc-500">
+                <p
+                  className={`text-xs font-bold uppercase tracking-widest ${
+                    isDark ? "text-red-300" : "text-red-700"
+                  }`}
+                >
                   Confirmar exclusão
                 </p>
-                <h3 className="text-lg font-bold text-zinc-900">Remover serviços selecionados?</h3>
+                <h3 className={`text-lg font-bold ${isDark ? "text-red-100" : "text-zinc-900"}`}>
+                  Remover serviços selecionados?
+                </h3>
               </div>
               <button
                 type="button"
                 onClick={() => setShowDeleteConfirmModal(false)}
-                className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-zinc-200 bg-zinc-50 text-zinc-500 hover:bg-zinc-100"
+                className={`inline-flex h-9 w-9 items-center justify-center rounded-full border ${
+                  isDark
+                    ? "border-zinc-700 bg-zinc-800 text-red-300 hover:bg-zinc-700"
+                    : "border-zinc-200 bg-zinc-100 text-red-700 hover:bg-zinc-200"
+                }`}
                 aria-label="Fechar modal de confirmação"
                 disabled={deleting}
               >
@@ -446,9 +510,11 @@ export default function ServicosPage() {
               </button>
             </div>
 
-            <p className="text-sm text-zinc-600">
+            <p className={`text-sm ${isDark ? "text-red-200" : "text-red-800"}`}>
               Esta ação irá remover{" "}
-              <span className="font-semibold text-zinc-900">{selectedServiceIds.length}</span>{" "}
+              <span className={`font-semibold ${isDark ? "text-red-100" : "text-zinc-900"}`}>
+                {selectedServiceIds.length}
+              </span>{" "}
               serviço(s) e não poderá ser desfeita.
             </p>
 
@@ -464,9 +530,10 @@ export default function ServicosPage() {
               </Button>
               <Button
                 type="button"
-                className="flex-1 bg-red-600 hover:bg-red-700"
+                className="flex-1"
                 onClick={handleBulkDelete}
                 disabled={deleting}
+                variant="danger"
               >
                 {deleting ? "Removendo..." : "Excluir agora"}
               </Button>
@@ -476,8 +543,8 @@ export default function ServicosPage() {
       )}
 
       {editingService && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-zinc-900/40 p-4">
-          <Card className="w-full max-w-md p-6">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-zinc-900/40 p-4 backdrop-blur-sm">
+          <Card className="w-full max-w-md border border-zinc-200 p-6">
             <div className="mb-5 flex items-center justify-between border-b border-zinc-100 pb-4">
               <div>
                 <p className="text-xs font-bold uppercase tracking-widest text-zinc-500">
@@ -504,7 +571,10 @@ export default function ServicosPage() {
               />
               <div className="grid grid-cols-2 gap-4">
                 <div className="w-full">
-                  <label htmlFor="editDurationMode" className="mb-1 block text-sm font-semibold text-zinc-800">
+                  <label
+                    htmlFor="editDurationMode"
+                    className="block text-xs font-bold uppercase tracking-wider text-zinc-500"
+                  >
                     Duração
                   </label>
                   <select
@@ -520,7 +590,7 @@ export default function ServicosPage() {
                         setEditDurationPreset(value)
                       }
                     }}
-                    className="w-full rounded-xl border border-zinc-200 bg-white px-3 py-2.5 text-sm text-zinc-900 outline-none transition placeholder:text-zinc-400 focus:border-zinc-500 focus:ring-2 focus:ring-zinc-200"
+                    className="mt-1 w-full rounded-xl border border-zinc-200 bg-white px-3 py-2.5 text-sm font-normal text-zinc-900 outline-none transition placeholder:text-zinc-400 focus:border-zinc-500 focus:ring-2 focus:ring-zinc-200"
                   >
                     {DURATION_OPTIONS.map((option) => (
                       <option key={option.value} value={option.value}>

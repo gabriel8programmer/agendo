@@ -1,12 +1,12 @@
 "use client"
 
 import { useState } from "react"
-import Image from "next/image"
 import { useRouter } from "next/navigation"
 import ButtonLink from "@/components/ui/ButtonLink"
 import Button from "@/components/ui/Button"
 import Card from "@/components/ui/Card"
 import Input from "@/components/ui/Input"
+import BrandLogo from "@/components/ui/BrandLogo"
 import { requestPasswordReset } from "@/lib/api"
 
 export default function ForgotPasswordPage() {
@@ -40,7 +40,7 @@ export default function ForgotPasswordPage() {
         <Card className="p-8">
           <header className="mb-8">
             <div className="flex justify-center">
-              <Image src="/logo.svg" alt="Agendo" width={180} height={52} className="h-12 w-auto" />
+              <BrandLogo width={180} height={52} className="h-12 w-auto" />
             </div>
             <p className="mt-1 text-center text-sm font-medium text-zinc-600 uppercase tracking-widest">
               Redefinir senha

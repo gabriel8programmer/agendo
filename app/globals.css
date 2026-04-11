@@ -1,8 +1,13 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #f9fafb;
+  --foreground: #18181b;
+}
+
+html[data-theme="dark"] {
+  --background: #09090b;
+  --foreground: #f4f4f5;
 }
 
 @theme inline {
@@ -12,17 +17,93 @@
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
+}
+
+/* Dark mode simples para utilitários mais usados no app */
+html[data-theme="dark"] .bg-\[\#f9fafb\] {
+  background-color: #09090b !important;
+}
+
+html[data-theme="dark"] .bg-white {
+  background-color: #18181b !important;
+}
+
+html[data-theme="dark"] .bg-white\/80,
+html[data-theme="dark"] .bg-white\/95 {
+  background-color: rgba(24, 24, 27, 0.9) !important;
+}
+
+html[data-theme="dark"] .bg-zinc-50 {
+  background-color: #27272a !important;
+}
+
+html[data-theme="dark"] .bg-zinc-100 {
+  background-color: #3f3f46 !important;
+}
+
+html[data-theme="dark"] .border-zinc-100 {
+  border-color: #27272a !important;
+}
+
+html[data-theme="dark"] .border-zinc-200 {
+  border-color: #3f3f46 !important;
+}
+
+html[data-theme="dark"] .border-zinc-300 {
+  border-color: #52525b !important;
+}
+
+html[data-theme="dark"] .text-zinc-900 {
+  color: #f4f4f5 !important;
+}
+
+html[data-theme="dark"] .text-zinc-800 {
+  color: #e4e4e7 !important;
+}
+
+html[data-theme="dark"] .text-zinc-700 {
+  color: #d4d4d8 !important;
+}
+
+html[data-theme="dark"] .text-zinc-600 {
+  color: #a1a1aa !important;
+}
+
+html[data-theme="dark"] .text-zinc-500 {
+  color: #a1a1aa !important;
+}
+
+html[data-theme="dark"] .text-zinc-400 {
+  color: #71717a !important;
+}
+
+html[data-theme="dark"] .theme-primary-button {
+  background-color: #3f3f46 !important;
+  color: #f4f4f5 !important;
+}
+
+html[data-theme="dark"] .theme-primary-button:hover {
+  background-color: #52525b !important;
+}
+
+html[data-theme="dark"] select,
+html[data-theme="dark"] input.theme-time-field[type="time"] {
+  background-color: #18181b !important;
+  border-color: #52525b !important;
+  color: #f4f4f5 !important;
+}
+
+html[data-theme="dark"] input.theme-time-field[type="time"] {
+  color-scheme: dark;
+}
+
+html[data-theme="dark"] input.theme-time-field[type="time"]::-webkit-calendar-picker-indicator {
+  filter: none;
+  opacity: 0.9;
 }
 
 /* Scrollbar global mais discreta */

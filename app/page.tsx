@@ -1,5 +1,5 @@
 import ButtonLink from "@/components/ui/ButtonLink"
-import Image from "next/image"
+import BrandLogo from "@/components/ui/BrandLogo"
 
 export default function Home() {
   return (
@@ -7,7 +7,7 @@ export default function Home() {
       <main className="w-full max-w-md rounded-2xl bg-white p-8 shadow-sm">
         <header className="mb-8 text-center">
           <div className="flex justify-center">
-            <Image src="/logo.svg" alt="Agendo" width={210} height={60} className="h-12 w-auto" />
+            <BrandLogo width={210} height={60} className="h-12 w-auto" />
           </div>
           <p className="mt-2 text-sm font-medium text-zinc-600">
             Seu sistema de agendamento online simples e eficiente.

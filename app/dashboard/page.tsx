@@ -16,6 +16,7 @@ import ButtonLink from "@/components/ui/ButtonLink"
 import Card from "@/components/ui/Card"
 import Header from "@/components/ui/Header"
 import { useAuth } from "@/components/providers/AuthProvider"
+import { useTheme } from "@/components/providers/ThemeProvider"
 import { getAppointments, getAvailability, getServices } from "@/lib/api"
 import { Appointment, Availability, Service } from "@/types"
 import { formatToLocalTime, getTodayDate, dayjs } from "@/lib/utils/date"
@@ -47,6 +48,8 @@ function toWhatsAppUrl(phone?: string) {
 
 export default function DashboardPage() {
   const { user, loading: authLoading } = useAuth()
+  const { theme } = useTheme()
+  const isDark = theme === "dark"
   const [appointments, setAppointments] = useState<Appointment[]>([])
   const [services, setServices] = useState<Service[]>([])
   const [loading, setLoading] = useState(true)
@@ -252,7 +255,11 @@ export default function DashboardPage() {
                 <FaCalendarAlt aria-hidden />
                 Ver agenda
               </ButtonLink>
-              <ButtonLink href="/servicos" variant="secondary">
+              <ButtonLink
+                href="/servicos"
+                variant="secondary"
+                className={isDark ? "border-zinc-500 bg-zinc-700 text-zinc-100 hover:bg-zinc-600" : ""}
+              >
                 <FaWrench aria-hidden />
                 Gerenciar serviços
               </ButtonLink>

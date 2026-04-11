@@ -2,7 +2,6 @@
 
 import { useState } from "react"
 import Link from "next/link"
-import Image from "next/image"
 import { usePathname, useRouter } from "next/navigation"
 import { destroyCookie } from "nookies"
 import {
@@ -12,13 +11,18 @@ import {
   FaCog,
   FaChartLine,
   FaSignOutAlt,
+  FaMoon,
+  FaSun,
 } from "react-icons/fa"
 import { logoutSession } from "@/lib/api"
+import BrandLogo from "@/components/ui/BrandLogo"
+import { useTheme } from "@/components/providers/ThemeProvider"
 
 export default function Header() {
   const [isOpen, setIsOpen] = useState(false)
   const router = useRouter()
   const pathname = usePathname()
+  const { theme, toggleTheme } = useTheme()
 
   const menuItems = [
     { label: "Dashboard", href: "/dashboard", icon: FaChartLine },
@@ -44,10 +48,19 @@ export default function Header() {
       <header className="sticky top-0 z-50 w-full border-b border-zinc-100 bg-white/80 backdrop-blur-md">
         <div className="mx-auto flex max-w-5xl items-center justify-between px-4 py-3">
         <Link href="/dashboard" className="transition-opacity hover:opacity-80">
-          <Image src="/logo.svg" alt="Agendo" width={120} height={34} className="h-7 w-auto" />
+          <BrandLogo width={120} height={34} className="h-7 w-auto" />
         </Link>
 
-          <div className="relative hidden md:block">
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={toggleTheme}
+              className="inline-flex h-10 w-10 items-center justify-center rounded-xl text-zinc-600 hover:bg-zinc-50 transition-colors"
+              aria-label={theme === "dark" ? "Ativar tema claro" : "Ativar tema escuro"}
+            >
+              {theme === "dark" ? <FaSun size={16} /> : <FaMoon size={16} />}
+            </button>
+            <div className="relative hidden md:block">
           <button
             onClick={() => setIsOpen(!isOpen)}
             className="flex h-10 w-10 items-center justify-center rounded-xl text-zinc-600 hover:bg-zinc-50 transition-colors"
@@ -86,7 +99,7 @@ export default function Header() {
             </>
           )}
         </div>
-          <button
+            <button
             type="button"
             onClick={handleLogout}
             className="inline-flex h-10 w-10 items-center justify-center rounded-xl text-zinc-500 hover:bg-red-50 hover:text-red-600 transition-colors md:hidden"
@@ -94,6 +107,7 @@ export default function Header() {
           >
             <FaSignOutAlt size={16} />
           </button>
+          </div>
         </div>
       </header>
 
@@ -101,13 +115,21 @@ export default function Header() {
         <div className="flex gap-0.5">
           {menuItems.map((item) => {
             const isActive = pathname === item.href
+            const activeClass =
+              theme === "dark"
+                ? "bg-zinc-100 text-zinc-900 ring-1 ring-zinc-500"
+                : "bg-zinc-900 text-white"
+            const inactiveClass =
+              theme === "dark"
+                ? "text-zinc-400 hover:bg-zinc-800"
+                : "text-zinc-500 hover:bg-zinc-100"
 
             return (
               <Link
                 key={item.href}
                 href={item.href}
                 className={`flex flex-1 flex-col items-center justify-center px-1 py-2 text-[11px] font-semibold transition-colors ${
-                  isActive ? "bg-zinc-900 text-white" : "text-zinc-500 hover:bg-zinc-100"
+                  isActive ? activeClass : inactiveClass
                 }`}
               >
                 <item.icon size={16} />

@@ -1,13 +1,14 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import Image from "next/image"
 import Card from "@/components/ui/Card"
 import Button from "@/components/ui/Button"
 import Header from "@/components/ui/Header"
 import Input from "@/components/ui/Input"
 import PageHeader from "@/components/ui/PageHeader"
+import BrandLogo from "@/components/ui/BrandLogo"
 import { useAuth } from "@/components/providers/AuthProvider"
+import { useTheme } from "@/components/providers/ThemeProvider"
 import {
   FaStore,
   FaClock,
@@ -32,6 +33,8 @@ const DAYS_INITIALS = ["D", "S", "T", "Q", "Q", "S", "S"]
 
 export default function SettingsPage() {
   const { user: authUser, loading: authLoading, refreshUser } = useAuth()
+  const { theme } = useTheme()
+  const isDark = theme === "dark"
   const [availability, setAvailability] = useState<Availability | null>(null)
   const [personName, setPersonName] = useState("")
   const [companyName, setCompanyName] = useState("")
@@ -287,8 +290,12 @@ export default function SettingsPage() {
                     onClick={() => handleToggleDay(index)}
                     className={`flex flex-1 h-9 w-9 items-center justify-center rounded-xl border text-xs font-bold transition-all ${
                       isActive
-                        ? "border-zinc-900 bg-zinc-900 text-white shadow-md"
-                        : "border-zinc-100 bg-white text-zinc-400 hover:border-zinc-300 shadow-sm"
+                        ? isDark
+                          ? "border-zinc-500 bg-zinc-100 text-zinc-900 shadow-md ring-1 ring-zinc-500"
+                          : "border-zinc-900 bg-zinc-900 text-white shadow-md"
+                        : isDark
+                          ? "border-zinc-700 bg-zinc-900 text-zinc-400 hover:border-zinc-500 shadow-sm"
+                          : "border-zinc-100 bg-white text-zinc-400 hover:border-zinc-300 shadow-sm"
                     }`}
                   >
                     {initial}
@@ -309,6 +316,7 @@ export default function SettingsPage() {
                 label="Início"
                 type="time"
                 step={60}
+                className="theme-time-field"
                 value={availability?.startTime || "09:00"}
                 onChange={(e) =>
                   setAvailability((prev) => (prev ? { ...prev, startTime: e.target.value } : null))
@@ -318,6 +326,7 @@ export default function SettingsPage() {
                 label="Término"
                 type="time"
                 step={60}
+                className="theme-time-field"
                 value={availability?.endTime || "18:00"}
                 onChange={(e) =>
                   setAvailability((prev) => (prev ? { ...prev, endTime: e.target.value } : null))
@@ -354,12 +363,14 @@ export default function SettingsPage() {
                       <Input
                         type="time"
                         step={60}
+                        className="theme-time-field"
                         value={interval.startTime}
                         onChange={(e) => handleReservedChange(idx, "startTime", e.target.value)}
                       />
                       <Input
                         type="time"
                         step={60}
+                        className="theme-time-field"
                         value={interval.endTime}
                         onChange={(e) => handleReservedChange(idx, "endTime", e.target.value)}
                       />
@@ -417,7 +428,7 @@ export default function SettingsPage() {
 
         <footer className="mt-12 pb-8">
           <div className="flex flex-col items-center justify-center gap-2 rounded-2xl border border-zinc-200 bg-white px-4 py-3 text-center">
-            <Image src="/logo.svg" alt="Agendo" width={72} height={22} className="h-5 w-auto" />
+            <BrandLogo width={72} height={22} className="h-5 w-auto" />
             <p className="text-xs text-zinc-500">Seu negócio organizado, cliente bem atendido.</p>
           </div>
         </footer>

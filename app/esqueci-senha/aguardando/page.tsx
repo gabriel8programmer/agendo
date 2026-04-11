@@ -1,11 +1,11 @@
 "use client"
 
 import { useEffect, useRef, useState } from "react"
-import Image from "next/image"
 import Button from "@/components/ui/Button"
 import ButtonLink from "@/components/ui/ButtonLink"
 import Card from "@/components/ui/Card"
 import Input from "@/components/ui/Input"
+import BrandLogo from "@/components/ui/BrandLogo"
 import { confirmPasswordReset, getPasswordResetStatus } from "@/lib/api"
 
 type ResetStatus = "pending" | "verified" | "used" | "expired" | "not_found"
@@ -103,7 +103,7 @@ export default function WaitForVerificationPage() {
         <Card className="p-8">
           <header className="mb-8">
             <div className="flex justify-center">
-              <Image src="/logo.svg" alt="Agendo" width={180} height={52} className="h-12 w-auto" />
+              <BrandLogo width={180} height={52} className="h-12 w-auto" />
             </div>
             <p className="mt-1 text-center text-sm font-medium text-zinc-600 uppercase tracking-widest">
               Verificação de email
@@ -188,4 +188,3 @@ export default function WaitForVerificationPage() {
     </div>
   )
 }
-
