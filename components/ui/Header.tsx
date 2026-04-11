@@ -3,7 +3,7 @@
 import { useState } from "react"
 import Link from "next/link"
 import Image from "next/image"
-import { useRouter } from "next/navigation"
+import { usePathname, useRouter } from "next/navigation"
 import { destroyCookie } from "nookies"
 import {
   FaEllipsisV,
@@ -18,6 +18,7 @@ import { logoutSession } from "@/lib/api"
 export default function Header() {
   const [isOpen, setIsOpen] = useState(false)
   const router = useRouter()
+  const pathname = usePathname()
 
   const menuItems = [
     { label: "Dashboard", href: "/dashboard", icon: FaChartLine },
@@ -39,13 +40,14 @@ export default function Header() {
   }
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-zinc-100 bg-white/80 backdrop-blur-md">
-      <div className="mx-auto flex max-w-5xl items-center justify-between px-4 py-3">
+    <>
+      <header className="sticky top-0 z-50 w-full border-b border-zinc-100 bg-white/80 backdrop-blur-md">
+        <div className="mx-auto flex max-w-5xl items-center justify-between px-4 py-3">
         <Link href="/dashboard" className="transition-opacity hover:opacity-80">
           <Image src="/logo.svg" alt="Agendo" width={120} height={34} className="h-7 w-auto" />
         </Link>
 
-        <div className="relative">
+          <div className="relative hidden md:block">
           <button
             onClick={() => setIsOpen(!isOpen)}
             className="flex h-10 w-10 items-center justify-center rounded-xl text-zinc-600 hover:bg-zinc-50 transition-colors"
@@ -84,7 +86,37 @@ export default function Header() {
             </>
           )}
         </div>
-      </div>
-    </header>
+          <button
+            type="button"
+            onClick={handleLogout}
+            className="inline-flex h-10 w-10 items-center justify-center rounded-xl text-zinc-500 hover:bg-red-50 hover:text-red-600 transition-colors md:hidden"
+            aria-label="Sair da conta"
+          >
+            <FaSignOutAlt size={16} />
+          </button>
+        </div>
+      </header>
+
+      <nav className="fixed inset-x-0 bottom-0 z-50 border-t border-zinc-200 bg-white/95 pb-[env(safe-area-inset-bottom)] shadow-[0_-6px_18px_rgba(24,24,27,0.08)] backdrop-blur md:hidden">
+        <div className="flex gap-0.5">
+          {menuItems.map((item) => {
+            const isActive = pathname === item.href
+
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                className={`flex flex-1 flex-col items-center justify-center px-1 py-2 text-[11px] font-semibold transition-colors ${
+                  isActive ? "bg-zinc-900 text-white" : "text-zinc-500 hover:bg-zinc-100"
+                }`}
+              >
+                <item.icon size={16} />
+                <span className="mt-1">{item.label}</span>
+              </Link>
+            )
+          })}
+        </div>
+      </nav>
+    </>
   )
 }

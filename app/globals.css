@@ -25,6 +25,30 @@ body {
   font-family: Arial, Helvetica, sans-serif;
 }
 
+/* Scrollbar global mais discreta */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #c4c4c5 transparent;
+}
+
+*::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+*::-webkit-scrollbar-thumb {
+  background: #c4c4c5;
+  border-radius: 999px;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background: #a1a1aa;
+}
+
 /* Utilitário para esconder scrollbar */
 @utility scrollbar-hide {
   &::-webkit-scrollbar {

@@ -208,7 +208,7 @@ export default function SettingsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#f9fafb] font-sans">
+    <div className="min-h-screen bg-[#f9fafb] pb-24 font-sans md:pb-0">
       <Header />
       <main className="mx-auto max-w-2xl p-4 md:p-8">
         <PageHeader label="Configuração" title="Minha Agenda" />
