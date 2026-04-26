@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useCallback, useEffect, useMemo, useState } from "react"
 import { FaCheckCircle, FaExclamationCircle, FaInfoCircle } from "react-icons/fa"
 
 export type ToastType = "success" | "error" | "info"
@@ -59,15 +59,16 @@ export default function Toast({ message, type, onClose }: ToastProps) {
 export function useToast() {
   const [toast, setToast] = useState<{ message: string; type: ToastType } | null>(null)
 
-  const showToast = (message: string, type: ToastType = "success") => {
+  const showToast = useCallback((message: string, type: ToastType = "success") => {
     setToast({ message, type })
-  }
+  }, [])
 
-  const hideToast = () => setToast(null)
+  const hideToast = useCallback(() => setToast(null), [])
 
-  const ToastComponent = toast ? (
-    <Toast message={toast.message} type={toast.type} onClose={hideToast} />
-  ) : null
+  const ToastComponent = useMemo(
+    () => (toast ? <Toast message={toast.message} type={toast.type} onClose={hideToast} /> : null),
+    [toast, hideToast]
+  )
 
   return { showToast, ToastComponent }
 }

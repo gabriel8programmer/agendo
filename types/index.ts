@@ -22,6 +22,7 @@ export interface Appointment {
   id: string
   userId: string
   serviceId: string
+  professionalId?: string
   clientName: string
   clientWhatsapp?: string
   date: string // ISO UTC (ex: 2026-03-20T09:00:00.000Z)
@@ -42,4 +43,24 @@ export interface Availability {
   endTime: string
   workDays: number[]
   reservedIntervals: WorkInterval[]
+}
+
+export interface ProfessionalAvailability {
+  slotDuration: number
+  startTime: string
+  endTime: string
+  workDays: number[]
+  reservedIntervals: WorkInterval[]
+}
+
+export interface Professional {
+  id: string
+  userId: string
+  name: string
+  whatsapp?: string
+  isActive: boolean
+  serviceIds: string[]
+  availability: ProfessionalAvailability
+  photoUrl?: string
+  createdAt: string
 }

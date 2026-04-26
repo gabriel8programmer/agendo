@@ -7,6 +7,7 @@ import {
   FaClock,
   FaExclamationTriangle,
   FaMoneyBillWave,
+  FaUserTie,
   FaUser,
   FaWhatsapp,
   FaWrench,
@@ -250,7 +251,7 @@ export default function DashboardPage() {
           </section>
 
           <section>
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
               <ButtonLink href="/agenda" variant="primary">
                 <FaCalendarAlt aria-hidden />
                 Ver agenda
@@ -262,6 +263,14 @@ export default function DashboardPage() {
               >
                 <FaWrench aria-hidden />
                 Gerenciar serviços
+              </ButtonLink>
+              <ButtonLink
+                href="/profissionais"
+                variant="secondary"
+                className={isDark ? "border-zinc-500 bg-zinc-700 text-zinc-100 hover:bg-zinc-600" : ""}
+              >
+                <FaUserTie aria-hidden />
+                Profissionais
               </ButtonLink>
             </div>
           </section>

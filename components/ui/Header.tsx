@@ -10,6 +10,7 @@ import {
   FaWrench,
   FaCog,
   FaChartLine,
+  FaUserTie,
   FaSignOutAlt,
   FaMoon,
   FaSun,
@@ -28,6 +29,7 @@ export default function Header() {
     { label: "Dashboard", href: "/dashboard", icon: FaChartLine },
     { label: "Agenda", href: "/agenda", icon: FaCalendarAlt },
     { label: "Serviços", href: "/servicos", icon: FaWrench },
+    { label: "Profissionais", href: "/profissionais", icon: FaUserTie },
     { label: "Configurações", href: "/configuracoes", icon: FaCog },
   ]
 

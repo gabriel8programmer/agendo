@@ -1,4 +1,4 @@
-import { User, Service, Appointment, Availability } from "@/types"
+import { User, Service, Appointment, Availability, Professional } from "@/types"
 import { getDayRangeUTC } from "@/lib/utils/date"
 
 const getBaseUrl = () => {
@@ -77,6 +77,10 @@ export async function getServices(userId: string): Promise<Service[]> {
   return fetchJson(`${BASE_URL}/services?userId=${userId}`)
 }
 
+export async function getProfessionals(userId: string): Promise<Professional[]> {
+  return fetchJson(`${BASE_URL}/professionals?userId=${userId}`)
+}
+
 export async function createService(data: Omit<Service, "id" | "createdAt">): Promise<Service> {
   return fetchJson(`${BASE_URL}/services`, {
     method: "POST",
@@ -85,6 +89,45 @@ export async function createService(data: Omit<Service, "id" | "createdAt">): Pr
       ...data,
       createdAt: new Date().toISOString(),
     }),
+  })
+}
+
+export async function createProfessional(data: {
+  userId: string
+  name: string
+  whatsapp?: string
+  isActive?: boolean
+  serviceIds?: string[]
+  availability?: Professional["availability"]
+  photoUrl?: string
+}): Promise<Professional> {
+  return fetchJson(`${BASE_URL}/professionals`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+  })
+}
+
+export async function updateProfessional(
+  id: string,
+  data: {
+    userId: string
+    name?: string
+    whatsapp?: string
+    isActive?: boolean
+    serviceIds?: string[]
+    availability?: Professional["availability"]
+    photoUrl?: string
+  }
+): Promise<Professional> {
+  if (!isValidEntityId(id)) {
+    throw new Error("ID de profissional inválido")
+  }
+
+  return fetchJson(`${BASE_URL}/professionals/${id}`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
   })
 }
 
