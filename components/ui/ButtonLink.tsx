@@ -2,7 +2,7 @@ import type { ReactNode } from "react"
 import Link from "next/link"
 import { buttonStyles } from "@/lib/utils/styles"
 
-type ButtonVariant = "primary" | "secondary"
+type ButtonVariant = "primary" | "secondary" | "danger" | "ghost" | "link"
 
 type ButtonLinkProps = {
   href: string

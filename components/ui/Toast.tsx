@@ -15,7 +15,6 @@ export default function Toast({ message, type, onClose }: ToastProps) {
   const [isVisible, setIsVisible] = useState(false)
 
   useEffect(() => {
-    // Use requestAnimationFrame or a tiny timeout to ensure the animation triggers after mount
     const animFrame = requestAnimationFrame(() => {
       setIsVisible(true)
     })
@@ -23,7 +22,7 @@ export default function Toast({ message, type, onClose }: ToastProps) {
     const timer = setTimeout(() => {
       setIsVisible(false)
       setTimeout(onClose, 300)
-    }, 3000)
+    }, 4000)
 
     return () => {
       cancelAnimationFrame(animFrame)
@@ -32,30 +31,23 @@ export default function Toast({ message, type, onClose }: ToastProps) {
   }, [onClose])
 
   const icons = {
-    success: <FaCheckCircle className="text-green-500" />,
-    error: <FaExclamationCircle className="text-red-500" />,
-    info: <FaInfoCircle className="text-blue-500" />,
-  }
-
-  const bgColors = {
-    success: "bg-white border-green-100",
-    error: "bg-white border-red-100",
-    info: "bg-white border-blue-100",
+    success: <FaCheckCircle className="text-emerald-500" />,
+    error: <FaExclamationCircle className="text-destructive" />,
+    info: <FaInfoCircle className="text-primary" />,
   }
 
   return (
     <div
-      className={`fixed bottom-4 right-4 z-50 flex items-center gap-3 rounded-2xl border p-4 shadow-lg transition-all duration-300 ${
-        bgColors[type]
-      } ${isVisible ? "translate-y-0 opacity-100" : "translate-y-4 opacity-0"}`}
+      className={`fixed bottom-20 right-4 left-4 md:left-auto md:bottom-4 md:min-w-80 z-50 flex items-center gap-3 rounded-2xl border border-border bg-popover p-4 shadow-xl shadow-black/5 backdrop-blur-sm transition-all duration-500 ease-out ${
+        isVisible ? "translate-y-0 opacity-100 scale-100" : "translate-y-12 opacity-0 scale-95"
+      }`}
     >
-      <div className="text-lg">{icons[type]}</div>
-      <p className="text-sm font-medium text-zinc-900">{message}</p>
+      <div className="text-xl">{icons[type]}</div>
+      <p className="text-[15px] font-semibold text-foreground">{message}</p>
     </div>
   )
 }
 
-// Hook para facilitar o uso
 export function useToast() {
   const [toast, setToast] = useState<{ message: string; type: ToastType } | null>(null)
 

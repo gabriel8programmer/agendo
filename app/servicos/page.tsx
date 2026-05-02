@@ -5,9 +5,7 @@ import Card from "@/components/ui/Card"
 import Header from "@/components/ui/Header"
 import Input from "@/components/ui/Input"
 import Button from "@/components/ui/Button"
-import PageHeader from "@/components/ui/PageHeader"
 import { useAuth } from "@/components/providers/AuthProvider"
-import { useTheme } from "@/components/providers/ThemeProvider"
 import { FaClock, FaTag, FaPlus, FaList, FaTimes, FaPen, FaTrash } from "react-icons/fa"
 import { getServices, createService, updateService, deleteServicesBulk } from "@/lib/api"
 import { inputStyles } from "@/lib/utils/styles"
@@ -32,78 +30,62 @@ function ServiceItem({
   onClick,
   selectionMode,
   selected,
-  isDark,
 }: {
   service: Service
   onClick: () => void
   selectionMode: boolean
   selected: boolean
-  isDark: boolean
 }) {
-  const selectedStyle = selectionMode && selected
-  const selectedContainerClass = isDark ? "border-red-900 bg-red-900/40" : "border-red-300 bg-red-50"
-  const selectedTextClass = isDark ? "text-red-100" : "text-zinc-900"
-  const selectedMutedTextClass = isDark ? "text-red-200" : "text-zinc-500"
-
   return (
     <li>
       <button
         type="button"
         onClick={onClick}
-        className={`flex w-full items-center justify-between gap-4 rounded-2xl px-4 py-3 text-left shadow-sm border transition-all ${
+        className={`group flex w-full items-center justify-between gap-4 rounded-2xl border p-4 text-left transition-all ${
           selectionMode
-            ? selectedStyle
-              ? selectedContainerClass
-              : "border-zinc-200 bg-white"
-            : "border-zinc-100 bg-white hover:border-zinc-200"
+            ? selected
+              ? "border-destructive bg-destructive/10"
+              : "border-border bg-card"
+            : "border-border bg-card hover:border-primary/50 hover:shadow-lg hover:shadow-primary/5"
         }`}
       >
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-4">
           {selectionMode && (
             <div
-              className={`flex h-5 w-5 items-center justify-center rounded border text-[10px] font-bold ${
-                selectedStyle
-                  ? isDark
-                    ? "border-red-200 bg-red-200 text-red-900"
-                    : "border-red-500 bg-red-500 text-white"
-                  : "border-zinc-300 bg-white text-transparent"
+              className={`flex h-6 w-6 items-center justify-center rounded-lg border transition-colors ${
+                selected
+                  ? "border-destructive bg-destructive text-white"
+                  : "border-input bg-background text-transparent"
               }`}
             >
               ✓
             </div>
           )}
           <div
-            className={`flex h-10 w-10 items-center justify-center rounded-2xl border ${
-              selectedStyle
-                ? "border-red-700 bg-red-700 text-red-100"
-                : "border-zinc-100 bg-zinc-50 text-zinc-400"
+            className={`flex h-12 w-12 items-center justify-center rounded-2xl border border-border bg-muted/50 text-muted-foreground transition-colors group-hover:text-primary ${
+              selected ? "bg-destructive/20 text-destructive" : ""
             }`}
           >
-            <FaTag size={14} />
+            <FaTag size={18} />
           </div>
           <div>
-            <p className={`text-sm font-semibold ${selectedStyle ? selectedTextClass : "text-zinc-900"}`}>
+            <p className="text-[15px] font-bold text-foreground">
               {service.name}
             </p>
-            <div
-              className={`flex items-center gap-1 text-xs ${
-                selectedStyle ? selectedMutedTextClass : "text-zinc-500"
-              }`}
-            >
-              <FaClock size={10} />
+            <div className="mt-1 flex items-center gap-1.5 text-xs font-bold text-muted-foreground uppercase tracking-wider">
+              <FaClock size={12} className="text-primary/50" />
               <span>{service.duration} min</span>
             </div>
           </div>
         </div>
-        <div className="flex items-center gap-3">
-          <p className={`text-sm font-bold ${selectedStyle ? selectedTextClass : "text-zinc-900"}`}>
+        <div className="flex items-center gap-4">
+          <p className="text-base font-black text-foreground">
             {service.price ? `R$ ${Number(service.price).toFixed(2).replace(".", ",")}` : "A combinar"}
           </p>
           {!selectionMode && (
-            <span className="inline-flex items-center gap-1 rounded-full border border-zinc-200 bg-zinc-50 px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-zinc-500">
-              <FaPen size={9} />
-              Editar
-            </span>
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-accent text-accent-foreground opacity-0 transition-opacity group-hover:opacity-100">
+              <FaPen size={12} />
+            </div>
           )}
         </div>
       </button>
@@ -113,8 +95,6 @@ function ServiceItem({
 
 export default function ServicosPage() {
   const { user, loading: authLoading } = useAuth()
-  const { theme } = useTheme()
-  const isDark = theme === "dark"
   const [services, setServices] = useState<Service[]>([])
   const [loading, setLoading] = useState(true)
   const [name, setName] = useState("")
@@ -134,7 +114,6 @@ export default function ServicosPage() {
   const [deleting, setDeleting] = useState(false)
   const [showDeleteConfirmModal, setShowDeleteConfirmModal] = useState(false)
   const { showToast, ToastComponent } = useToast()
-  const hasSelectedServices = selectedServiceIds.length > 0
 
   useEffect(() => {
     if (authLoading) return
@@ -293,28 +272,35 @@ export default function ServicosPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#f9fafb] pb-24 font-sans md:pb-0">
+    <div className="min-h-screen bg-background pb-24 font-sans md:pb-0">
       <Header />
       <main className="mx-auto max-w-5xl p-4 md:p-8">
-        <PageHeader label="Configuração" title="Meus Serviços" />
+        <header className="mb-8">
+          <p className="text-xs font-black uppercase tracking-[0.2em] text-primary">Configurações</p>
+          <h1 className="mt-1 text-3xl font-extrabold tracking-tight text-foreground">
+            Meus Serviços
+          </h1>
+        </header>
 
-        <div className="grid gap-6 md:grid-cols-12">
+        <div className="grid gap-8 md:grid-cols-12">
           {/* Formulário de Novo Serviço */}
           <div className="md:col-span-5">
-            <Card className="p-6">
-              <div className="mb-6 flex items-center gap-2 text-zinc-900 border-b border-zinc-100 pb-4">
-                <FaPlus size={14} className="text-zinc-400" />
-                <h2 className="text-sm font-bold uppercase tracking-wider">Novo Serviço</h2>
+            <Card className="p-6 md:p-8">
+              <div className="mb-6 flex items-center gap-2">
+                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                  <FaPlus size={14} />
+                </div>
+                <h2 className="text-sm font-black uppercase tracking-wider text-foreground">Novo Serviço</h2>
               </div>
 
-              <form className="space-y-4" onSubmit={handleSubmit}>
+              <form className="space-y-6" onSubmit={handleSubmit}>
                 <Input
                   label="Nome do Serviço"
                   id="name"
                   name="name"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  placeholder="Ex: Corte de Cabelo"
+                  placeholder="Ex: Corte Moderno"
                   required
                 />
 
@@ -336,14 +322,14 @@ export default function ServicosPage() {
                           setDurationPreset(value)
                         }
                       }}
-                      className={`${inputStyles.base} pr-9`}
+                      className={`${inputStyles.base} h-11 pr-10 appearance-none bg-[url('data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20fill%3D%22none%22%20viewBox%3D%220%200%2020%2020%22%3E%3Cpath%20stroke%3D%22%236b7280%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%20stroke-width%3D%221.5%22%20d%3D%22m6%208%204%204%204-4%22%2F%3E%3C%2Fsvg%3E')] bg-[position:right_0.5rem_center] bg-[size:1.5em_1.5em] bg-no-repeat`}
                     >
                       {DURATION_OPTIONS.map((option) => (
                         <option key={option.value} value={option.value}>
                           {option.label}
                         </option>
                       ))}
-                      <option value="custom">Personalizado (minutos)</option>
+                      <option value="custom">Outro...</option>
                     </select>
                   </div>
 
@@ -358,9 +344,10 @@ export default function ServicosPage() {
                     placeholder="0,00"
                   />
                 </div>
+                
                 {durationMode === "custom" && (
                   <Input
-                    label="Duração personalizada (min)"
+                    label="Duração em minutos"
                     type="number"
                     id="durationCustom"
                     name="durationCustom"
@@ -374,9 +361,8 @@ export default function ServicosPage() {
 
                 <Button
                   type="submit"
-                  className="mt-2 w-full"
+                  className="h-12 w-full text-base"
                 >
-                  <FaPlus size={12} />
                   Salvar Serviço
                 </Button>
               </form>
@@ -385,65 +371,51 @@ export default function ServicosPage() {
 
           {/* Lista de Serviços */}
           <div className="md:col-span-7">
-            <Card className="p-6">
-              <div className="mb-6 flex items-center justify-between gap-2 border-b border-zinc-100 pb-4 text-zinc-900">
+            <Card className="p-6 md:p-8">
+              <div className="mb-8 flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <FaList size={14} className="text-zinc-400" />
-                  <h2 className="text-sm font-bold uppercase tracking-wider">Serviços Cadastrados</h2>
+                  <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-muted text-muted-foreground">
+                    <FaList size={14} />
+                  </div>
+                  <h2 className="text-sm font-black uppercase tracking-wider text-foreground">Serviços Ativos</h2>
                 </div>
+                
                 <button
                   type="button"
                   onClick={handleToggleSelectionMode}
-                  className={`inline-flex items-center gap-1 rounded-full px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider transition-colors ${
+                  className={`cursor-pointer rounded-full px-4 py-2 text-[10px] font-black uppercase tracking-[0.1em] transition-all active:scale-95 ${
                     selectionMode
-                      ? "bg-zinc-900 text-white hover:bg-zinc-800"
-                    : isDark
-                      ? "border border-red-900 bg-red-900/40 text-red-300"
-                      : "border border-red-200 bg-red-50 text-red-700"                  }`}
+                      ? "bg-foreground text-background"
+                      : "bg-destructive/10 text-destructive hover:bg-destructive hover:text-white"
+                  }`}
                 >
-                  <FaTrash size={10} />
-                  {selectionMode ? "Cancelar remoção" : "Remover serviços"}
+                  {selectionMode ? "Cancelar" : "Remover"}
                 </button>
               </div>
 
               {selectionMode && (
-                <div
-                  className={`mb-4 rounded-xl p-3 ${
-                    isDark
-                      ? "border border-red-900 bg-red-900/40"
-                      : "border border-red-200 bg-red-50"
-                  }`}
-                >
-                  <p className={`text-xs font-semibold ${isDark ? "text-red-100" : "text-red-700"}`}>
-                    Selecione os serviços que deseja remover.
+                <div className="mb-6 flex items-center justify-between rounded-[1.5rem] bg-destructive/5 p-4 ring-1 ring-destructive/20 animate-in fade-in slide-in-from-top-2">
+                  <p className="text-xs font-bold text-destructive">
+                    {selectedServiceIds.length} selecionado(s)
                   </p>
-                  <div className="mt-2 flex items-center justify-between gap-3">
-                    <p className={`text-xs ${isDark ? "text-red-200" : "text-red-700"}`}>
-                      {selectedServiceIds.length} serviço(s) selecionado(s)
-                    </p>
-                    <Button
-                      type="button"
-                      onClick={() => setShowDeleteConfirmModal(true)}
-                      disabled={selectedServiceIds.length === 0 || deleting}
-                      variant={selectedServiceIds.length === 0 ? 'secondary': 'primary'}
-                      className={
-                        hasSelectedServices
-                          ? isDark
-                            ? "bg-red-800 text-white hover:bg-red-900"
-                            : "bg-red-600 text-white hover:bg-red-700"
-                          : isDark
-                            ? "bg-zinc-800 text-zinc-200 hover:bg-zinc-800 disabled:bg-zinc-800 disabled:text-zinc-200"
-                            : "bg-zinc-50 text-zinc-900 hover:bg-zinc-50 disabled:bg-zinc-50 disabled:text-zinc-900"
-                      }
-                    >
-                      {deleting ? "Removendo..." : "Excluir selecionados"}
-                    </Button>
-                  </div>
+                  <Button
+                    type="button"
+                    variant="danger"
+                    onClick={() => setShowDeleteConfirmModal(true)}
+                    disabled={selectedServiceIds.length === 0 || deleting}
+                    className="h-9 px-4 text-xs"
+                  >
+                    Excluir Selecionados
+                  </Button>
                 </div>
               )}
 
               {loading || authLoading ? (
-                <p className="text-center text-sm text-zinc-500">Carregando...</p>
+                <div className="space-y-3">
+                  {[1, 2, 3].map((i) => (
+                    <div key={i} className="h-20 w-full animate-pulse rounded-2xl bg-muted" />
+                  ))}
+                </div>
               ) : (
                 <ul className="space-y-3">
                   {services.map((service) => (
@@ -452,7 +424,6 @@ export default function ServicosPage() {
                       service={service}
                       selectionMode={selectionMode}
                       selected={selectedServiceIds.includes(getServiceId(service))}
-                      isDark={isDark}
                       onClick={() =>
                         selectionMode ? handleToggleServiceSelection(service) : handleOpenEdit(service)
                       }
@@ -462,8 +433,12 @@ export default function ServicosPage() {
               )}
 
               {!loading && services.length === 0 && (
-                <div className="py-8 text-center text-zinc-500">
-                  <p className="text-sm">Nenhum serviço cadastrado.</p>
+                <div className="flex flex-col items-center justify-center py-20 text-center text-muted-foreground">
+                  <div className="mb-4 rounded-full bg-muted p-4 opacity-50">
+                    <FaTag size={32} />
+                  </div>
+                  <p className="text-sm font-bold">Nenhum serviço cadastrado.</p>
+                  <p className="mt-1 text-xs">Comece adicionando seu primeiro serviço ao lado.</p>
                 </div>
               )}
             </Card>
@@ -471,98 +446,64 @@ export default function ServicosPage() {
         </div>
       </main>
 
+      {/* Modal de Exclusão */}
       {showDeleteConfirmModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-zinc-900/40 p-4 backdrop-blur-sm">
-          <Card
-            className={`w-full max-w-md p-6 ${
-              isDark ? "border border-zinc-700 bg-red-950/30" : "border border-zinc-200 bg-red-50"
-            }`}
-          >
-            <div
-              className={`mb-5 flex items-center justify-between border-b pb-4 ${
-                isDark ? "border-zinc-700" : "border-zinc-200"
-              }`}
-            >
-              <div>
-                <p
-                  className={`text-xs font-bold uppercase tracking-widest ${
-                    isDark ? "text-red-300" : "text-red-700"
-                  }`}
-                >
-                  Confirmar exclusão
-                </p>
-                <h3 className={`text-lg font-bold ${isDark ? "text-red-100" : "text-zinc-900"}`}>
-                  Remover serviços selecionados?
-                </h3>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 p-4 backdrop-blur-sm animate-in fade-in duration-300">
+          <Card className="w-full max-w-sm border-none p-8 shadow-2xl shadow-black/20">
+            <div className="mb-6 flex flex-col items-center text-center">
+              <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-destructive/10 text-destructive">
+                <FaTrash size={24} />
               </div>
-              <button
-                type="button"
-                onClick={() => setShowDeleteConfirmModal(false)}
-                className={`inline-flex h-9 w-9 items-center justify-center rounded-full border ${
-                  isDark
-                    ? "border-zinc-700 bg-zinc-800 text-red-300 hover:bg-zinc-700"
-                    : "border-zinc-200 bg-zinc-100 text-red-700 hover:bg-zinc-200"
-                }`}
-                aria-label="Fechar modal de confirmação"
-                disabled={deleting}
-              >
-                <FaTimes size={14} />
-              </button>
+              <h3 className="text-xl font-black text-foreground">Remover serviços?</h3>
+              <p className="mt-2 text-[15px] font-medium text-muted-foreground leading-relaxed">
+                Você selecionou <span className="font-bold text-foreground">{selectedServiceIds.length} serviço(s)</span>. 
+                Esta ação é permanente e não pode ser desfeita.
+              </p>
             </div>
 
-            <p className={`text-sm ${isDark ? "text-red-200" : "text-red-800"}`}>
-              Esta ação irá remover{" "}
-              <span className={`font-semibold ${isDark ? "text-red-100" : "text-zinc-900"}`}>
-                {selectedServiceIds.length}
-              </span>{" "}
-              serviço(s) e não poderá ser desfeita.
-            </p>
-
-            <div className="mt-6 flex gap-3">
+            <div className="flex flex-col gap-3">
+              <Button
+                type="button"
+                variant="danger"
+                className="h-12 w-full text-base"
+                onClick={handleBulkDelete}
+                disabled={deleting}
+              >
+                {deleting ? "Removendo..." : "Sim, excluir tudo"}
+              </Button>
               <Button
                 type="button"
                 variant="secondary"
-                className="flex-1"
+                className="h-12 w-full text-base"
                 onClick={() => setShowDeleteConfirmModal(false)}
                 disabled={deleting}
               >
                 Cancelar
-              </Button>
-              <Button
-                type="button"
-                className="flex-1"
-                onClick={handleBulkDelete}
-                disabled={deleting}
-                variant="danger"
-              >
-                {deleting ? "Removendo..." : "Excluir agora"}
               </Button>
             </div>
           </Card>
         </div>
       )}
 
+      {/* Modal de Edição */}
       {editingService && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-zinc-900/40 p-4 backdrop-blur-sm">
-          <Card className="w-full max-w-md border border-zinc-200 p-6">
-            <div className="mb-5 flex items-center justify-between border-b border-zinc-100 pb-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 p-4 backdrop-blur-sm animate-in fade-in duration-300">
+          <Card className="w-full max-w-md border-none p-8 shadow-2xl shadow-black/20">
+            <div className="mb-8 flex items-center justify-between">
               <div>
-                <p className="text-xs font-bold uppercase tracking-widest text-zinc-500">
-                  Editar serviço
-                </p>
-                <h3 className="text-lg font-bold text-zinc-900">{editingService.name}</h3>
+                <p className="text-xs font-black uppercase tracking-widest text-primary">Editar</p>
+                <h3 className="mt-1 text-xl font-black text-foreground">{editingService.name}</h3>
               </div>
               <button
                 type="button"
                 onClick={handleCloseEdit}
-                className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-zinc-200 bg-zinc-50 text-zinc-500 hover:bg-zinc-100"
-                aria-label="Fechar modal de edição"
+                className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-xl bg-muted text-muted-foreground hover:bg-accent hover:text-accent-foreground transition-all"
               >
-                <FaTimes size={14} />
+                <FaTimes size={16} />
               </button>
             </div>
 
-            <form className="space-y-4" onSubmit={handleSaveEdit}>
+            <form className="space-y-6" onSubmit={handleSaveEdit}>
               <Input
                 label="Nome do Serviço"
                 value={editName}
@@ -571,15 +512,11 @@ export default function ServicosPage() {
               />
               <div className="grid grid-cols-2 gap-4">
                 <div className="w-full">
-                  <label
-                    htmlFor="editDurationMode"
-                    className="block text-xs font-bold uppercase tracking-wider text-zinc-500"
-                  >
+                  <label htmlFor="editDurationMode" className={inputStyles.label}>
                     Duração
                   </label>
                   <select
                     id="editDurationMode"
-                    name="editDurationMode"
                     value={editDurationMode === "preset" ? editDurationPreset : "custom"}
                     onChange={(e) => {
                       const value = e.target.value
@@ -590,14 +527,14 @@ export default function ServicosPage() {
                         setEditDurationPreset(value)
                       }
                     }}
-                    className="mt-1 w-full rounded-xl border border-zinc-200 bg-white px-3 py-2.5 text-sm font-normal text-zinc-900 outline-none transition placeholder:text-zinc-400 focus:border-zinc-500 focus:ring-2 focus:ring-zinc-200"
+                    className={`${inputStyles.base} h-11 pr-10 appearance-none bg-[url('data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20fill%3D%22none%22%20viewBox%3D%220%200%2020%2020%22%3E%3Cpath%20stroke%3D%22%236b7280%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%20stroke-width%3D%221.5%22%20d%3D%22m6%208%204%204%204-4%22%2F%3E%3C%2Fsvg%3E')] bg-[position:right_0.5rem_center] bg-[size:1.5em_1.5em] bg-no-repeat`}
                   >
                     {DURATION_OPTIONS.map((option) => (
                       <option key={option.value} value={option.value}>
                         {option.label}
                       </option>
                     ))}
-                    <option value="custom">Personalizado (minutos)</option>
+                    <option value="custom">Outro...</option>
                   </select>
                 </div>
                 <Input
@@ -606,28 +543,27 @@ export default function ServicosPage() {
                   value={editPrice}
                   onChange={(e) => setEditPrice(e.target.value)}
                   step="0.01"
-                  min="0"
-                  placeholder="Vazio = A combinar"
+                  placeholder="A combinar"
                 />
               </div>
+              
               {editDurationMode === "custom" && (
                 <Input
-                  label="Duração personalizada (min)"
+                  label="Duração em minutos"
                   type="number"
                   value={editDurationCustom}
                   onChange={(e) => setEditDurationCustom(e.target.value)}
                   min="1"
-                  placeholder="Ex: 75"
                   required
                 />
               )}
 
-              <div className="flex gap-3 pt-2">
-                <Button type="button" variant="secondary" className="flex-1" onClick={handleCloseEdit}>
-                  Cancelar
+              <div className="flex flex-col gap-3 pt-4">
+                <Button type="submit" className="h-12 w-full text-base" disabled={savingEdit}>
+                  {savingEdit ? "Salvando..." : "Salvar Alterações"}
                 </Button>
-                <Button type="submit" className="flex-1" disabled={savingEdit}>
-                  {savingEdit ? "Salvando..." : "Salvar"}
+                <Button type="button" variant="ghost" className="h-12 w-full" onClick={handleCloseEdit}>
+                  Cancelar
                 </Button>
               </div>
             </form>

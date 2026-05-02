@@ -1,8 +1,9 @@
 "use client"
 
 import { useState } from "react"
+import Link from "next/link"
 import { useRouter } from "next/navigation"
-import ButtonLink from "@/components/ui/ButtonLink"
+import { FaEnvelope, FaChevronLeft } from "react-icons/fa"
 import Button from "@/components/ui/Button"
 import Card from "@/components/ui/Card"
 import Input from "@/components/ui/Input"
@@ -35,50 +36,64 @@ export default function ForgotPasswordPage() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-[#f9fafb] p-4 font-sans">
+    <div className="flex min-h-screen items-center justify-center bg-background p-4 md:p-6">
       <main className="w-full max-w-md">
-        <Card className="p-8">
-          <header className="mb-8">
-            <div className="flex justify-center">
-              <BrandLogo width={180} height={52} className="h-12 w-auto" />
+        <Card className="border-none shadow-2xl shadow-black/5 md:p-8 p-6 rounded-[2.5rem]">
+          <header className="mb-10 text-center">
+            <div className="mb-6 flex justify-center">
+              <Link href="/">
+                <BrandLogo width={180} height={52} className="h-10 w-auto" />
+              </Link>
             </div>
-            <p className="mt-1 text-center text-sm font-medium text-zinc-600 uppercase tracking-widest">
-              Redefinir senha
+            <h1 className="text-xl font-bold tracking-tight text-foreground">
+              Redefinir sua senha
+            </h1>
+            <p className="mt-1.5 text-sm font-medium text-muted-foreground">
+              Enviaremos um link de recuperação para o seu e-mail.
             </p>
           </header>
 
-          <form className="space-y-4" onSubmit={handleSubmit}>
+          <form className="space-y-6" onSubmit={handleSubmit}>
             <Input
-              label="Email da conta"
+              label="E-mail da sua conta"
               id="email"
               name="email"
               type="email"
               autoComplete="email"
-              placeholder="seuemail@exemplo.com"
+              placeholder="seu@email.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
+              icon={<FaEnvelope size={14} />}
               required
             />
 
-            {error && <p className="text-sm text-red-500">{error}</p>}
-            {error.includes("Muitas tentativas") && (
-              <p className="text-xs text-zinc-500">
-                Aguarde o tempo informado para tentar novamente e evitar bloqueio temporário.
-              </p>
+            {error && (
+              <div className="rounded-xl bg-destructive/10 p-3 text-center text-xs font-bold text-destructive">
+                {error}
+              </div>
             )}
 
-            <Button type="submit" className="w-full py-3" disabled={loading}>
-              {loading ? "Enviando..." : "Enviar link de verificação"}
-            </Button>
-            <p className="text-xs text-zinc-500">
-              Dica: o e-mail pode cair em Spam ou Promoções. Verifique essas pastas também.
-            </p>
-
-            <div className="pt-3 text-center">
-              <ButtonLink href="/login" variant="secondary" className="w-full">
-                Voltar para login
-              </ButtonLink>
+            <div className="space-y-4">
+              <Button type="submit" className="h-12 w-full text-base" disabled={loading}>
+                {loading ? "Enviando..." : "Enviar link de recuperação"}
+              </Button>
+              
+              <div className="rounded-2xl bg-muted/50 p-4 border border-border">
+                <p className="text-[11px] font-medium text-muted-foreground leading-relaxed">
+                  <span className="font-bold text-foreground">Dica:</span> Se não encontrar o e-mail em alguns minutos, verifique sua pasta de <span className="text-foreground font-bold">Spam</span> ou <span className="text-foreground font-bold">Promoções</span>.
+                </p>
+              </div>
             </div>
+
+            <footer className="pt-6 text-center">
+              <Link 
+                href="/login" 
+                className="inline-flex items-center gap-2 text-sm font-bold text-muted-foreground hover:text-primary transition-colors"
+              >
+                <FaChevronLeft size={10} />
+                Voltar para o login
+              </Link>
+            </footer>
           </form>
         </Card>
       </main>

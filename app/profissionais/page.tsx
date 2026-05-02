@@ -1,25 +1,24 @@
 "use client"
 
 import { useEffect, useMemo, useState } from "react"
-import { FaClock, FaPlus, FaUserTie, FaWrench } from "react-icons/fa"
+import { FaClock, FaPlus, FaUserTie, FaWrench, FaTimes, FaCheck, FaPhone, FaPen } from "react-icons/fa"
 import Header from "@/components/ui/Header"
 import Card from "@/components/ui/Card"
 import Input from "@/components/ui/Input"
 import Button from "@/components/ui/Button"
-import PageHeader from "@/components/ui/PageHeader"
 import { useAuth } from "@/components/providers/AuthProvider"
 import { createProfessional, getProfessionals, getServices, updateProfessional } from "@/lib/api"
 import { Professional, Service } from "@/types"
 import { useToast } from "@/components/ui/Toast"
 
 const DAYS = [
-  { value: 0, label: "D" },
-  { value: 1, label: "S" },
-  { value: 2, label: "T" },
-  { value: 3, label: "Q" },
-  { value: 4, label: "Q" },
-  { value: 5, label: "S" },
-  { value: 6, label: "S" },
+  { value: 0, label: "Dom" },
+  { value: 1, label: "Seg" },
+  { value: 2, label: "Ter" },
+  { value: 3, label: "Qua" },
+  { value: 4, label: "Qui" },
+  { value: 5, label: "Sex" },
+  { value: 6, label: "Sáb" },
 ]
 
 const DEFAULT_AVAILABILITY: Professional["availability"] = {
@@ -137,6 +136,8 @@ export default function ProfessionalsPage() {
         ...professional.availability,
       },
     })
+    // Smooth scroll para o topo do formulário em mobile
+    window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
   const handleToggleStatus = async (professional: Professional) => {
@@ -211,157 +212,138 @@ export default function ProfessionalsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#f9fafb] pb-24 font-sans md:pb-0">
+    <div className="min-h-screen bg-background pb-24 font-sans md:pb-0">
       <Header />
       <main className="mx-auto max-w-5xl p-4 md:p-8">
-        <PageHeader label="Configuração" title="Profissionais" />
+        <header className="mb-8">
+          <p className="text-xs font-black uppercase tracking-[0.2em] text-primary">Equipe</p>
+          <h1 className="mt-1 text-3xl font-extrabold tracking-tight text-foreground">
+            Profissionais
+          </h1>
+        </header>
 
-        <div className="grid gap-6 md:grid-cols-12">
+        <div className="grid gap-8 md:grid-cols-12">
+          {/* Formulário */}
           <div className="md:col-span-5">
-            <Card className="p-6">
-              <div className="mb-6 flex items-center gap-2 border-b border-zinc-100 pb-4 text-zinc-900">
-                <FaPlus size={14} className="text-zinc-400" />
-                <h2 className="text-sm font-bold uppercase tracking-wider">
-                  {editingId ? "Editar profissional" : "Novo profissional"}
+            <Card className="sticky top-24 p-6 md:p-8">
+              <div className="mb-6 flex items-center gap-2">
+                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                  {editingId ? <FaPen size={12} /> : <FaPlus size={12} />}
+                </div>
+                <h2 className="text-sm font-black uppercase tracking-wider text-foreground">
+                  {editingId ? "Editar Profissional" : "Novo Profissional"}
                 </h2>
               </div>
 
-              <form className="space-y-4" onSubmit={handleSubmit}>
+              <form className="space-y-6" onSubmit={handleSubmit}>
                 <Input
-                  label="Nome do profissional"
+                  label="Nome Completo"
                   id="professionalName"
-                  name="professionalName"
                   value={form.name}
                   onChange={(e) => setForm((prev) => ({ ...prev, name: e.target.value }))}
-                  placeholder="Ex: João"
+                  placeholder="Ex: Carlos Oliveira"
                   required
                 />
 
                 <Input
                   label="WhatsApp (opcional)"
                   id="professionalWhatsapp"
-                  name="professionalWhatsapp"
                   value={form.whatsapp}
                   onChange={(e) => setForm((prev) => ({ ...prev, whatsapp: e.target.value }))}
-                  placeholder="+55 (11) 91234-5678"
+                  placeholder="(11) 99999-9999"
                 />
 
-                <div className="space-y-2">
-                  <p className="block text-sm font-semibold text-zinc-600">Serviços que realiza</p>
-                  {services.length === 0 ? (
-                    <p className="rounded-xl border border-zinc-200 bg-zinc-50 px-3 py-2 text-xs text-zinc-500">
-                      Cadastre serviços para vinculá-los aos profissionais.
-                    </p>
-                  ) : (
-                    <div className="space-y-2">
-                      {services.map((service) => (
-                        <label
+                <div className="space-y-3">
+                  <p className="text-xs font-black uppercase tracking-widest text-muted-foreground">Serviços Habilitados</p>
+                  <div className="grid grid-cols-1 gap-2">
+                    {services.length === 0 ? (
+                      <div className="rounded-xl border border-dashed border-border p-4 text-center">
+                        <p className="text-[10px] font-bold text-muted-foreground uppercase">Nenhum serviço disponível</p>
+                      </div>
+                    ) : (
+                      services.map((service) => (
+                        <button
                           key={service.id}
-                          className="flex cursor-pointer items-center gap-2 rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-700"
+                          type="button"
+                          onClick={() => handleToggleService(service.id)}
+                          className={`flex cursor-pointer items-center justify-between rounded-xl border p-3 transition-all ${
+                            form.serviceIds.includes(service.id)
+                              ? "border-primary/50 bg-primary/5 ring-1 ring-primary/20"
+                              : "border-border bg-background hover:border-muted-foreground/30"
+                          }`}
                         >
-                          <input
-                            type="checkbox"
-                            checked={form.serviceIds.includes(service.id)}
-                            onChange={() => handleToggleService(service.id)}
-                            className="h-4 w-4"
-                          />
-                          {service.name}
-                        </label>
-                      ))}
-                    </div>
-                  )}
+                          <span className={`text-sm font-bold ${form.serviceIds.includes(service.id) ? "text-primary" : "text-foreground"}`}>
+                            {service.name}
+                          </span>
+                          {form.serviceIds.includes(service.id) && <FaCheck className="text-primary" size={12} />}
+                        </button>
+                      ))
+                    )}
+                  </div>
                 </div>
 
-                <Card className="border border-zinc-200 p-4 shadow-none">
-                  <div className="mb-3 flex items-center gap-2 text-zinc-800">
-                    <FaClock size={12} />
-                    <p className="text-xs font-bold uppercase tracking-wider">Disponibilidade</p>
+                <div className="space-y-4 rounded-[2rem] border border-border bg-muted/30 p-6">
+                  <div className="flex items-center gap-2 text-foreground">
+                    <FaClock size={12} className="text-primary" />
+                    <p className="text-[10px] font-black uppercase tracking-wider">Expediente Padrão</p>
                   </div>
-                  <div className="space-y-3">
-                    <div className="grid grid-cols-2 gap-3">
-                      <Input
-                        label="Início"
-                        type="time"
-                        className="theme-time-field"
-                        value={form.availability.startTime}
-                        onChange={(e) =>
-                          setForm((prev) => ({
-                            ...prev,
-                            availability: { ...prev.availability, startTime: e.target.value },
-                          }))
-                        }
-                      />
-                      <Input
-                        label="Término"
-                        type="time"
-                        className="theme-time-field"
-                        value={form.availability.endTime}
-                        onChange={(e) =>
-                          setForm((prev) => ({
-                            ...prev,
-                            availability: { ...prev.availability, endTime: e.target.value },
-                          }))
-                        }
-                      />
-                    </div>
+                  
+                  <div className="grid grid-cols-2 gap-4">
                     <Input
-                      label="Duração padrão (min)"
-                      type="number"
-                      min={5}
-                      step={5}
-                      value={String(form.availability.slotDuration)}
+                      label="Início"
+                      type="time"
+                      value={form.availability.startTime}
                       onChange={(e) =>
                         setForm((prev) => ({
                           ...prev,
-                          availability: {
-                            ...prev.availability,
-                            slotDuration: Number(e.target.value || 30),
-                          },
+                          availability: { ...prev.availability, startTime: e.target.value },
                         }))
                       }
                     />
-                    <div>
-                      <p className="mb-2 block text-sm font-semibold text-zinc-600">Dias de atendimento</p>
-                      <div className="flex gap-2">
-                        {DAYS.map((day) => {
-                          const selected = form.availability.workDays.includes(day.value)
-                          return (
-                            <button
-                              key={day.value}
-                              type="button"
-                              onClick={() => handleToggleWorkDay(day.value)}
-                              className={`flex h-9 w-9 items-center justify-center rounded-xl border text-xs font-bold ${
-                                selected
-                                  ? "border-zinc-900 bg-zinc-900 text-white"
-                                  : "border-zinc-200 bg-white text-zinc-500"
-                              }`}
-                            >
-                              {day.label}
-                            </button>
-                          )
-                        })}
-                      </div>
+                    <Input
+                      label="Término"
+                      type="time"
+                      value={form.availability.endTime}
+                      onChange={(e) =>
+                        setForm((prev) => ({
+                          ...prev,
+                          availability: { ...prev.availability, endTime: e.target.value },
+                        }))
+                      }
+                    />
+                  </div>
+
+                  <div>
+                    <p className="mb-3 text-[10px] font-black uppercase tracking-wider text-muted-foreground">Dias de Atendimento</p>
+                    <div className="flex justify-between gap-1">
+                      {DAYS.map((day) => {
+                        const isSelected = form.availability.workDays.includes(day.value)
+                        return (
+                          <button
+                            key={day.value}
+                            type="button"
+                            onClick={() => handleToggleWorkDay(day.value)}
+                            className={`flex flex-1 h-9 cursor-pointer items-center justify-center rounded-xl border text-[10px] font-black transition-all ${
+                              isSelected
+                                ? "border-primary bg-primary text-primary-foreground shadow-lg shadow-primary/20"
+                                : "border-border bg-background text-muted-foreground hover:border-primary/30"
+                            }`}
+                          >
+                            {day.label}
+                          </button>
+                        )
+                      })}
                     </div>
                   </div>
-                </Card>
+                </div>
 
-                <label className="flex items-center gap-2 text-sm text-zinc-700">
-                  <input
-                    type="checkbox"
-                    checked={form.isActive}
-                    onChange={(e) => setForm((prev) => ({ ...prev, isActive: e.target.checked }))}
-                    className="h-4 w-4"
-                  />
-                  Profissional ativo
-                </label>
-
-                <div className="flex gap-2">
-                  <Button type="submit" className="flex-1" disabled={saving}>
-                    {saving ? "Salvando..." : editingId ? "Salvar alterações" : "Cadastrar profissional"}
+                <div className="flex flex-col gap-3">
+                  <Button type="submit" className="h-12 w-full text-base" disabled={saving}>
+                    {saving ? "Salvando..." : editingId ? "Salvar Alterações" : "Adicionar Profissional"}
                   </Button>
                   {editingId && (
-                    <Button type="button" variant="secondary" className="flex-1" onClick={resetForm}>
-                      Cancelar edição
+                    <Button type="button" variant="ghost" className="h-12 w-full" onClick={resetForm}>
+                      Cancelar Edição
                     </Button>
                   )}
                 </div>
@@ -369,21 +351,31 @@ export default function ProfessionalsPage() {
             </Card>
           </div>
 
+          {/* Lista */}
           <div className="md:col-span-7">
-            <Card className="p-6">
-              <div className="mb-6 flex items-center gap-2 border-b border-zinc-100 pb-4 text-zinc-900">
-                <FaUserTie size={14} className="text-zinc-400" />
-                <h2 className="text-sm font-bold uppercase tracking-wider">Profissionais cadastrados</h2>
+            <Card className="p-6 md:p-8">
+              <div className="mb-8 flex items-center gap-2">
+                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-muted text-muted-foreground">
+                  <FaUserTie size={14} />
+                </div>
+                <h2 className="text-sm font-black uppercase tracking-wider text-foreground">Equipe Cadastrada</h2>
               </div>
 
               {loading ? (
-                <p className="text-center text-sm text-zinc-500">Carregando...</p>
+                <div className="space-y-4">
+                  {[1, 2, 3].map((i) => (
+                    <div key={i} className="h-24 w-full animate-pulse rounded-2xl bg-muted" />
+                  ))}
+                </div>
               ) : sortedProfessionals.length === 0 ? (
-                <p className="rounded-xl border border-zinc-200 bg-zinc-50 p-4 text-center text-sm text-zinc-500">
-                  Nenhum profissional cadastrado ainda.
-                </p>
+                <div className="flex flex-col items-center justify-center py-20 text-center text-muted-foreground">
+                  <div className="mb-4 rounded-full bg-muted p-4 opacity-50">
+                    <FaUserTie size={32} />
+                  </div>
+                  <p className="text-sm font-bold">Nenhum profissional cadastrado.</p>
+                </div>
               ) : (
-                <ul className="space-y-3">
+                <ul className="space-y-4">
                   {sortedProfessionals.map((professional) => {
                     const linkedServices = services.filter((service) =>
                       professional.serviceIds.includes(service.id)
@@ -392,41 +384,69 @@ export default function ProfessionalsPage() {
                     return (
                       <li
                         key={professional.id}
-                        className="rounded-2xl border border-zinc-200 bg-white px-4 py-3 shadow-sm"
+                        className={`group rounded-[1.75rem] border p-5 transition-all ${
+                          professional.isActive 
+                            ? "border-border bg-card hover:border-primary/50 hover:shadow-lg hover:shadow-primary/5" 
+                            : "border-transparent bg-muted/20 opacity-70"
+                        }`}
                       >
-                        <div className="flex items-start justify-between gap-3">
-                          <div>
-                            <p className="text-sm font-semibold text-zinc-900">{professional.name}</p>
-                            <p className="text-xs text-zinc-500">
-                              {professional.isActive ? "Ativo" : "Inativo"}
-                              {professional.whatsapp ? ` • ${professional.whatsapp}` : ""}
-                            </p>
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                          <div className="flex items-center gap-4">
+                            <div className={`flex h-12 w-12 items-center justify-center rounded-2xl font-bold text-lg ${
+                              professional.isActive ? "bg-primary text-primary-foreground shadow-lg shadow-primary/20" : "bg-muted text-muted-foreground"
+                            }`}>
+                              {professional.name.charAt(0).toUpperCase()}
+                            </div>
+                            <div>
+                              <div className="flex items-center gap-2">
+                                <h3 className="font-black text-foreground">{professional.name}</h3>
+                                {!professional.isActive && (
+                                  <span className="rounded-full bg-muted px-2 py-0.5 text-[10px] font-black uppercase text-muted-foreground">Inativo</span>
+                                )}
+                              </div>
+                              {professional.whatsapp && (
+                                <p className="mt-0.5 flex items-center gap-1.5 text-xs font-bold text-muted-foreground">
+                                  <FaPhone size={10} className="text-primary/50" />
+                                  {professional.whatsapp}
+                                </p>
+                              )}
+                            </div>
                           </div>
+                          
                           <div className="flex items-center gap-2">
-                            <Button
-                              type="button"
-                              variant="secondary"
-                              className="px-3 py-2 text-xs"
+                            <button
                               onClick={() => handleEdit(professional)}
+                              className="flex-1 sm:flex-none h-10 px-4 cursor-pointer rounded-xl bg-accent text-accent-foreground text-xs font-black transition-all hover:bg-accent/80 active:scale-95"
                             >
                               Editar
-                            </Button>
-                            <Button
-                              type="button"
-                              variant="secondary"
-                              className="px-3 py-2 text-xs"
+                            </button>
+                            <button
                               onClick={() => handleToggleStatus(professional)}
+                              className={`flex-1 sm:flex-none h-10 px-4 cursor-pointer rounded-xl text-xs font-black transition-all active:scale-95 ${
+                                professional.isActive
+                                  ? "bg-destructive/10 text-destructive hover:bg-destructive hover:text-white"
+                                  : "bg-emerald-500/10 text-emerald-600 hover:bg-emerald-500 hover:text-white"
+                              }`}
                             >
                               {professional.isActive ? "Desativar" : "Ativar"}
-                            </Button>
+                            </button>
                           </div>
                         </div>
 
-                        <div className="mt-3 flex items-center gap-2 text-xs text-zinc-600">
-                          <FaWrench className="text-zinc-400" />
-                          {linkedServices.length > 0
-                            ? linkedServices.map((service) => service.name).join(", ")
-                            : "Sem serviços vinculados"}
+                        <div className="mt-4 flex flex-wrap gap-2 pt-4 border-t border-border/50">
+                          {linkedServices.length > 0 ? (
+                            linkedServices.map((service) => (
+                              <span 
+                                key={service.id} 
+                                className="flex items-center gap-1.5 rounded-lg bg-muted px-2.5 py-1 text-[10px] font-bold text-muted-foreground uppercase tracking-tight"
+                              >
+                                <FaWrench size={8} />
+                                {service.name}
+                              </span>
+                            ))
+                          ) : (
+                            <span className="text-[10px] font-bold text-muted-foreground uppercase italic">Sem serviços vinculados</span>
+                          )}
                         </div>
                       </li>
                     )

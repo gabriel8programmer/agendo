@@ -57,87 +57,94 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-[#f9fafb] p-4 font-sans">
-      <main className="w-full max-w-md">
-        <Card className="p-8">
-          <header className="mb-8">
-            <div className="flex justify-center">
-              <BrandLogo width={180} height={52} className="h-12 w-auto" />
+    <div className="flex min-h-screen items-center justify-center bg-background p-4 md:p-6">
+      <main className="w-full max-w-sm">
+        <Card className="border-none shadow-2xl shadow-black/5 md:p-8 p-6 rounded-[2.5rem]">
+          <header className="mb-10 text-center">
+            <div className="mb-6 flex justify-center">
+              <Link href="/">
+                <BrandLogo width={180} height={52} className="h-10 w-auto" />
+              </Link>
             </div>
-            <p className="mt-1 text-center text-sm font-medium text-zinc-600 uppercase tracking-widest">
-              Gerencie seus compromissos
+            <h1 className="text-xl font-bold tracking-tight text-foreground">
+              Acesse sua conta
+            </h1>
+            <p className="mt-1.5 text-sm font-medium text-muted-foreground">
+              Bem-vindo de volta!
             </p>
           </header>
 
-          <form className="space-y-4" onSubmit={handleSubmit}>
-            <Input
-              label="Email"
-              id="email"
-              name="email"
-              type="email"
-              autoComplete="email"
-              placeholder="seuemail@exemplo.com"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-            />
+          <form className="space-y-5" onSubmit={handleSubmit}>
+            <div className="space-y-4">
+              <Input
+                label="E-mail"
+                id="email"
+                name="email"
+                type="email"
+                autoComplete="email"
+                placeholder="seu@email.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+              />
 
-            <Input
-              label="Senha"
-              id="password"
-              name="password"
-              type="password"
-              autoComplete="current-password"
-              placeholder="••••••••"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-            />
+              <div className="space-y-1">
+                <Input
+                  label="Senha"
+                  id="password"
+                  name="password"
+                  type="password"
+                  autoComplete="current-password"
+                  placeholder="••••••••"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                />
+                <div className="flex justify-end">
+                  <Link
+                    href="/esqueci-senha"
+                    className="text-xs font-bold text-primary hover:underline"
+                  >
+                    Esqueceu a senha?
+                  </Link>
+                </div>
+              </div>
+            </div>
 
-            {error && <p className="text-sm text-red-500">{error}</p>}
-            {error.includes("Muitas tentativas") && (
-              <p className="text-xs text-zinc-500">
-                Se você esqueceu a senha, use a opção de recuperação para continuar.
-              </p>
+            {error && (
+              <div className="rounded-xl bg-destructive/10 p-3 text-center text-xs font-bold text-destructive">
+                {error}
+              </div>
             )}
 
-            <Button type="submit" className="w-full py-3" disabled={loading}>
+            <Button type="submit" className="h-12 w-full text-base" disabled={loading}>
               {loading ? "Entrando..." : "Entrar"}
             </Button>
 
-            <div className="pt-1 text-right">
-              <Link
-                href="/esqueci-senha"
-                className="text-sm font-semibold text-zinc-600 hover:text-zinc-900 transition-colors"
-              >
-                Esqueceu a senha?
-              </Link>
-            </div>
-
-            <div className="flex items-center gap-3 py-2">
-              <div className="h-px flex-1 bg-zinc-100" />
-              <span className="text-xs font-bold uppercase tracking-widest text-zinc-400">ou</span>
-              <div className="h-px flex-1 bg-zinc-100" />
+            <div className="relative flex items-center gap-4 py-2">
+              <div className="h-px flex-1 bg-border" />
+              <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">ou</span>
+              <div className="h-px flex-1 bg-border" />
             </div>
 
             <Button
               type="button"
               variant="secondary"
-              className="w-full py-3"
+              className="h-12 w-full text-sm font-bold"
               onClick={() => {
                 window.location.href = "/api/auth/google"
               }}
             >
-              <FcGoogle aria-hidden size={18} />
-              Login com Google
+              <FcGoogle aria-hidden size={20} />
+              Entrar com Google
             </Button>
 
-            <div className="pt-6 text-center">
-              <p className="text-sm font-medium text-zinc-500">Não tem uma conta?</p>
-              <ButtonLink href="/cadastro" variant="secondary" className="mt-3 w-full">
-                Criar Conta
-              </ButtonLink>
-            </div>
+            <footer className="pt-6 text-center">
+              <p className="text-sm font-medium text-muted-foreground">Ainda não tem conta?</p>
+              <Link href="/cadastro" className="mt-2 inline-block text-sm font-bold text-primary hover:underline">
+                Crie sua conta gratuitamente
+              </Link>
+            </footer>
           </form>
         </Card>
       </main>

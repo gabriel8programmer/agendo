@@ -14,8 +14,14 @@ export default function Textarea({ label, error, id, className, ...props }: Text
           {label}
         </label>
       )}
-      <textarea id={id} className={`${inputStyles.base} ${className ?? ""}`} {...props} />
-      {error && <p className="mt-1 text-xs text-red-500">{error}</p>}
+      <textarea
+        id={id}
+        className={`${inputStyles.base} min-h-24 resize-none ${
+          error ? "border-destructive ring-destructive/20" : ""
+        } ${className ?? ""}`}
+        {...props}
+      />
+      {error && <p className="mt-1.5 text-xs font-semibold text-destructive">{error}</p>}
     </div>
   )
 }

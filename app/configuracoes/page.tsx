@@ -5,10 +5,8 @@ import Card from "@/components/ui/Card"
 import Button from "@/components/ui/Button"
 import Header from "@/components/ui/Header"
 import Input from "@/components/ui/Input"
-import PageHeader from "@/components/ui/PageHeader"
 import BrandLogo from "@/components/ui/BrandLogo"
 import { useAuth } from "@/components/providers/AuthProvider"
-import { useTheme } from "@/components/providers/ThemeProvider"
 import {
   FaStore,
   FaClock,
@@ -18,6 +16,7 @@ import {
   FaTrash,
   FaCoffee,
   FaExclamationTriangle,
+  FaLink,
 } from "react-icons/fa"
 import {
   getAvailability,
@@ -29,12 +28,10 @@ import { normalizeTime24BR } from "@/lib/utils/date"
 import { Availability } from "@/types"
 import { useToast } from "@/components/ui/Toast"
 
-const DAYS_INITIALS = ["D", "S", "T", "Q", "Q", "S", "S"]
+const DAYS_INITIALS = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"]
 
 export default function SettingsPage() {
   const { user: authUser, loading: authLoading, refreshUser } = useAuth()
-  const { theme } = useTheme()
-  const isDark = theme === "dark"
   const [availability, setAvailability] = useState<Availability | null>(null)
   const [personName, setPersonName] = useState("")
   const [companyName, setCompanyName] = useState("")
@@ -151,7 +148,7 @@ export default function SettingsPage() {
     const sanitizedPersonName = personName.trim()
 
     if (!sanitizedPersonName || !sanitizedCompanyName || !sanitizedSlug) {
-      showToast("Preencha nome, nome da empresa e slug.", "error")
+      showToast("Preencha todos os campos obrigatórios.", "error")
       return
     }
 
@@ -204,173 +201,198 @@ export default function SettingsPage() {
 
   if (loading || authLoading) {
     return (
-      <div className="min-h-screen bg-[#f9fafb] font-sans text-center p-8">
-        <p className="text-zinc-500 text-sm">Carregando configurações...</p>
+      <div className="min-h-screen bg-background font-sans flex items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+          <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+          <p className="text-muted-foreground font-bold text-sm">Carregando configurações...</p>
+        </div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-[#f9fafb] pb-24 font-sans md:pb-0">
+    <div className="min-h-screen bg-background pb-24 font-sans md:pb-0">
       <Header />
       <main className="mx-auto max-w-2xl p-4 md:p-8">
-        <PageHeader label="Configuração" title="Minha Agenda" />
+        <header className="mb-8">
+          <p className="text-xs font-black uppercase tracking-[0.2em] text-primary">Painel</p>
+          <h1 className="mt-1 text-3xl font-extrabold tracking-tight text-foreground">
+            Configurações
+          </h1>
+        </header>
 
-        <div className="space-y-6">
+        <div className="space-y-8">
           {!hasSavedAvailability && (
-            <Card className="border border-amber-200 bg-amber-50 p-4">
-              <div className="flex items-start gap-3">
-                <FaExclamationTriangle className="mt-0.5 text-amber-600" aria-hidden />
-                <div>
-                  <p className="text-sm font-semibold text-amber-900">
-                    Primeiro passo: salve sua configuração inicial
-                  </p>
-                  <p className="mt-1 text-sm text-amber-800">
-                    Seus agendamentos só serão liberados depois que você salvar os dias e horários
-                    desta página.
+            <section className="overflow-hidden rounded-[2rem] border border-primary/20 bg-primary/5 p-6 md:p-8 animate-in fade-in zoom-in-95 duration-500">
+              <div className="flex flex-col md:flex-row items-start gap-4">
+                <div className="rounded-2xl bg-primary/10 p-3 text-primary">
+                  <FaExclamationTriangle size={24} aria-hidden />
+                </div>
+                <div className="flex-1">
+                  <h3 className="text-lg font-bold text-foreground">
+                    Complete sua configuração
+                  </h3>
+                  <p className="mt-1 text-[15px] font-medium text-muted-foreground leading-relaxed">
+                    Seus clientes só poderão agendar horários após você definir os dias e horários de atendimento abaixo.
                   </p>
                 </div>
               </div>
-            </Card>
+            </section>
           )}
 
-          {/* Informações do Negócio */}
-          <Card className="p-6">
-            <div className="mb-6 flex items-center gap-2 text-zinc-900 border-b border-zinc-100 pb-4">
-              <FaStore size={14} className="text-zinc-400" />
-              <h2 className="text-sm font-bold uppercase tracking-wider">Informações do Negócio</h2>
+          {/* Perfil e Negócio */}
+          <Card className="p-6 md:p-8">
+            <div className="mb-8 flex items-center gap-2">
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                <FaStore size={14} />
+              </div>
+              <h2 className="text-sm font-black uppercase tracking-wider text-foreground">Perfil do Negócio</h2>
             </div>
-            <Input
-              label="Nome da Pessoa"
-              id="personName"
-              name="personName"
-              value={personName}
-              onChange={(e) => setPersonName(e.target.value)}
-            />
-            <div className="mt-4">
+            
+            <div className="space-y-6">
               <Input
-                label="Nome da Empresa"
+                label="Nome Profissional"
+                id="personName"
+                value={personName}
+                onChange={(e) => setPersonName(e.target.value)}
+                placeholder="Seu nome completo"
+              />
+              
+              <Input
+                label="Nome do Estabelecimento"
                 id="companyName"
-                name="companyName"
                 value={companyName}
                 onChange={(e) => setCompanyName(e.target.value)}
+                placeholder="Ex: Barbearia do João"
               />
-            </div>
-            <div className="mt-4">
-              <Input
-                label="Slug do Negócio (URL)"
-                id="businessSlug"
-                name="businessSlug"
-                value={businessSlug}
-                onChange={(e) => setBusinessSlug(e.target.value)}
-                disabled={slugLocked}
-              />
-              <p className="mt-1 text-xs text-zinc-500">
-                {slugLocked
-                  ? "Slug já definido e bloqueado para novas alterações."
-                  : "Você pode definir o slug uma única vez."}
-              </p>
+
+              <div className="space-y-2">
+                <Input
+                  label="Seu Link Exclusivo"
+                  id="businessSlug"
+                  value={businessSlug}
+                  onChange={(e) => setBusinessSlug(e.target.value)}
+                  disabled={slugLocked}
+                  placeholder="ex: barbearia-joao"
+                />
+                <div className="flex items-center gap-2 px-1 text-[11px] font-bold">
+                  <FaLink size={10} className="text-primary" />
+                  <span className="text-muted-foreground">URL Pública:</span>
+                  <span className="text-foreground">agendo.me/{businessSlug || "seu-link"}</span>
+                </div>
+                {slugLocked && (
+                  <p className="mt-2 text-[10px] font-bold text-muted-foreground/60 uppercase">
+                    O link foi bloqueado para garantir a integridade dos seus compartilhamentos.
+                  </p>
+                )}
+              </div>
             </div>
           </Card>
 
-          {/* Dias de Atendimento */}
-          <Card className="p-6">
-            <div className="mb-6 flex items-center gap-2 text-zinc-900 border-b border-zinc-100 pb-4">
-              <FaClock size={14} className="text-zinc-400" />
-              <h2 className="text-sm font-bold uppercase tracking-wider">Dias de Atendimento</h2>
+          {/* Horários e Dias */}
+          <Card className="p-6 md:p-8">
+            <div className="mb-8 flex items-center gap-2">
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                <FaClock size={14} />
+              </div>
+              <h2 className="text-sm font-black uppercase tracking-wider text-foreground">Expediente e Agenda</h2>
             </div>
-            <div className="flex gap-2">
-              {DAYS_INITIALS.map((initial, index) => {
-                const isActive = availability?.workDays?.includes(index) ?? false
 
-                return (
-                  <button
-                    key={index}
-                    type="button"
-                    onClick={() => handleToggleDay(index)}
-                    className={`flex flex-1 h-9 w-9 items-center justify-center rounded-xl border text-xs font-bold transition-all ${
-                      isActive
-                        ? isDark
-                          ? "border-zinc-500 bg-zinc-100 text-zinc-900 shadow-md ring-1 ring-zinc-500"
-                          : "border-zinc-900 bg-zinc-900 text-white shadow-md"
-                        : isDark
-                          ? "border-zinc-700 bg-zinc-900 text-zinc-400 hover:border-zinc-500 shadow-sm"
-                          : "border-zinc-100 bg-white text-zinc-400 hover:border-zinc-300 shadow-sm"
-                    }`}
-                  >
-                    {initial}
-                  </button>
-                )
-              })}
-            </div>
-          </Card>
+            <div className="space-y-8">
+              <div className="space-y-4">
+                <p className="text-xs font-black uppercase tracking-widest text-muted-foreground">Dias de Atendimento</p>
+                <div className="flex justify-between gap-1 sm:gap-2">
+                  {DAYS_INITIALS.map((day, index) => {
+                    const isActive = availability?.workDays?.includes(index) ?? false
+                    return (
+                      <button
+                        key={index}
+                        type="button"
+                        onClick={() => handleToggleDay(index)}
+                        className={`flex flex-1 h-11 cursor-pointer items-center justify-center rounded-xl border text-xs font-black transition-all ${
+                          isActive
+                            ? "border-primary bg-primary text-primary-foreground shadow-lg shadow-primary/20"
+                            : "border-border bg-background text-muted-foreground hover:border-primary/30"
+                        }`}
+                      >
+                        {day}
+                      </button>
+                    )
+                  })}
+                </div>
+              </div>
 
-          {/* Horário de Expediente Global */}
-          <Card className="p-6">
-            <div className="mb-6 flex items-center gap-2 text-zinc-900 border-b border-zinc-100 pb-4">
-              <FaClock size={14} className="text-zinc-400" />
-              <h2 className="text-sm font-bold uppercase tracking-wider">Horário de Expediente</h2>
-            </div>
-            <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-2 gap-4">
+                <Input
+                  label="Início do Expediente"
+                  type="time"
+                  value={availability?.startTime || "09:00"}
+                  onChange={(e) =>
+                    setAvailability((prev) => (prev ? { ...prev, startTime: e.target.value } : null))
+                  }
+                />
+                <Input
+                  label="Término do Expediente"
+                  type="time"
+                  value={availability?.endTime || "18:00"}
+                  onChange={(e) =>
+                    setAvailability((prev) => (prev ? { ...prev, endTime: e.target.value } : null))
+                  }
+                />
+              </div>
+
               <Input
-                label="Início"
-                type="time"
-                step={60}
-                className="theme-time-field"
-                value={availability?.startTime || "09:00"}
+                label="Intervalo entre horários (minutos)"
+                type="number"
+                value={availability?.slotDuration || 30}
                 onChange={(e) =>
-                  setAvailability((prev) => (prev ? { ...prev, startTime: e.target.value } : null))
+                  setAvailability((prev) =>
+                    prev ? { ...prev, slotDuration: Number(e.target.value) } : null
+                  )
                 }
-              />
-              <Input
-                label="Término"
-                type="time"
-                step={60}
-                className="theme-time-field"
-                value={availability?.endTime || "18:00"}
-                onChange={(e) =>
-                  setAvailability((prev) => (prev ? { ...prev, endTime: e.target.value } : null))
-                }
+                min="5"
+                step="5"
+                placeholder="Ex: 30"
               />
             </div>
           </Card>
 
-          {/* Horários Reservados */}
-          <Card className="p-6">
-            <div className="mb-6 flex items-center justify-between border-b border-zinc-100 pb-4">
-              <div className="flex items-center gap-2 text-zinc-900">
-                <FaCoffee size={14} className="text-zinc-400" />
-                <h2 className="text-sm font-bold uppercase tracking-wider">Horários Reservados</h2>
+          {/* Intervalos e Pausas */}
+          <Card className="p-6 md:p-8">
+            <div className="mb-6 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                  <FaCoffee size={14} />
+                </div>
+                <h2 className="text-sm font-black uppercase tracking-wider text-foreground">Pausas e Intervalos</h2>
               </div>
               <button
                 type="button"
                 onClick={handleAddReserved}
-                className="text-[10px] font-bold uppercase tracking-widest text-zinc-500 hover:text-zinc-900 flex items-center gap-1"
+                className="flex cursor-pointer items-center gap-1.5 rounded-full bg-accent px-3 py-1.5 text-[10px] font-black uppercase tracking-wider text-accent-foreground transition-all hover:bg-primary hover:text-white"
               >
                 <FaPlus size={8} /> Adicionar
               </button>
             </div>
-            <p className="mb-4 rounded-xl border border-zinc-200 bg-zinc-50 px-3 py-2 text-xs text-zinc-600">
-              Use este espaço para bloquear períodos em que você não atende, como almoço, pausa
-              entre turnos ou compromissos pessoais.
+            
+            <p className="mb-6 text-xs font-medium text-muted-foreground leading-relaxed">
+              Bloqueie horários específicos em que você não realiza atendimentos, como horário de almoço ou pausas pessoais.
             </p>
 
-            <div className="space-y-3">
+            <div className="space-y-4">
               {availability?.reservedIntervals && availability.reservedIntervals.length > 0 ? (
                 availability.reservedIntervals.map((interval, idx) => (
-                  <div key={idx} className="flex items-end gap-3 group">
-                    <div className="grid grid-cols-2 gap-3 flex-1">
+                  <div key={idx} className="flex items-end gap-3 animate-in fade-in slide-in-from-right-2">
+                    <div className="grid grid-cols-2 gap-4 flex-1">
                       <Input
+                        label="Saída"
                         type="time"
-                        step={60}
-                        className="theme-time-field"
                         value={interval.startTime}
                         onChange={(e) => handleReservedChange(idx, "startTime", e.target.value)}
                       />
                       <Input
+                        label="Retorno"
                         type="time"
-                        step={60}
-                        className="theme-time-field"
                         value={interval.endTime}
                         onChange={(e) => handleReservedChange(idx, "endTime", e.target.value)}
                       />
@@ -378,58 +400,46 @@ export default function SettingsPage() {
                     <button
                       type="button"
                       onClick={() => handleRemoveReserved(idx)}
-                      className="mb-1 inline-flex h-9 w-9 items-center justify-center rounded-full border border-red-200 bg-red-50 text-red-600 transition-colors hover:bg-red-100 hover:text-red-700"
-                      aria-label="Remover horário reservado"
+                      className="mb-0.5 flex h-11 w-11 cursor-pointer items-center justify-center rounded-xl bg-destructive/10 text-destructive transition-all hover:bg-destructive hover:text-white active:scale-95"
+                      aria-label="Remover pausa"
                     >
-                      <FaTrash size={16} />
+                      <FaTrash size={14} />
                     </button>
                   </div>
                 ))
               ) : (
-                <p className="text-xs text-zinc-400 italic bg-zinc-50 p-4 rounded-xl text-center border border-dashed border-zinc-200">
-                  Nenhum horário reservado (pausa) configurado.
-                </p>
+                <div className="flex flex-col items-center justify-center rounded-[1.5rem] border border-dashed border-border p-8 text-center">
+                  <div className="mb-2 text-muted-foreground/30">
+                    <FaCoffee size={24} />
+                  </div>
+                  <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-widest">Nenhuma pausa configurada</p>
+                </div>
               )}
             </div>
           </Card>
 
-          {/* Duração dos Slots */}
-          <Card className="p-6">
-            <div className="mb-6 flex items-center gap-2 text-zinc-900 border-b border-zinc-100 pb-4">
-              <FaHistory size={14} className="text-zinc-400" />
-              <h2 className="text-sm font-bold uppercase tracking-wider">Configuração de Agenda</h2>
-            </div>
-            <Input
-              label="Duração de cada agendamento (minutos)"
-              type="number"
-              value={availability?.slotDuration || 30}
-              onChange={(e) =>
-                setAvailability((prev) =>
-                  prev ? { ...prev, slotDuration: Number(e.target.value) } : null
-                )
-              }
-              min="5"
-              step="5"
-            />
-          </Card>
-
-          {/* Salvar */}
-          <Button onClick={handleSubmit} className="w-full py-4 text-base" disabled={saving}>
-            {saving ? (
-              "Salvando..."
-            ) : (
-              <>
-                <FaSave size={16} />
-                Salvar Configurações
-              </>
-            )}
-          </Button>
+          <div className="pt-4">
+            <Button onClick={handleSubmit} className="h-14 w-full text-base font-black shadow-xl shadow-primary/20" disabled={saving}>
+              {saving ? (
+                "Salvando..."
+              ) : (
+                <>
+                  <FaSave size={18} />
+                  Salvar Configurações
+                </>
+              )}
+            </Button>
+          </div>
         </div>
 
-        <footer className="mt-12 pb-8">
-          <div className="flex flex-col items-center justify-center gap-2 rounded-2xl border border-zinc-200 bg-white px-4 py-3 text-center">
-            <BrandLogo width={72} height={22} className="h-5 w-auto" />
-            <p className="text-xs text-zinc-500">Seu negócio organizado, cliente bem atendido.</p>
+        <footer className="mt-16 mb-8 text-center">
+          <div className="inline-flex flex-col items-center gap-3">
+            <div className="rounded-2xl bg-muted p-4 opacity-50 ring-1 ring-border">
+              <BrandLogo width={80} height={24} className="h-6 w-auto grayscale" />
+            </div>
+            <p className="text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground/40">
+              © 2026 Agendo.me
+            </p>
           </div>
         </footer>
       </main>

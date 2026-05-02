@@ -1,12 +1,13 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { parseCookies, setCookie } from "nookies"
+import { FaUser, FaEnvelope, FaLock } from "react-icons/fa"
 import Card from "@/components/ui/Card"
 import Input from "@/components/ui/Input"
 import Button from "@/components/ui/Button"
-import ButtonLink from "@/components/ui/ButtonLink"
 import BrandLogo from "@/components/ui/BrandLogo"
 import { useAuth } from "@/components/providers/AuthProvider"
 import { registerWithEmail } from "@/lib/api"
@@ -54,79 +55,94 @@ export default function RegisterPage() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-[#f9fafb] p-4 font-sans">
+    <div className="flex min-h-screen items-center justify-center bg-background p-4 md:p-6">
       <main className="w-full max-w-md">
-        <Card className="p-8">
-          <header className="mb-8">
-            <div className="flex justify-center">
-              <BrandLogo width={180} height={52} className="h-12 w-auto" />
+        <Card className="border-none shadow-2xl shadow-black/5 md:p-8 p-6 rounded-[2.5rem]">
+          <header className="mb-10 text-center">
+            <div className="mb-6 flex justify-center">
+              <Link href="/">
+                <BrandLogo width={180} height={52} className="h-10 w-auto" />
+              </Link>
             </div>
-            <p className="mt-1 text-center text-sm font-medium text-zinc-600 uppercase tracking-widest">
+            <h1 className="text-xl font-bold tracking-tight text-foreground">
               Crie sua conta
+            </h1>
+            <p className="mt-1.5 text-sm font-medium text-muted-foreground">
+              Comece a gerir seus agendamentos hoje mesmo.
             </p>
           </header>
 
-          <form className="space-y-4" onSubmit={handleSubmit}>
-            <Input
-              label="Nome"
-              id="name"
-              name="name"
-              type="text"
-              autoComplete="name"
-              placeholder="Seu nome completo"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              required
-            />
+          <form className="space-y-5" onSubmit={handleSubmit}>
+            <div className="space-y-4">
+              <Input
+                label="Nome"
+                id="name"
+                name="name"
+                type="text"
+                autoComplete="name"
+                placeholder="Seu nome completo"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                icon={<FaUser size={14} />}
+                required
+              />
 
-            <Input
-              label="Email"
-              id="email"
-              name="email"
-              type="email"
-              autoComplete="email"
-              placeholder="seuemail@exemplo.com"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-            />
+              <Input
+                label="E-mail"
+                id="email"
+                name="email"
+                type="email"
+                autoComplete="email"
+                placeholder="seu@email.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                icon={<FaEnvelope size={14} />}
+                required
+              />
 
-            <Input
-              label="Senha"
-              id="password"
-              name="password"
-              type="password"
-              autoComplete="new-password"
-              placeholder="••••••••"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-            />
+              <Input
+                label="Senha"
+                id="password"
+                name="password"
+                type="password"
+                autoComplete="new-password"
+                placeholder="••••••••"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                icon={<FaLock size={14} />}
+                required
+              />
 
-            <Input
-              label="Confirmar Senha"
-              id="confirmPassword"
-              name="confirmPassword"
-              type="password"
-              autoComplete="new-password"
-              placeholder="••••••••"
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              required
-            />
+              <Input
+                label="Confirmar Senha"
+                id="confirmPassword"
+                name="confirmPassword"
+                type="password"
+                autoComplete="new-password"
+                placeholder="••••••••"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                icon={<FaLock size={14} />}
+                required
+              />
+            </div>
 
-            {error && <p className="text-sm text-red-500">{error}</p>}
+            {error && (
+              <div className="rounded-xl bg-destructive/10 p-3 text-center text-xs font-bold text-destructive">
+                {error}
+              </div>
+            )}
 
-            <Button type="submit" className="w-full py-3" disabled={loading}>
-              {loading ? "Criando conta..." : "Criar Conta"}
+            <Button type="submit" className="h-12 w-full text-base" disabled={loading}>
+              {loading ? "Criando conta..." : "Criar Minha Conta"}
             </Button>
 
-            <div className="pt-3 text-center">
-              <p className="text-sm font-medium text-zinc-500">Já tem uma conta?</p>
-              <ButtonLink href="/login" variant="secondary" className="mt-3 w-full">
-                Entrar
-              </ButtonLink>
-            </div>
+            <footer className="pt-6 text-center">
+              <p className="text-sm font-medium text-muted-foreground">Já tem uma conta?</p>
+              <Link href="/login" className="mt-2 inline-block text-sm font-bold text-primary hover:underline">
+                Acesse sua conta aqui
+              </Link>
+            </footer>
           </form>
         </Card>
       </main>

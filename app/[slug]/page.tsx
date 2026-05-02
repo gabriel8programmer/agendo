@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect, use } from "react"
-import { FaClock, FaTag, FaCheck, FaPhoneAlt, FaUser, FaMoon, FaSun } from "react-icons/fa"
+import { FaClock, FaTag, FaCheck, FaPhoneAlt, FaUser, FaMoon, FaSun, FaCalendarAlt } from "react-icons/fa"
 import Card from "@/components/ui/Card"
 import Button from "@/components/ui/Button"
 import Input from "@/components/ui/Input"
@@ -20,34 +20,28 @@ import { useToast } from "@/components/ui/Toast"
 import { useTheme } from "@/components/providers/ThemeProvider"
 
 const BRAZIL_COUNTRY_CODE = "55"
-const BRAZIL_PHONE_PLACEHOLDER = "+55 (__) _____-____"
+const BRAZIL_PHONE_PLACEHOLDER = "(00) 00000-0000"
 
 function normalizeBrazilPhoneDigits(value: string) {
   let digits = value.replace(/\D/g, "")
-
   if (digits.startsWith(BRAZIL_COUNTRY_CODE)) {
     digits = digits.slice(BRAZIL_COUNTRY_CODE.length)
   }
-
   return digits.slice(0, 11)
 }
 
 function formatBrazilPhoneForInput(digits: string) {
   const area = digits.slice(0, 2)
   const local = digits.slice(2)
-
-  if (!area) return "+55 "
-  if (!local) return `+55 (${area}`
-
+  if (!area) return ""
+  if (!local) return `(${area}) `
   if (local.length <= 4) {
-    return `+55 (${area}) ${local}`
+    return `(${area}) ${local}`
   }
-
   if (local.length <= 8) {
-    return `+55 (${area}) ${local.slice(0, 4)}-${local.slice(4)}`
+    return `(${area}) ${local.slice(0, 4)}-${local.slice(4)}`
   }
-
-  return `+55 (${area}) ${local.slice(0, 5)}-${local.slice(5, 9)}`
+  return `(${area}) ${local.slice(0, 5)}-${local.slice(5, 9)}`
 }
 
 function toE164BrazilPhone(digits: string) {
@@ -69,7 +63,6 @@ export default function PublicBookingPage({
   const [loading, setLoading] = useState(true)
   const { showToast, ToastComponent } = useToast()
   const { theme, toggleTheme } = useTheme()
-  const isDark = theme === "dark"
 
   const [selectedService, setSelectedService] = useState<string | null>(null)
   const [selectedDate, setSelectedDate] = useState<string>(getTodayDate())
@@ -77,6 +70,7 @@ export default function PublicBookingPage({
   const [clientName, setClientName] = useState("")
   const [whatsappDigits, setWhatsappDigits] = useState("")
   const [isConfirmed, setIsConfirmed] = useState(false)
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
   useEffect(() => {
     async function loadData() {
@@ -85,14 +79,10 @@ export default function PublicBookingPage({
         if (userData) {
           const userId = userData.id || (userData as User & { _id?: string })._id || ""
           if (!userId) {
-            console.error("Usuário sem id: resposta da API /users/[slug] incompleta", userData)
             setLoading(false)
             return
           }
-          const normalizedUser: User = {
-            ...userData,
-            id: String(userId),
-          }
+          const normalizedUser: User = { ...userData, id: String(userId) }
           setUser(normalizedUser)
           const [servicesData, availabilityData] = await Promise.all([
             getServices(normalizedUser.id),
@@ -102,7 +92,7 @@ export default function PublicBookingPage({
           setAvailability(availabilityData)
         }
       } catch (error) {
-        console.error("Error loading user/services/availability:", error)
+        console.error("Error loading data:", error)
       } finally {
         setLoading(false)
       }
@@ -127,18 +117,22 @@ export default function PublicBookingPage({
 
   if (loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-[#f9fafb] p-4 font-sans text-center">
-        <p className="text-zinc-600 text-sm">Carregando...</p>
+      <div className="flex min-h-screen items-center justify-center bg-background p-4">
+        <div className="flex flex-col items-center gap-4">
+          <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+          <p className="text-muted-foreground font-bold text-sm">Preparando sua agenda...</p>
+        </div>
       </div>
     )
   }
 
   if (!user) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-[#f9fafb] p-4 font-sans text-center">
-        <Card className="p-8">
-          <h1 className="text-xl font-bold text-zinc-900">Página não encontrada</h1>
-          <p className="mt-2 text-zinc-600 text-sm">O negócio solicitado não existe.</p>
+      <div className="flex min-h-screen items-center justify-center bg-background p-4 font-sans text-center">
+        <Card className="p-12 max-w-sm rounded-[2.5rem]">
+          <h1 className="text-2xl font-black text-foreground">Oops!</h1>
+          <p className="mt-2 text-muted-foreground font-medium">O negócio que você procura não foi encontrado.</p>
+          <Button Link href="/" className="mt-8 w-full">Voltar ao Início</Button>
         </Card>
       </div>
     )
@@ -146,17 +140,23 @@ export default function PublicBookingPage({
 
   if (isConfirmed) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-[#f9fafb] p-4 font-sans text-center">
-        <Card className="p-8 animate-in fade-in zoom-in duration-300">
-          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-green-100 text-green-600">
+      <div className="flex min-h-screen items-center justify-center bg-background p-4 font-sans text-center">
+        <Card className="p-12 max-w-sm rounded-[2.5rem] shadow-2xl shadow-primary/10 border-primary/20 animate-in fade-in zoom-in duration-500">
+          <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-[2rem] bg-primary/10 text-primary">
             <FaCheck size={32} />
           </div>
-          <h1 className="text-2xl font-bold text-zinc-900">Agendamento confirmado!</h1>
-          <p className="mt-2 text-zinc-600 font-medium">
-            Obrigado, {clientName}. Seu horário foi reservado.
+          <h1 className="text-2xl font-black text-foreground">Tudo certo!</h1>
+          <p className="mt-3 text-muted-foreground font-medium leading-relaxed">
+            Olá <span className="text-foreground font-bold">{clientName}</span>, seu agendamento foi confirmado com sucesso.
           </p>
+          <div className="mt-8 rounded-2xl bg-muted/30 p-4 border border-border">
+            <div className="flex items-center justify-center gap-2 text-sm font-bold text-foreground">
+              <FaCalendarAlt size={14} className="text-primary" />
+              {dayjs(selectedDate).format("DD/MM/YYYY")} às {selectedTime}
+            </div>
+          </div>
           <Button
-            className="mt-6 w-full"
+            className="mt-8 w-full h-14 text-base"
             onClick={() => {
               setIsConfirmed(false)
               setSelectedService(null)
@@ -176,46 +176,39 @@ export default function PublicBookingPage({
   const availableTimes = availability
     ? generateSlots(availability, occupiedAppointments, selectedDate)
     : []
+  
   const isWhatsappValid = whatsappDigits.length === 10 || whatsappDigits.length === 11
-  const isFormValid =
-    selectedService &&
-    selectedTime &&
-    clientName.trim().length > 0 &&
-    selectedDate &&
-    isWhatsappValid
+  const isFormValid = selectedService && selectedTime && clientName.trim().length > 0 && isWhatsappValid
 
   const handleConfirm = async () => {
-    if (!selectedService || !selectedTime || !user || !selectedDate || !isWhatsappValid) return
+    if (!isFormValid || !user || isSubmitting) return
 
+    setIsSubmitting(true)
     try {
       await createAppointment({
         userId: user.id,
-        serviceId: selectedService,
+        serviceId: selectedService!,
         clientName,
         clientWhatsapp: toE164BrazilPhone(whatsappDigits),
-        date: formatToUTC(selectedDate, selectedTime),
+        date: formatToUTC(selectedDate, selectedTime!),
       })
       setIsConfirmed(true)
       showToast("Agendamento realizado com sucesso!", "success")
     } catch (error) {
       console.error("Error creating appointment:", error)
       showToast("Erro ao confirmar agendamento.", "error")
+    } finally {
+      setIsSubmitting(false)
     }
   }
 
-  // Generate next 14 days, filtering based on availability config
   const generateAvailableDates = () => {
     const dates = []
     const today = dayjs().tz("America/Sao_Paulo").startOf("day")
-
     for (let i = 0; i < 14; i++) {
       const date = today.add(i, "day")
       const dayOfWeek = date.day()
-
-      // Filtro simplificado: verifica se o dia está no array workDays
-      const isDayOpen = availability?.workDays?.includes(dayOfWeek) ?? false
-
-      if (isDayOpen) {
+      if (availability?.workDays?.includes(dayOfWeek)) {
         dates.push({
           value: date.format("YYYY-MM-DD"),
           label: date.format("ddd D MMM"),
@@ -229,88 +222,83 @@ export default function PublicBookingPage({
   const availableDates = generateAvailableDates()
 
   return (
-    <div className="min-h-screen bg-[#f9fafb] p-4 font-sans md:p-8">
-      <div className="mx-auto max-w-xl">
-        <header className="mb-10 text-center">
-          <div className="mb-3 flex justify-end">
-            <button
-              type="button"
-              onClick={toggleTheme}
-              className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-zinc-200 bg-white text-zinc-600 transition-colors hover:bg-zinc-50"
-              aria-label={theme === "dark" ? "Ativar tema claro" : "Ativar tema escuro"}
-            >
-              {theme === "dark" ? <FaSun size={16} /> : <FaMoon size={16} />}
-            </button>
+    <div className="min-h-screen bg-background pb-12 font-sans selection:bg-primary/20">
+      {/* Header com Toggle de Tema */}
+      <div className="sticky top-0 z-50 w-full bg-background/80 backdrop-blur-md border-b border-border/50">
+        <div className="mx-auto flex max-w-xl items-center justify-between px-6 py-4">
+          <BrandLogo width={80} height={24} className="h-5 w-auto opacity-40 grayscale" />
+          <button
+            type="button"
+            onClick={toggleTheme}
+            className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-xl bg-accent/50 text-muted-foreground hover:bg-accent hover:text-foreground transition-all active:scale-90"
+            aria-label={theme === "dark" ? "Ativar tema claro" : "Ativar tema escuro"}
+          >
+            {theme === "dark" ? <FaSun size={18} /> : <FaMoon size={18} />}
+          </button>
+        </div>
+      </div>
+
+      <div className="mx-auto max-w-xl px-4 pt-12 md:pt-16">
+        <header className="mb-12 text-center animate-in fade-in slide-in-from-top-4 duration-700">
+          <div className="mx-auto mb-6 flex h-24 w-24 items-center justify-center rounded-[2.5rem] bg-primary/5 ring-1 ring-primary/10 shadow-inner">
+            <span className="text-4xl font-black text-primary">
+              {(user.companyName || user.name).charAt(0).toUpperCase()}
+            </span>
           </div>
-          <div className="mb-4 flex justify-center">
-            <BrandLogo width={132} height={40} className="h-8 w-auto opacity-50" />
-          </div>
-          <h1 className="text-3xl font-extrabold tracking-tight text-zinc-900 sm:text-4xl">
+          <h1 className="text-3xl font-black tracking-tight text-foreground sm:text-4xl">
             {user.companyName || user.name}
           </h1>
-          <p className="mt-2 text-sm font-medium text-zinc-600 uppercase tracking-widest">
-            Agende seu horário em segundos
+          <p className="mt-3 text-sm font-bold text-muted-foreground uppercase tracking-[0.2em]">
+            Agendamento Online
           </p>
         </header>
 
-        <div className="space-y-6">
-          {/* 1. Serviços */}
-          <section>
-            <div className="mb-3 flex items-center gap-2 text-zinc-900">
-              <span className="flex h-5 w-5 items-center justify-center rounded-full bg-zinc-900 text-[10px] font-bold text-white">
+        <div className="space-y-12">
+          {/* STEP 1: SERVIÇOS */}
+          <section className="animate-in fade-in slide-in-from-bottom-4 duration-700 delay-100">
+            <div className="mb-5 flex items-center gap-3">
+              <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary text-[11px] font-black text-primary-foreground shadow-lg shadow-primary/20">
                 1
-              </span>
-              <h2 className="text-sm font-bold uppercase tracking-wider">Selecione o Serviço</h2>
+              </div>
+              <h2 className="text-sm font-black uppercase tracking-widest text-foreground">Escolha o Serviço</h2>
             </div>
             <div className="grid gap-3">
               {services.map((service) => (
                 <button
                   key={service.id}
                   onClick={() => setSelectedService(service.id)}
-                  className={`flex items-center justify-between rounded-2xl border p-4 text-left transition-all ${
+                  className={`group flex items-center justify-between rounded-[1.75rem] border p-5 text-left transition-all active:scale-[0.98] ${
                     selectedService === service.id
-                      ? isDark
-                        ? "border-zinc-500 bg-zinc-100 text-zinc-900 shadow-md ring-1 ring-zinc-500"
-                        : "border-zinc-900 bg-zinc-900 text-white shadow-md"
-                      : isDark
-                        ? "border-zinc-700 bg-zinc-900 text-zinc-100 hover:border-zinc-500 shadow-sm"
-                        : "border-zinc-100 bg-white text-zinc-900 hover:border-zinc-300 shadow-sm"
+                      ? "border-primary bg-primary text-primary-foreground shadow-xl shadow-primary/10"
+                      : "border-border bg-card hover:border-primary/50"
                   }`}
                 >
-                  <div className="flex items-center gap-3">
-                    <div
-                      className={`flex h-10 w-10 items-center justify-center rounded-xl ${
-                        selectedService === service.id
-                          ? isDark
-                            ? "bg-zinc-900 text-zinc-100"
-                            : "bg-white/10 text-white"
-                          : isDark
-                            ? "bg-zinc-800 text-zinc-400"
-                            : "bg-zinc-50 text-zinc-400"
-                      }`}
-                    >
-                      <FaTag size={14} />
+                  <div className="flex items-center gap-4">
+                    <div className={`flex h-12 w-12 items-center justify-center rounded-2xl transition-colors ${
+                      selectedService === service.id ? "bg-white/10" : "bg-muted"
+                    }`}>
+                      <FaTag size={16} className={selectedService === service.id ? "text-white" : "text-muted-foreground"} />
                     </div>
                     <div>
-                      <p className="text-sm font-bold">{service.name}</p>
-                      <div
-                        className={`flex items-center gap-1 text-xs ${
-                          selectedService === service.id
-                            ? isDark
-                              ? "text-zinc-700"
-                              : "text-zinc-300"
-                            : "text-zinc-500"
-                        }`}
-                      >
-                        <FaClock size={10} />
+                      <p className="text-base font-bold">{service.name}</p>
+                      <div className={`mt-1 flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider ${
+                        selectedService === service.id ? "text-white/70" : "text-muted-foreground"
+                      }`}>
+                        <FaClock size={12} />
                         <span>{service.duration} min</span>
                       </div>
                     </div>
                   </div>
-                  <div className="flex items-center gap-2">
-                    {service.price && <p className="text-sm font-bold">R$ {service.price}</p>}
+                  <div className="flex items-center gap-3">
+                    {service.price && (
+                      <p className="text-sm font-black">
+                        R$ {Number(service.price).toFixed(2).replace(".", ",")}
+                      </p>
+                    )}
                     {selectedService === service.id && (
-                      <FaCheck size={12} className={isDark ? "text-zinc-900" : "text-white"} />
+                      <div className="flex h-6 w-6 items-center justify-center rounded-full bg-white text-primary">
+                        <FaCheck size={10} />
+                      </div>
                     )}
                   </div>
                 </button>
@@ -318,34 +306,32 @@ export default function PublicBookingPage({
             </div>
           </section>
 
-          {/* 2. Data */}
+          {/* STEP 2: DATA */}
           {selectedService && (
-            <section className="animate-in fade-in slide-in-from-bottom-2 duration-500">
-              <div className="mb-3 flex items-center gap-2 text-zinc-900">
-                <span className="flex h-5 w-5 items-center justify-center rounded-full bg-zinc-900 text-[10px] font-bold text-white">
+            <section className="animate-in fade-in slide-in-from-bottom-4 duration-700">
+              <div className="mb-5 flex items-center gap-3">
+                <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary text-[11px] font-black text-primary-foreground shadow-lg shadow-primary/20">
                   2
-                </span>
-                <h2 className="text-sm font-bold uppercase tracking-wider">Escolha o Dia</h2>
+                </div>
+                <h2 className="text-sm font-black uppercase tracking-widest text-foreground">Selecione o Dia</h2>
               </div>
-              <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
+              <div className="flex gap-2 overflow-x-auto pb-4 scrollbar-hide">
                 {availableDates.map((date) => (
                   <button
                     key={date.value}
                     onClick={() => setSelectedDate(date.value)}
-                    className={`flex min-w-[80px] flex-col items-center rounded-xl border p-3 transition-all ${
+                    className={`flex min-w-[90px] flex-col items-center rounded-2xl border p-4 transition-all active:scale-90 ${
                       selectedDate === date.value
-                        ? isDark
-                          ? "border-zinc-500 bg-zinc-100 text-zinc-900 shadow-md ring-1 ring-zinc-500"
-                          : "border-zinc-900 bg-zinc-900 text-white shadow-md"
-                        : isDark
-                          ? "border-zinc-700 bg-zinc-900 text-zinc-300 hover:border-zinc-500"
-                          : "border-zinc-100 bg-white text-zinc-600 hover:border-zinc-300"
+                        ? "border-primary bg-primary text-primary-foreground shadow-xl shadow-primary/10"
+                        : "border-border bg-card hover:border-primary/30 text-muted-foreground"
                     }`}
                   >
-                    <span className="text-[10px] font-bold uppercase tracking-tighter opacity-70">
+                    <span className={`text-[10px] font-black uppercase tracking-widest mb-1 ${
+                      selectedDate === date.value ? "text-white/60" : "text-muted-foreground/60"
+                    }`}>
                       {date.isToday ? "Hoje" : date.label.split(" ")[0]}
                     </span>
-                    <span className="text-sm font-bold capitalize">
+                    <span className="text-sm font-black capitalize">
                       {date.label.split(" ").slice(1).join(" ")}
                     </span>
                   </button>
@@ -354,33 +340,29 @@ export default function PublicBookingPage({
             </section>
           )}
 
-          {/* 3. Horários */}
+          {/* STEP 3: HORÁRIOS */}
           {selectedService && selectedDate && (
-            <section className="animate-in fade-in slide-in-from-bottom-2 duration-500">
-              <div className="mb-3 flex items-center gap-2 text-zinc-900">
-                <span className="flex h-5 w-5 items-center justify-center rounded-full bg-zinc-900 text-[10px] font-bold text-white">
+            <section className="animate-in fade-in slide-in-from-bottom-4 duration-700">
+              <div className="mb-5 flex items-center gap-3">
+                <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary text-[11px] font-black text-primary-foreground shadow-lg shadow-primary/20">
                   3
-                </span>
-                <h2 className="text-sm font-bold uppercase tracking-wider">Escolha o Horário</h2>
+                </div>
+                <h2 className="text-sm font-black uppercase tracking-widest text-foreground">Horário Disponível</h2>
               </div>
-              <Card className="p-4">
+              <Card className="p-5 md:p-6">
                 {availableTimes.length > 0 ? (
-                  <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
+                  <div className="grid grid-cols-3 gap-3 sm:grid-cols-4">
                     {availableTimes.map((slot) => (
                       <button
                         key={slot.time}
                         onClick={() => slot.isAvailable && setSelectedTime(slot.time)}
                         disabled={!slot.isAvailable}
-                        className={`rounded-xl border py-2.5 text-sm font-bold transition-all ${
+                        className={`rounded-xl border py-3 text-sm font-black transition-all active:scale-95 ${
                           !slot.isAvailable
-                            ? "border-zinc-50 bg-zinc-50 text-zinc-300 cursor-not-allowed opacity-60"
+                            ? "border-transparent bg-muted/30 text-muted-foreground/30 cursor-not-allowed"
                             : selectedTime === slot.time
-                              ? isDark
-                                ? "border-zinc-500 bg-zinc-100 text-zinc-900 shadow-md ring-1 ring-zinc-500"
-                                : "border-zinc-900 bg-zinc-900 text-white shadow-md"
-                              : isDark
-                                ? "border-zinc-700 bg-zinc-900 text-zinc-300 hover:border-zinc-500 hover:bg-zinc-800"
-                                : "border-zinc-100 bg-white text-zinc-600 hover:border-zinc-300 hover:bg-zinc-50"
+                              ? "border-primary bg-primary text-primary-foreground shadow-lg shadow-primary/20"
+                              : "border-border bg-background text-foreground hover:border-primary/50"
                         }`}
                       >
                         {slot.time}
@@ -388,80 +370,88 @@ export default function PublicBookingPage({
                     ))}
                   </div>
                 ) : (
-                  <p className="text-center text-sm text-zinc-500 py-4 italic">
-                    Nenhum horário disponível para este dia.
-                  </p>
+                  <div className="py-8 text-center">
+                    <p className="text-sm font-bold text-muted-foreground italic">
+                      Nenhum horário disponível para esta data.
+                    </p>
+                  </div>
                 )}
               </Card>
             </section>
           )}
 
-          {/* 4. Seus Dados */}
+          {/* STEP 4: DADOS */}
           {selectedTime && (
-            <section className="animate-in fade-in slide-in-from-bottom-2 duration-500">
-              <div className="mb-3 flex items-center gap-2 text-zinc-900">
-                <span className="flex h-5 w-5 items-center justify-center rounded-full bg-zinc-900 text-[10px] font-bold text-white">
+            <section className="animate-in fade-in slide-in-from-bottom-4 duration-700">
+              <div className="mb-5 flex items-center gap-3">
+                <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary text-[11px] font-black text-primary-foreground shadow-lg shadow-primary/20">
                   4
-                </span>
-                <h2 className="text-sm font-bold uppercase tracking-wider">Confirme Seus Dados</h2>
+                </div>
+                <h2 className="text-sm font-black uppercase tracking-widest text-foreground">Suas Informações</h2>
               </div>
-              <Card className="p-6">
-                <div className="space-y-4">
-                  <div className="relative">
-                    <span className="pointer-events-none absolute left-3 top-[calc(50%+10px)] z-10 -translate-y-1/2 inline-flex h-8 w-8 items-center justify-center rounded-lg bg-zinc-100 text-zinc-500">
-                      <FaUser size={12} />
-                    </span>
-                    <Input
-                      label="Seu Nome"
-                      id="name"
-                      name="name"
-                      value={clientName}
-                      onChange={(e) => setClientName(e.target.value)}
-                      placeholder="Nome completo"
-                      className="pl-12"
-                      required
-                    />
-                  </div>
+              <Card className="p-6 md:p-8 space-y-6">
+                <Input
+                  label="Como podemos te chamar?"
+                  id="name"
+                  value={clientName}
+                  onChange={(e) => setClientName(e.target.value)}
+                  placeholder="Seu nome completo"
+                  className="h-14 rounded-2xl"
+                  icon={<FaUser size={14} />}
+                  required
+                />
 
-                  <div className="relative">
-                    <span className="pointer-events-none absolute left-3 top-[calc(50%+10px)] z-10 -translate-y-1/2 inline-flex h-8 w-8 items-center justify-center rounded-lg bg-zinc-100 text-zinc-500">
-                      <FaPhoneAlt size={12} />
-                    </span>
-                    <Input
-                      label="WhatsApp"
-                      type="tel"
-                      id="whatsapp"
-                      name="whatsapp"
-                      value={whatsappDigits ? formatBrazilPhoneForInput(whatsappDigits) : ""}
-                      onChange={(e) => setWhatsappDigits(normalizeBrazilPhoneDigits(e.target.value))}
-                      placeholder={BRAZIL_PHONE_PLACEHOLDER}
-                      className="pl-12"
-                      required
-                    />
-                  </div>
-                  {!isWhatsappValid && (
-                    <p className="text-xs text-red-500">
-                      Informe um número válido com DDD (ex: +55 (11) 91234-5678).
+                <div className="space-y-2">
+                  <Input
+                    label="WhatsApp para contato"
+                    type="tel"
+                    id="whatsapp"
+                    value={whatsappDigits ? formatBrazilPhoneForInput(whatsappDigits) : ""}
+                    onChange={(e) => setWhatsappDigits(normalizeBrazilPhoneDigits(e.target.value))}
+                    placeholder={BRAZIL_PHONE_PLACEHOLDER}
+                    className="h-14 rounded-2xl"
+                    icon={<FaPhoneAlt size={14} />}
+                    required
+                  />
+                  {!isWhatsappValid && whatsappDigits.length > 0 && (
+                    <p className="px-1 text-[10px] font-bold text-destructive uppercase tracking-widest">
+                      Informe o número com DDD (ex: 11 99999-9999)
                     </p>
                   )}
+                </div>
 
+                <div className="pt-4">
                   <Button
                     onClick={handleConfirm}
-                    disabled={!isFormValid}
-                    className="mt-4 w-full py-4 text-base active:scale-[0.98]"
+                    disabled={!isFormValid || isSubmitting}
+                    className="h-16 w-full text-base font-black shadow-2xl shadow-primary/20 active:scale-95 transition-all"
                   >
-                    Confirmar Agendamento
+                    {isSubmitting ? (
+                      <div className="flex items-center gap-2">
+                        <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                        Reservando...
+                      </div>
+                    ) : (
+                      "Confirmar Agendamento"
+                    )}
                   </Button>
+                  <p className="mt-4 text-center text-[10px] font-bold text-muted-foreground/60 uppercase tracking-widest">
+                    Seguro • Rápido • Sem custos extras
+                  </p>
                 </div>
               </Card>
             </section>
           )}
         </div>
 
-        <footer className="mt-12">
-          <div className="flex flex-col items-center justify-center gap-2 rounded-2xl border border-zinc-200 bg-white px-4 py-3 text-center">
-            <BrandLogo width={72} height={22} className="h-5 w-auto" />
-            <p className="text-xs text-zinc-500">Agendamento simples e rápido para seus clientes.</p>
+        <footer className="mt-20 text-center">
+          <div className="inline-flex flex-col items-center gap-3">
+            <div className="rounded-2xl bg-muted p-4 opacity-50 ring-1 ring-border">
+              <BrandLogo width={80} height={24} className="h-6 w-auto grayscale" />
+            </div>
+            <p className="text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground/40">
+              © 2026 Agendo.me
+            </p>
           </div>
         </footer>
       </div>

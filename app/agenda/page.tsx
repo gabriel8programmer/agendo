@@ -13,6 +13,7 @@ import {
   FaPlus,
   FaExclamationTriangle,
   FaWhatsapp,
+  FaCalendarAlt,
 } from "react-icons/fa"
 import { getAvailability, getAppointments, getServices } from "@/lib/api"
 import { formatToLocalTime, dayjs } from "@/lib/utils/date"
@@ -39,37 +40,43 @@ function SlotItem({ slot }: { slot: TimeSlot }) {
   const isReserved = slot.status === "reserved"
   const whatsappUrl = toWhatsAppUrl(slot.clientWhatsapp)
 
-  if (isReserved) return null // Esconder horários reservados conforme solicitado
+  if (isReserved) return null
 
   return (
     <div
-      className={`group flex items-center justify-between gap-4 rounded-2xl border px-4 py-4 transition-all ${
+      className={`group flex items-center justify-between gap-4 rounded-2xl border p-4 transition-all duration-300 ${
         isAvailable
-          ? "cursor-pointer border-zinc-100 bg-white hover:border-zinc-300 hover:shadow-sm"
-          : "border-transparent bg-zinc-50"
+          ? "cursor-pointer border-border bg-card hover:border-primary/50 hover:shadow-lg hover:shadow-primary/5 active:scale-[0.99]"
+          : "border-transparent bg-muted/30"
       }`}
     >
       <div className="flex items-center gap-4">
-        <div className="flex flex-col items-center border-r border-zinc-200 pr-4">
-          <span className="text-sm font-bold text-zinc-900">{slot.time}</span>
-          <FaClock size={12} className="text-zinc-400" aria-hidden />
+        <div className="flex flex-col items-center border-r border-border pr-5">
+          <span className={`text-[15px] font-black ${isAvailable ? "text-foreground" : "text-muted-foreground"}`}>
+            {slot.time}
+          </span>
+          <FaClock size={10} className="mt-1 text-muted-foreground/50" aria-hidden />
         </div>
 
         {isAvailable ? (
-          <div className="flex items-center gap-2">
-            <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-zinc-100 text-zinc-500 transition-colors group-hover:bg-zinc-900 group-hover:text-white">
+          <div className="flex items-center gap-3">
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary/5 text-primary transition-colors group-hover:bg-primary group-hover:text-primary-foreground">
               <FaPlus size={12} />
             </div>
-            <span className="text-sm font-medium text-zinc-500">Disponível</span>
+            <span className="text-sm font-bold text-muted-foreground group-hover:text-primary transition-colors">
+              Horário Disponível
+            </span>
           </div>
         ) : (
           <div className="flex items-center gap-3">
-            <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-white border border-zinc-200 text-zinc-400 shadow-sm">
-              <FaUser size={12} />
+            <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-background border border-border text-muted-foreground shadow-sm">
+              <FaUser size={14} />
             </div>
             <div>
-              <p className="text-sm font-bold text-zinc-900">{slot.clientName}</p>
-              <p className="text-xs font-medium text-zinc-500 uppercase tracking-wider">
+              <p className="text-[15px] font-bold text-foreground leading-tight">
+                {slot.clientName}
+              </p>
+              <p className="mt-0.5 text-[10px] font-black uppercase tracking-[0.1em] text-primary/70">
                 {slot.serviceName}
               </p>
             </div>
@@ -78,19 +85,18 @@ function SlotItem({ slot }: { slot: TimeSlot }) {
       </div>
 
       {!isAvailable && (
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-3">
           {whatsappUrl && (
             <a
               href={whatsappUrl}
               target="_blank"
               rel="noreferrer"
-              aria-label={`Conversar com ${slot.clientName} no WhatsApp`}
-              className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-emerald-200 bg-emerald-50 text-emerald-700 transition-all hover:border-emerald-300 hover:bg-emerald-100"
+              className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-500/10 text-emerald-600 transition-all hover:bg-emerald-500 hover:text-white hover:shadow-lg hover:shadow-emerald-500/20"
             >
-              <FaWhatsapp size={18} />
+              <FaWhatsapp size={20} />
             </a>
           )}
-          <div className="rounded-lg bg-zinc-200 px-2 py-1 text-[10px] font-bold uppercase tracking-tight text-zinc-600">
+          <div className="hidden sm:block rounded-full bg-muted px-3 py-1 text-[10px] font-black uppercase tracking-widest text-muted-foreground">
             Ocupado
           </div>
         </div>
@@ -162,10 +168,7 @@ export default function AgendaPage() {
             return
           }
 
-          // Mapear todos os slots (disponíveis + ocupados)
           const allGeneratedSlots: TimeSlot[] = []
-
-          // Precisamos gerar TODOS os slots do expediente para mostrar na agenda do barbeiro
           let current = parseTimeToMinutes(availability.startTime)
           const end = parseTimeToMinutes(availability.endTime)
 
@@ -173,7 +176,6 @@ export default function AgendaPage() {
             const timeString = formatMinutesToTime(current)
             const slotEnd = current + availability.slotDuration
 
-            // Verificar se é horário reservado
             const isReserved = availability.reservedIntervals?.some((interval) => {
               const resStart = parseTimeToMinutes(interval.startTime)
               const resEnd = parseTimeToMinutes(interval.endTime)
@@ -238,64 +240,87 @@ export default function AgendaPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#f9fafb] pb-24 font-sans md:pb-0">
+    <div className="min-h-screen bg-background pb-24 font-sans md:pb-0">
       <Header />
-      <main className="mx-auto max-w-2xl p-4">
-        <header className="mb-6 flex flex-col items-center gap-4">
-          <div className="flex w-full items-center justify-between rounded-2xl bg-white p-2 shadow-sm border border-zinc-100">
-            <button
-              onClick={() => changeDate(-1)}
-              className="flex h-10 w-10 items-center justify-center rounded-xl text-zinc-600 hover:bg-zinc-50 transition-colors"
-            >
-              <FaChevronLeft size={14} />
-            </button>
-            <div className="text-center">
-              <p className="text-sm font-bold text-zinc-900 capitalize">{todayLabel}</p>
-              <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400">
-                Agenda do Dia
-              </p>
+      <main className="mx-auto max-w-2xl p-4 md:p-8">
+        <header className="mb-8">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+            <div>
+              <p className="text-xs font-black uppercase tracking-[0.2em] text-primary">Minha Agenda</p>
+              <h1 className="mt-1 text-3xl font-extrabold tracking-tight text-foreground">
+                Gestão de Horários
+              </h1>
             </div>
-            <button
-              onClick={() => changeDate(1)}
-              className="flex h-10 w-10 items-center justify-center rounded-xl text-zinc-600 hover:bg-zinc-50 transition-colors"
-            >
-              <FaChevronRight size={14} />
-            </button>
+            
+            <div className="flex items-center gap-1 rounded-[1.5rem] border border-border bg-card p-1 shadow-xl shadow-black/5 ring-1 ring-black/5">
+              <button
+                onClick={() => changeDate(-1)}
+                className="flex h-12 w-12 cursor-pointer items-center justify-center rounded-[1.25rem] text-muted-foreground hover:bg-accent hover:text-accent-foreground transition-all active:scale-90"
+                aria-label="Dia anterior"
+              >
+                <FaChevronLeft size={16} />
+              </button>
+              
+              <div className="px-4 text-center w-full">
+                <p className="text-[15px] font-black text-foreground capitalize">
+                  {date.isSame(dayjs(), "day") ? "Hoje" : date.format("dddd")}
+                </p>
+                <p className="text-[11px] font-bold text-muted-foreground tracking-tight">
+                  {date.format("D [de] MMMM")}
+                </p>
+              </div>
+
+              <button
+                onClick={() => changeDate(1)}
+                className="flex h-12 w-12 cursor-pointer items-center justify-center rounded-[1.25rem] text-muted-foreground hover:bg-accent hover:text-accent-foreground transition-all active:scale-90"
+                aria-label="Próximo dia"
+              >
+                <FaChevronRight size={16} />
+              </button>
+            </div>
           </div>
         </header>
 
-        <Card className="p-4 sm:p-6">
+        <section>
           {loading || authLoading ? (
-            <p className="text-center text-sm text-zinc-500">Carregando...</p>
+            <div className="space-y-4">
+              {[1, 2, 3, 4, 5].map((i) => (
+                <div key={i} className="h-20 w-full animate-pulse rounded-2xl bg-muted" />
+              ))}
+            </div>
           ) : needsAvailabilitySetup ? (
-            <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4">
-              <div className="flex items-start gap-3">
-                <FaExclamationTriangle className="mt-0.5 text-amber-600" aria-hidden />
-                <div>
-                  <p className="text-sm font-semibold text-amber-900">
-                    Configure sua agenda para começar a receber agendamentos
-                  </p>
-                  <p className="mt-1 text-sm text-amber-800">
-                    Defina os dias de atendimento e horário padrão em Configurações.
-                  </p>
-                  <ButtonLink
-                    href="/configuracoes"
-                    variant="secondary"
-                    className="mt-3 w-full sm:w-auto"
-                  >
-                    Configurar agenda
-                  </ButtonLink>
-                </div>
+            <Card className="overflow-hidden border-destructive/20 bg-destructive/5 p-8 text-center">
+              <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-destructive/10 text-destructive">
+                <FaExclamationTriangle size={32} aria-hidden />
               </div>
-            </div>
+              <h2 className="text-xl font-bold text-foreground">Configuração Pendente</h2>
+              <p className="mt-2 text-[15px] font-medium text-muted-foreground">
+                Defina seus horários de atendimento para habilitar sua agenda.
+              </p>
+              <ButtonLink
+                href="/configuracoes"
+                variant="primary"
+                className="mt-6 mx-auto"
+              >
+                Ir para Configurações
+              </ButtonLink>
+            </Card>
           ) : !isWorkingDay ? (
-            <div className="py-12 text-center">
-              <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-zinc-50 text-zinc-400">
-                <FaClock size={20} />
+            <Card className="flex flex-col items-center justify-center border-dashed py-16 text-center">
+              <div className="mb-6 rounded-[2rem] bg-muted p-6 text-muted-foreground/30">
+                <FaCalendarAlt size={48} />
               </div>
-              <p className="text-sm font-bold text-zinc-900">Não há atendimento hoje</p>
-              <p className="text-xs text-zinc-500 mt-1">Este dia está configurado como folga.</p>
-            </div>
+              <h2 className="text-xl font-black text-foreground">Dia de Folga</h2>
+              <p className="mt-2 max-w-[240px] text-sm font-bold text-muted-foreground/60">
+                Este dia não possui horários de atendimento configurados.
+              </p>
+              <button 
+                onClick={() => setDate(dayjs().tz("America/Sao_Paulo"))}
+                className="mt-6 text-xs font-black uppercase tracking-widest text-primary hover:underline"
+              >
+                Voltar para hoje
+              </button>
+            </Card>
           ) : (
             <div className="space-y-3">
               {slots
@@ -304,13 +329,15 @@ export default function AgendaPage() {
                   <SlotItem key={`${slot.time}-${slot.status}-${slot.id}`} slot={slot} />
                 ))}
               {slots.filter((s) => s.status !== "reserved").length === 0 && (
-                <p className="text-center text-sm text-zinc-500 italic">
-                  Nenhum horário disponível no expediente.
-                </p>
+                <div className="py-20 text-center">
+                  <p className="text-sm font-bold text-muted-foreground italic">
+                    Nenhum horário disponível no expediente.
+                  </p>
+                </div>
               )}
             </div>
           )}
-        </Card>
+        </section>
       </main>
     </div>
   )

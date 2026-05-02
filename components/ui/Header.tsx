@@ -47,95 +47,92 @@ export default function Header() {
 
   return (
     <>
-      <header className="sticky top-0 z-50 w-full border-b border-zinc-100 bg-white/80 backdrop-blur-md">
+      <header className="sticky top-0 z-50 w-full border-b border-border bg-background/80 backdrop-blur-md">
         <div className="mx-auto flex max-w-5xl items-center justify-between px-4 py-3">
-        <Link href="/dashboard" className="transition-opacity hover:opacity-80">
-          <BrandLogo width={120} height={34} className="h-7 w-auto" />
-        </Link>
+          <Link href="/dashboard" className="transition-opacity hover:opacity-80">
+            <BrandLogo width={120} height={34} className="h-7 w-auto" />
+          </Link>
 
           <div className="flex items-center gap-2">
             <button
               type="button"
               onClick={toggleTheme}
-              className="inline-flex h-10 w-10 items-center justify-center rounded-xl text-zinc-600 hover:bg-zinc-50 transition-colors"
+              className="inline-flex h-10 w-10 cursor-pointer items-center justify-center rounded-xl text-muted-foreground hover:bg-accent hover:text-accent-foreground transition-colors"
               aria-label={theme === "dark" ? "Ativar tema claro" : "Ativar tema escuro"}
             >
-              {theme === "dark" ? <FaSun size={16} /> : <FaMoon size={16} />}
+              {theme === "dark" ? <FaSun size={18} /> : <FaMoon size={18} />}
             </button>
             <div className="relative hidden md:block">
-          <button
-            onClick={() => setIsOpen(!isOpen)}
-            className="flex h-10 w-10 items-center justify-center rounded-xl text-zinc-600 hover:bg-zinc-50 transition-colors"
-            aria-label="Menu"
-          >
-            <FaEllipsisV size={16} />
-          </button>
+              <button
+                onClick={() => setIsOpen(!isOpen)}
+                className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-xl text-muted-foreground hover:bg-accent hover:text-accent-foreground transition-colors"
+                aria-label="Menu"
+              >
+                <FaEllipsisV size={18} />
+              </button>
 
-          {isOpen && (
-            <>
-              <div className="fixed inset-0 z-10" onClick={() => setIsOpen(false)} />
-              <div className="absolute right-0 mt-2 w-56 origin-top-right rounded-2xl bg-white p-2 shadow-xl border border-zinc-100 ring-1 ring-black ring-opacity-5 focus:outline-none z-20 animate-in fade-in zoom-in-95 duration-100">
-                <div className="py-1">
-                  {menuItems.map((item) => (
-                    <Link
-                      key={item.href}
-                      href={item.href}
-                      onClick={() => setIsOpen(false)}
-                      className="flex items-center gap-3 rounded-xl px-4 py-2.5 text-sm font-semibold text-zinc-700 hover:bg-zinc-50 hover:text-zinc-900 transition-colors"
-                    >
-                      <item.icon size={14} className="text-zinc-400" />
-                      {item.label}
-                    </Link>
-                  ))}
-                  <div className="my-2 h-px bg-zinc-100" />
-                  <button
-                    type="button"
-                    onClick={handleLogout}
-                    className="flex w-full items-center gap-3 rounded-xl px-4 py-2.5 text-sm font-semibold text-zinc-500 hover:bg-red-50 hover:text-red-600 transition-colors"
-                  >
-                    <FaSignOutAlt size={14} />
-                    Sair
-                  </button>
-                </div>
-              </div>
-            </>
-          )}
-        </div>
+              {isOpen && (
+                <>
+                  <div className="fixed inset-0 z-10" onClick={() => setIsOpen(false)} />
+                  <div className="absolute right-0 mt-2 w-56 origin-top-right rounded-2xl bg-popover p-2 shadow-xl border border-border ring-1 ring-black/5 focus:outline-none z-20 animate-in fade-in zoom-in-95 duration-100">
+                    <div className="py-1">
+                      {menuItems.map((item) => (
+                        <Link
+                          key={item.href}
+                          href={item.href}
+                          onClick={() => setIsOpen(false)}
+                          className={`flex items-center gap-3 rounded-xl px-4 py-2.5 text-sm font-semibold transition-colors ${
+                            pathname === item.href
+                              ? "bg-accent text-accent-foreground"
+                              : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+                          }`}
+                        >
+                          <item.icon size={14} className={pathname === item.href ? "text-primary" : "text-muted-foreground"} />
+                          {item.label}
+                        </Link>
+                      ))}
+                      <div className="my-2 h-px bg-border" />
+                      <button
+                        type="button"
+                        onClick={handleLogout}
+                        className="flex w-full cursor-pointer items-center gap-3 rounded-xl px-4 py-2.5 text-sm font-semibold text-destructive hover:bg-destructive/10 transition-colors"
+                      >
+                        <FaSignOutAlt size={14} />
+                        Sair
+                      </button>
+                    </div>
+                  </div>
+                </>
+              )}
+            </div>
             <button
-            type="button"
-            onClick={handleLogout}
-            className="inline-flex h-10 w-10 items-center justify-center rounded-xl text-zinc-500 hover:bg-red-50 hover:text-red-600 transition-colors md:hidden"
-            aria-label="Sair da conta"
-          >
-            <FaSignOutAlt size={16} />
-          </button>
+              type="button"
+              onClick={handleLogout}
+              className="inline-flex h-10 w-10 cursor-pointer items-center justify-center rounded-xl text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-colors md:hidden"
+              aria-label="Sair da conta"
+            >
+              <FaSignOutAlt size={18} />
+            </button>
           </div>
         </div>
       </header>
 
-      <nav className="fixed inset-x-0 bottom-0 z-50 border-t border-zinc-200 bg-white/95 pb-[env(safe-area-inset-bottom)] shadow-[0_-6px_18px_rgba(24,24,27,0.08)] backdrop-blur md:hidden">
-        <div className="flex gap-0.5">
+      <nav className="fixed inset-x-0 bottom-0 z-50 border-t border-border bg-background/95 pb-[env(safe-area-inset-bottom)] shadow-[0_-8px_30px_rgb(0,0,0,0.04)] backdrop-blur md:hidden">
+        <div className="flex px-2 py-1 gap-1">
           {menuItems.map((item) => {
             const isActive = pathname === item.href
-            const activeClass =
-              theme === "dark"
-                ? "bg-zinc-100 text-zinc-900 ring-1 ring-zinc-500"
-                : "bg-zinc-900 text-white"
-            const inactiveClass =
-              theme === "dark"
-                ? "text-zinc-400 hover:bg-zinc-800"
-                : "text-zinc-500 hover:bg-zinc-100"
-
             return (
               <Link
                 key={item.href}
                 href={item.href}
-                className={`flex flex-1 flex-col items-center justify-center px-1 py-2 text-[11px] font-semibold transition-colors ${
-                  isActive ? activeClass : inactiveClass
+                className={`flex flex-1 flex-col items-center justify-center rounded-xl px-1 py-2 text-[10px] font-bold transition-all ${
+                  isActive
+                    ? "bg-primary text-primary-foreground shadow-lg shadow-primary/20 scale-105 z-10"
+                    : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
                 }`}
               >
-                <item.icon size={16} />
-                <span className="mt-1">{item.label}</span>
+                <item.icon size={20} className={isActive ? "mb-0.5" : "mb-1"} />
+                <span>{item.label}</span>
               </Link>
             )
           })}
