@@ -8,9 +8,11 @@ import {
   FaExclamationTriangle,
   FaMoneyBillWave,
   FaUserTie,
-  FaUser,
   FaWhatsapp,
   FaWrench,
+  FaCopy,
+  FaCheck,
+  FaExternalLinkAlt,
 } from "react-icons/fa"
 
 import Link from "next/link"
@@ -18,6 +20,7 @@ import ButtonLink from "@/components/ui/ButtonLink"
 import Card from "@/components/ui/Card"
 import Header from "@/components/ui/Header"
 import { useAuth } from "@/components/providers/AuthProvider"
+import { useToast } from "@/components/ui/Toast"
 import { getAppointments, getAvailability, getServices } from "@/lib/api"
 import { Appointment, Availability, Service } from "@/types"
 import { formatToLocalTime, getTodayDate, dayjs } from "@/lib/utils/date"
@@ -53,6 +56,49 @@ export default function DashboardPage() {
   const [services, setServices] = useState<Service[]>([])
   const [loading, setLoading] = useState(true)
   const [needsAvailabilitySetup, setNeedsAvailabilitySetup] = useState(false)
+  const [copied, setCopied] = useState(false)
+  const [host, setHost] = useState("agendo.me")
+  const { showToast, ToastComponent } = useToast()
+
+  useEffect(() => {
+    if (typeof window !== "undefined" && window.location.host) {
+      setHost(window.location.host)
+    }
+  }, [])
+
+  const handleCopyLink = async () => {
+    if (!user?.slug) {
+      showToast("Link público não disponível ou ainda não configurado.", "error")
+      return
+    }
+
+    const origin = typeof window !== "undefined" ? window.location.origin : "https://agendo.me"
+    const fullPublicUrl = `${origin}/${user.slug}`
+
+    try {
+      if (navigator?.clipboard?.writeText) {
+        await navigator.clipboard.writeText(fullPublicUrl)
+      } else {
+        const textarea = document.createElement("textarea")
+        textarea.value = fullPublicUrl
+        textarea.style.position = "fixed"
+        textarea.style.left = "-9999px"
+        textarea.style.top = "-9999px"
+        document.body.appendChild(textarea)
+        textarea.focus()
+        textarea.select()
+        document.execCommand("copy")
+        document.body.removeChild(textarea)
+      }
+
+      setCopied(true)
+      showToast("Link copiado para a área de transferência!", "success")
+      setTimeout(() => setCopied(false), 2500)
+    } catch (err) {
+      console.error("Erro ao copiar link:", err)
+      showToast("Não foi possível copiar o link.", "error")
+    }
+  }
 
   useEffect(() => {
     if (authLoading) return
@@ -308,16 +354,49 @@ export default function DashboardPage() {
 
             <Card className="overflow-hidden bg-primary/5 border-primary/20">
               <div className="p-6">
-                <h3 className="mb-2 text-sm font-bold text-foreground">Link Público</h3>
+                <div className="mb-2 flex items-center justify-between">
+                  <h3 className="text-sm font-bold text-foreground">Link Público</h3>
+                  {user?.slug && (
+                    <a
+                      href={`/${user.slug}`}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="inline-flex items-center gap-1 text-xs font-semibold text-primary hover:underline"
+                      title="Abrir página pública em nova aba"
+                    >
+                      <span>Abrir</span>
+                      <FaExternalLinkAlt size={10} />
+                    </a>
+                  )}
+                </div>
                 <p className="text-xs font-medium text-muted-foreground mb-4">
                   Compartilhe seu link para que clientes possam agendar sozinhos.
                 </p>
                 <div className="flex items-center gap-2 rounded-xl border border-input bg-background p-2 pr-1">
                   <span className="flex-1 truncate text-xs font-mono text-muted-foreground px-2">
-                    agendo.me/{user?.slug || "seu-link"}
+                    {host}/{user?.slug || "seu-link"}
                   </span>
-                  <button className="rounded-lg bg-primary px-3 py-1.5 text-xs font-bold text-primary-foreground hover:bg-primary/90 transition-colors">
-                    Copiar
+                  <button
+                    type="button"
+                    onClick={handleCopyLink}
+                    className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-bold transition-all cursor-pointer ${
+                      copied
+                        ? "bg-emerald-600 text-white shadow-sm"
+                        : "bg-primary text-primary-foreground hover:bg-primary/90 active:scale-95"
+                    }`}
+                    aria-label="Copiar link público para área de transferência"
+                  >
+                    {copied ? (
+                      <>
+                        <FaCheck size={11} />
+                        Copiado!
+                      </>
+                    ) : (
+                      <>
+                        <FaCopy size={11} />
+                        Copiar
+                      </>
+                    )}
                   </button>
                 </div>
               </div>
@@ -325,6 +404,7 @@ export default function DashboardPage() {
           </aside>
         </div>
       </main>
+      {ToastComponent}
     </div>
   )
 }
