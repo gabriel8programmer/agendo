@@ -1,9 +1,19 @@
 "use client"
 
 import { useState, useEffect, use } from "react"
-import { FaClock, FaTag, FaCheck, FaPhoneAlt, FaUser, FaMoon, FaSun, FaCalendarAlt } from "react-icons/fa"
+import {
+  FaClock,
+  FaTag,
+  FaCheck,
+  FaPhoneAlt,
+  FaUser,
+  FaMoon,
+  FaSun,
+  FaCalendarAlt,
+} from "react-icons/fa"
 import Card from "@/components/ui/Card"
 import Button from "@/components/ui/Button"
+import ButtonLink from "@/components/ui/ButtonLink"
 import Input from "@/components/ui/Input"
 import BrandLogo from "@/components/ui/BrandLogo"
 import {
@@ -131,8 +141,12 @@ export default function PublicBookingPage({
       <div className="flex min-h-screen items-center justify-center bg-background p-4 font-sans text-center">
         <Card className="p-12 max-w-sm rounded-[2.5rem]">
           <h1 className="text-2xl font-black text-foreground">Oops!</h1>
-          <p className="mt-2 text-muted-foreground font-medium">O negócio que você procura não foi encontrado.</p>
-          <Button Link href="/" className="mt-8 w-full">Voltar ao Início</Button>
+          <p className="mt-2 text-muted-foreground font-medium">
+            O negócio que você procura não foi encontrado.
+          </p>
+          <ButtonLink href="/" className="mt-8 w-full">
+            Voltar ao Início
+          </ButtonLink>
         </Card>
       </div>
     )
@@ -147,7 +161,8 @@ export default function PublicBookingPage({
           </div>
           <h1 className="text-2xl font-black text-foreground">Tudo certo!</h1>
           <p className="mt-3 text-muted-foreground font-medium leading-relaxed">
-            Olá <span className="text-foreground font-bold">{clientName}</span>, seu agendamento foi confirmado com sucesso.
+            Olá <span className="text-foreground font-bold">{clientName}</span>, seu agendamento foi
+            confirmado com sucesso.
           </p>
           <div className="mt-8 rounded-2xl bg-muted/30 p-4 border border-border">
             <div className="flex items-center justify-center gap-2 text-sm font-bold text-foreground">
@@ -176,9 +191,10 @@ export default function PublicBookingPage({
   const availableTimes = availability
     ? generateSlots(availability, occupiedAppointments, selectedDate)
     : []
-  
+
   const isWhatsappValid = whatsappDigits.length === 10 || whatsappDigits.length === 11
-  const isFormValid = selectedService && selectedTime && clientName.trim().length > 0 && isWhatsappValid
+  const isFormValid =
+    selectedService && selectedTime && clientName.trim().length > 0 && isWhatsappValid
 
   const handleConfirm = async () => {
     if (!isFormValid || !user || isSubmitting) return
@@ -260,7 +276,9 @@ export default function PublicBookingPage({
               <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary text-[11px] font-black text-primary-foreground shadow-lg shadow-primary/20">
                 1
               </div>
-              <h2 className="text-sm font-black uppercase tracking-widest text-foreground">Escolha o Serviço</h2>
+              <h2 className="text-sm font-black uppercase tracking-widest text-foreground">
+                Escolha o Serviço
+              </h2>
             </div>
             <div className="grid gap-3">
               {services.map((service) => (
@@ -274,16 +292,25 @@ export default function PublicBookingPage({
                   }`}
                 >
                   <div className="flex items-center gap-4">
-                    <div className={`flex h-12 w-12 items-center justify-center rounded-2xl transition-colors ${
-                      selectedService === service.id ? "bg-white/10" : "bg-muted"
-                    }`}>
-                      <FaTag size={16} className={selectedService === service.id ? "text-white" : "text-muted-foreground"} />
+                    <div
+                      className={`flex h-12 w-12 items-center justify-center rounded-2xl transition-colors ${
+                        selectedService === service.id ? "bg-white/10" : "bg-muted"
+                      }`}
+                    >
+                      <FaTag
+                        size={16}
+                        className={
+                          selectedService === service.id ? "text-white" : "text-muted-foreground"
+                        }
+                      />
                     </div>
                     <div>
                       <p className="text-base font-bold">{service.name}</p>
-                      <div className={`mt-1 flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider ${
-                        selectedService === service.id ? "text-white/70" : "text-muted-foreground"
-                      }`}>
+                      <div
+                        className={`mt-1 flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider ${
+                          selectedService === service.id ? "text-white/70" : "text-muted-foreground"
+                        }`}
+                      >
                         <FaClock size={12} />
                         <span>{service.duration} min</span>
                       </div>
@@ -313,7 +340,9 @@ export default function PublicBookingPage({
                 <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary text-[11px] font-black text-primary-foreground shadow-lg shadow-primary/20">
                   2
                 </div>
-                <h2 className="text-sm font-black uppercase tracking-widest text-foreground">Selecione o Dia</h2>
+                <h2 className="text-sm font-black uppercase tracking-widest text-foreground">
+                  Selecione o Dia
+                </h2>
               </div>
               <div className="flex gap-2 overflow-x-auto pb-4 scrollbar-hide">
                 {availableDates.map((date) => (
@@ -326,9 +355,11 @@ export default function PublicBookingPage({
                         : "border-border bg-card hover:border-primary/30 text-muted-foreground"
                     }`}
                   >
-                    <span className={`text-[10px] font-black uppercase tracking-widest mb-1 ${
-                      selectedDate === date.value ? "text-white/60" : "text-muted-foreground/60"
-                    }`}>
+                    <span
+                      className={`text-[10px] font-black uppercase tracking-widest mb-1 ${
+                        selectedDate === date.value ? "text-white/60" : "text-muted-foreground/60"
+                      }`}
+                    >
                       {date.isToday ? "Hoje" : date.label.split(" ")[0]}
                     </span>
                     <span className="text-sm font-black capitalize">
@@ -347,7 +378,9 @@ export default function PublicBookingPage({
                 <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary text-[11px] font-black text-primary-foreground shadow-lg shadow-primary/20">
                   3
                 </div>
-                <h2 className="text-sm font-black uppercase tracking-widest text-foreground">Horário Disponível</h2>
+                <h2 className="text-sm font-black uppercase tracking-widest text-foreground">
+                  Horário Disponível
+                </h2>
               </div>
               <Card className="p-5 md:p-6">
                 {availableTimes.length > 0 ? (
@@ -387,7 +420,9 @@ export default function PublicBookingPage({
                 <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary text-[11px] font-black text-primary-foreground shadow-lg shadow-primary/20">
                   4
                 </div>
-                <h2 className="text-sm font-black uppercase tracking-widest text-foreground">Suas Informações</h2>
+                <h2 className="text-sm font-black uppercase tracking-widest text-foreground">
+                  Suas Informações
+                </h2>
               </div>
               <Card className="p-6 md:p-8 space-y-6">
                 <Input
