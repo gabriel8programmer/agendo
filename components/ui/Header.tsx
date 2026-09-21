@@ -87,7 +87,12 @@ export default function Header() {
                               : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
                           }`}
                         >
-                          <item.icon size={14} className={pathname === item.href ? "text-primary" : "text-muted-foreground"} />
+                          <item.icon
+                            size={14}
+                            className={
+                              pathname === item.href ? "text-primary" : "text-muted-foreground"
+                            }
+                          />
                           {item.label}
                         </Link>
                       ))}
@@ -125,14 +130,19 @@ export default function Header() {
               <Link
                 key={item.href}
                 href={item.href}
-                className={`flex flex-1 flex-col items-center justify-center rounded-xl px-1 py-2 text-[10px] font-bold transition-all ${
+                className={`flex flex-1 flex-col items-center justify-center rounded-xl px-1 py-2 text-[10px] transition-all ${
                   isActive
-                    ? "bg-primary text-primary-foreground shadow-lg shadow-primary/20 scale-105 z-10"
-                    : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+                    ? "bg-muted text-primary font-bold shadow-sm"
+                    : "text-muted-foreground font-medium hover:bg-accent hover:text-accent-foreground"
                 }`}
               >
-                <item.icon size={20} className={isActive ? "mb-0.5" : "mb-1"} />
-                <span>{item.label}</span>
+                <item.icon
+                  size={20}
+                  className={`mb-1 ${isActive ? "text-primary" : "text-muted-foreground"}`}
+                />
+                <span className={isActive ? "font-bold text-primary" : "font-medium"}>
+                  {item.label}
+                </span>
               </Link>
             )
           })}
