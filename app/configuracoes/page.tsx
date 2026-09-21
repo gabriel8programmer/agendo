@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react"
 import Card from "@/components/ui/Card"
 import Button from "@/components/ui/Button"
+import ButtonLink from "@/components/ui/ButtonLink"
 import Header from "@/components/ui/Header"
 import Input from "@/components/ui/Input"
 import BrandLogo from "@/components/ui/BrandLogo"
@@ -10,13 +11,13 @@ import { useAuth } from "@/components/providers/AuthProvider"
 import {
   FaStore,
   FaClock,
-  FaHistory,
   FaSave,
   FaPlus,
   FaTrash,
   FaCoffee,
   FaExclamationTriangle,
   FaLink,
+  FaCreditCard,
 } from "react-icons/fa"
 import {
   getAvailability,
@@ -430,6 +431,67 @@ export default function SettingsPage() {
                   </p>
                 </div>
               )}
+            </div>
+          </Card>
+
+          {/* Assinatura & Plano */}
+          <Card className="p-6 md:p-8 border-primary/20">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
+              <div className="flex items-center gap-3">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                  <FaCreditCard size={18} />
+                </div>
+                <div>
+                  <h2 className="text-base font-bold text-foreground">Plano & Assinatura</h2>
+                  <p className="text-xs text-muted-foreground">
+                    Gerencie seu plano Agendo e formas de pagamento
+                  </p>
+                </div>
+              </div>
+              <div>
+                <span
+                  className={`inline-block rounded-full px-3 py-1 text-xs font-extrabold ${
+                    authUser?.subscriptionStatus === "active"
+                      ? "bg-emerald-500/10 text-emerald-600"
+                      : "bg-muted text-muted-foreground"
+                  }`}
+                >
+                  {authUser?.subscriptionStatus === "active" ? "Plano Ativo" : "Plano Gratuito"}
+                </span>
+              </div>
+            </div>
+
+            <div className="rounded-2xl border border-border bg-background p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div>
+                <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                  Plano Atual
+                </p>
+                <p className="text-lg font-black text-foreground mt-0.5">
+                  {authUser?.subscriptionPlan === "annual"
+                    ? "Plano Anual (10% OFF - R$ 268,92/ano)"
+                    : authUser?.subscriptionPlan === "monthly"
+                      ? "Plano Mensal (R$ 24,90/mês)"
+                      : "Gratuito / Avaliação"}
+                </p>
+                {authUser?.subscriptionExpiresAt && (
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Válido até:{" "}
+                    {new Date(authUser.subscriptionExpiresAt).toLocaleDateString("pt-BR")}
+                  </p>
+                )}
+              </div>
+
+              <div className="flex items-center gap-2">
+                <ButtonLink
+                  href="/planos"
+                  variant="primary"
+                  className="h-10 text-xs font-bold px-4"
+                >
+                  {authUser?.subscriptionStatus === "active"
+                    ? "Alterar Plano"
+                    : "Ver Planos & Assinar"}
+                </ButtonLink>
+              </div>
             </div>
           </Card>
 

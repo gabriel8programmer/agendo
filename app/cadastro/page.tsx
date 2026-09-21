@@ -64,9 +64,7 @@ export default function RegisterPage() {
                 <BrandLogo width={180} height={52} className="h-10 w-auto" />
               </Link>
             </div>
-            <h1 className="text-xl font-bold tracking-tight text-foreground">
-              Crie sua conta
-            </h1>
+            <h1 className="text-xl font-bold tracking-tight text-foreground">Crie sua conta</h1>
             <p className="mt-1.5 text-sm font-medium text-muted-foreground">
               Comece a gerir seus agendamentos hoje mesmo.
             </p>
@@ -139,7 +137,10 @@ export default function RegisterPage() {
 
             <footer className="pt-6 text-center">
               <p className="text-sm font-medium text-muted-foreground">Já tem uma conta?</p>
-              <Link href="/login" className="mt-2 inline-block text-sm font-bold text-primary hover:underline">
+              <Link
+                href="/login"
+                className="mt-2 inline-block text-sm font-bold text-primary hover:underline"
+              >
                 Acesse sua conta aqui
               </Link>
             </footer>

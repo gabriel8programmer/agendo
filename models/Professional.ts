@@ -68,7 +68,6 @@ const ProfessionalSchema = new Schema<IProfessional>(
 
 ProfessionalSchema.index({ userId: 1, isActive: 1, createdAt: -1 })
 
-const Professional =
-  models.Professional || model<IProfessional>("Professional", ProfessionalSchema)
+const Professional = models.Professional || model<IProfessional>("Professional", ProfessionalSchema)
 
 export default Professional

@@ -23,7 +23,10 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     const normalizedId = idCandidate ? String(idCandidate).trim() : ""
 
     if (!normalizedId || normalizedId === "undefined" || normalizedId === "null") {
-      return NextResponse.json({ error: "Disponibilidade sem identificador válido" }, { status: 500 })
+      return NextResponse.json(
+        { error: "Disponibilidade sem identificador válido" },
+        { status: 500 }
+      )
     }
 
     trackServerEvent("availability_saved", {

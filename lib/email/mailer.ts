@@ -50,4 +50,3 @@ export async function sendEmail(payload: MailPayload) {
     text: payload.text,
   })
 }
-

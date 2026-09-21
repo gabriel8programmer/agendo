@@ -66,12 +66,8 @@ export default function LoginPage() {
                 <BrandLogo width={180} height={52} className="h-10 w-auto" />
               </Link>
             </div>
-            <h1 className="text-xl font-bold tracking-tight text-foreground">
-              Acesse sua conta
-            </h1>
-            <p className="mt-1.5 text-sm font-medium text-muted-foreground">
-              Bem-vindo de volta!
-            </p>
+            <h1 className="text-xl font-bold tracking-tight text-foreground">Acesse sua conta</h1>
+            <p className="mt-1.5 text-sm font-medium text-muted-foreground">Bem-vindo de volta!</p>
           </header>
 
           <form className="space-y-5" onSubmit={handleSubmit}>
@@ -123,7 +119,9 @@ export default function LoginPage() {
 
             <div className="relative flex items-center gap-4 py-2">
               <div className="h-px flex-1 bg-border" />
-              <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">ou</span>
+              <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+                ou
+              </span>
               <div className="h-px flex-1 bg-border" />
             </div>
 
@@ -141,7 +139,10 @@ export default function LoginPage() {
 
             <footer className="pt-6 text-center">
               <p className="text-sm font-medium text-muted-foreground">Ainda não tem conta?</p>
-              <Link href="/cadastro" className="mt-2 inline-block text-sm font-bold text-primary hover:underline">
+              <Link
+                href="/cadastro"
+                className="mt-2 inline-block text-sm font-bold text-primary hover:underline"
+              >
                 Crie sua conta gratuitamente
               </Link>
             </footer>

@@ -16,17 +16,20 @@ export async function GET(req: NextRequest) {
     }
 
     await dbConnect()
-    const user = (await User.findById(payload.userId).lean()) as
-      | {
-          _id: unknown
-          name?: string
-          companyName?: string
-          email?: string
-          slug?: string
-          slugLocked?: boolean
-          createdAt?: Date | string
-        }
-      | null
+    const user = (await User.findById(payload.userId).lean()) as {
+      _id: unknown
+      name?: string
+      companyName?: string
+      email?: string
+      slug?: string
+      slugLocked?: boolean
+      createdAt?: Date | string
+      stripeCustomerId?: string
+      stripeSubscriptionId?: string
+      subscriptionPlan?: string
+      subscriptionStatus?: string
+      subscriptionExpiresAt?: Date | string
+    } | null
     if (!user) {
       return NextResponse.json({ error: "Usuário não encontrado" }, { status: 404 })
     }
@@ -52,6 +55,13 @@ export async function GET(req: NextRequest) {
         slug: String(user.slug || ""),
         slugLocked: Boolean(user.slugLocked),
         createdAt: user.createdAt ? new Date(user.createdAt).toISOString() : undefined,
+        stripeCustomerId: user.stripeCustomerId,
+        stripeSubscriptionId: user.stripeSubscriptionId,
+        subscriptionPlan: user.subscriptionPlan || "free",
+        subscriptionStatus: user.subscriptionStatus || "inactive",
+        subscriptionExpiresAt: user.subscriptionExpiresAt
+          ? new Date(user.subscriptionExpiresAt).toISOString()
+          : undefined,
       },
     })
   } catch (error) {

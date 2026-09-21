@@ -199,11 +199,7 @@ export async function getAvailability(userId: string): Promise<Availability | nu
     }
 
     const raw = availabilities[0] as Availability & { _id?: string }
-    const normalizedId = isValidEntityId(raw.id)
-      ? raw.id
-      : isValidEntityId(raw._id)
-        ? raw._id
-        : ""
+    const normalizedId = isValidEntityId(raw.id) ? raw.id : isValidEntityId(raw._id) ? raw._id : ""
 
     return {
       ...raw,
@@ -299,7 +295,9 @@ export async function updateCurrentUserProfile(data: {
   })
 }
 
-export async function requestPasswordReset(email: string): Promise<{ ok: boolean; requestId: string }> {
+export async function requestPasswordReset(
+  email: string
+): Promise<{ ok: boolean; requestId: string }> {
   return fetchJson(`${BASE_URL}/auth/password-reset/request`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -311,7 +309,9 @@ export async function getPasswordResetStatus(requestId: string): Promise<{
   status: "pending" | "verified" | "used" | "expired" | "not_found"
   verified: boolean
 }> {
-  return fetchJson(`${BASE_URL}/auth/password-reset/status?requestId=${encodeURIComponent(requestId)}`)
+  return fetchJson(
+    `${BASE_URL}/auth/password-reset/status?requestId=${encodeURIComponent(requestId)}`
+  )
 }
 
 export async function confirmPasswordReset(data: {
@@ -323,5 +323,22 @@ export async function confirmPasswordReset(data: {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(data),
+  })
+}
+
+export async function createCheckoutSession(data: {
+  plan: "monthly" | "annual"
+  mode?: "payment" | "subscription"
+}): Promise<{ url: string; sessionId?: string }> {
+  return fetchJson(`${BASE_URL}/checkout`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+  })
+}
+
+export async function createCustomerPortalSession(): Promise<{ url: string }> {
+  return fetchJson(`${BASE_URL}/checkout/portal`, {
+    method: "POST",
   })
 }

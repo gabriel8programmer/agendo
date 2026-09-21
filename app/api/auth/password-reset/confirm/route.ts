@@ -47,12 +47,18 @@ export async function POST(req: NextRequest) {
     }
 
     if (!resetRequest.userId) {
-      return NextResponse.json({ error: "Usuário não encontrado para esta solicitação" }, { status: 404 })
+      return NextResponse.json(
+        { error: "Usuário não encontrado para esta solicitação" },
+        { status: 404 }
+      )
     }
 
     const user = await User.findById(resetRequest.userId)
     if (!user) {
-      return NextResponse.json({ error: "Usuário não encontrado para esta solicitação" }, { status: 404 })
+      return NextResponse.json(
+        { error: "Usuário não encontrado para esta solicitação" },
+        { status: 404 }
+      )
     }
 
     if (!user.passwordHash) {

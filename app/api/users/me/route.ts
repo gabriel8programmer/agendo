@@ -36,17 +36,15 @@ export async function PATCH(req: NextRequest) {
     }
 
     await dbConnect()
-    const user = (await User.findById(payload.userId).lean()) as
-      | {
-          _id: unknown
-          name?: string
-          companyName?: string
-          email?: string
-          slug?: string
-          slugLocked?: boolean
-          createdAt?: Date | string
-        }
-      | null
+    const user = (await User.findById(payload.userId).lean()) as {
+      _id: unknown
+      name?: string
+      companyName?: string
+      email?: string
+      slug?: string
+      slugLocked?: boolean
+      createdAt?: Date | string
+    } | null
     if (!user) {
       return NextResponse.json({ error: "Usuário não encontrado" }, { status: 404 })
     }

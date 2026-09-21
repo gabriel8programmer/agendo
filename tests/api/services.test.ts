@@ -92,9 +92,11 @@ describe("API /api/services", () => {
   describe("DELETE", () => {
     it("returns 400 if userId is missing", async () => {
       const server = createRouteTestServer(DELETE)
-      const res = await request(server).delete("/api/services").send({
-        ids: ["service-1"],
-      })
+      const res = await request(server)
+        .delete("/api/services")
+        .send({
+          ids: ["service-1"],
+        })
 
       expect(res.status).toBe(400)
       expect(res.body.error).toBe("userId é obrigatório")
@@ -117,10 +119,12 @@ describe("API /api/services", () => {
       } as never)
 
       const server = createRouteTestServer(DELETE)
-      const res = await request(server).delete("/api/services").send({
-        userId: "user-1",
-        ids: ["service-1", "service-2"],
-      })
+      const res = await request(server)
+        .delete("/api/services")
+        .send({
+          userId: "user-1",
+          ids: ["service-1", "service-2"],
+        })
 
       expect(res.status).toBe(200)
       expect(res.body).toEqual({

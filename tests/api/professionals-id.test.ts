@@ -78,12 +78,14 @@ describe("API /api/professionals/[id]", () => {
       PATCH(req, { params: Promise.resolve({ id: "680d3d31bfc3a8bdf31e0c19" }) })
     )
 
-    const res = await request(server).patch("/api/professionals/680d3d31bfc3a8bdf31e0c19").send({
-      userId: "user-1",
-      name: "João",
-      serviceIds: ["service-1"],
-      isActive: false,
-    })
+    const res = await request(server)
+      .patch("/api/professionals/680d3d31bfc3a8bdf31e0c19")
+      .send({
+        userId: "user-1",
+        name: "João",
+        serviceIds: ["service-1"],
+        isActive: false,
+      })
 
     expect(res.status).toBe(200)
     expect(save).toHaveBeenCalledTimes(1)

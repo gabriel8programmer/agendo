@@ -2,7 +2,13 @@
 
 import { useEffect, useRef, useState } from "react"
 import Link from "next/link"
-import { FaCheck, FaLock, FaHourglassHalf, FaExclamationTriangle, FaChevronLeft } from "react-icons/fa"
+import {
+  FaCheck,
+  FaLock,
+  FaHourglassHalf,
+  FaExclamationTriangle,
+  FaChevronLeft,
+} from "react-icons/fa"
 import Button from "@/components/ui/Button"
 import Card from "@/components/ui/Card"
 import Input from "@/components/ui/Input"
@@ -125,10 +131,11 @@ export default function WaitForVerificationPage() {
                   <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-[2rem] bg-primary/10 text-primary">
                     <FaHourglassHalf size={24} className="animate-pulse" />
                   </div>
-                  
+
                   <div className="text-center space-y-2">
                     <p className="text-[15px] font-medium text-foreground">
-                      Enviamos um link para <span className="font-bold">{email || "seu e-mail"}</span>.
+                      Enviamos um link para{" "}
+                      <span className="font-bold">{email || "seu e-mail"}</span>.
                     </p>
                     <p className="text-sm text-muted-foreground leading-relaxed">
                       Clique no link recebido para desbloquear a redefinição de senha nesta página.
@@ -144,7 +151,10 @@ export default function WaitForVerificationPage() {
               )}
 
               {showResetForm && (
-                <form className="space-y-5 animate-in slide-in-from-bottom-4 duration-500" onSubmit={handleConfirm}>
+                <form
+                  className="space-y-5 animate-in slide-in-from-bottom-4 duration-500"
+                  onSubmit={handleConfirm}
+                >
                   <div className="rounded-xl bg-primary/5 p-4 border border-primary/20 text-center">
                     <p className="text-xs font-bold text-primary">
                       E-mail verificado! Digite sua nova senha abaixo.
@@ -194,7 +204,9 @@ export default function WaitForVerificationPage() {
                       </div>
                       <div className="space-y-2">
                         <h3 className="font-bold text-foreground">Sucesso!</h3>
-                        <p className="text-sm text-muted-foreground">Sua senha foi atualizada. Você já pode acessar sua conta.</p>
+                        <p className="text-sm text-muted-foreground">
+                          Sua senha foi atualizada. Você já pode acessar sua conta.
+                        </p>
                       </div>
                     </>
                   )}
@@ -205,18 +217,22 @@ export default function WaitForVerificationPage() {
                       </div>
                       <div className="space-y-2">
                         <h3 className="font-bold text-foreground">Link Expirado</h3>
-                        <p className="text-sm text-muted-foreground">Este link de recuperação não é mais válido. Gere um novo para continuar.</p>
+                        <p className="text-sm text-muted-foreground">
+                          Este link de recuperação não é mais válido. Gere um novo para continuar.
+                        </p>
                       </div>
                     </>
                   )}
-                  {(status === "not_found") && (
+                  {status === "not_found" && (
                     <>
                       <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-[2rem] bg-destructive/10 text-destructive">
                         <FaExclamationTriangle size={32} />
                       </div>
                       <div className="space-y-2">
                         <h3 className="font-bold text-foreground">Erro</h3>
-                        <p className="text-sm text-muted-foreground">Solicitação não encontrada ou inválida.</p>
+                        <p className="text-sm text-muted-foreground">
+                          Solicitação não encontrada ou inválida.
+                        </p>
                       </div>
                     </>
                   )}
@@ -230,8 +246,8 @@ export default function WaitForVerificationPage() {
               )}
 
               <footer className="pt-6 text-center">
-                <Link 
-                  href="/login" 
+                <Link
+                  href="/login"
                   className="inline-flex items-center gap-2 text-sm font-bold text-muted-foreground hover:text-primary transition-colors"
                 >
                   <FaChevronLeft size={10} />

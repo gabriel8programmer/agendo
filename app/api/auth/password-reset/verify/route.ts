@@ -140,7 +140,8 @@ export async function GET(req: NextRequest) {
     return new Response(
       buildHtml({
         title: "Email verificado",
-        message: "Pronto! Seu email foi confirmado. Continue no aplicativo para definir sua nova senha.",
+        message:
+          "Pronto! Seu email foi confirmado. Continue no aplicativo para definir sua nova senha.",
         logoUrl,
       }),
       { status: 200, headers: { "content-type": "text/html; charset=utf-8" } }

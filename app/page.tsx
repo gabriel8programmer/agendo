@@ -11,20 +11,29 @@ export default function Home() {
               <BrandLogo width={200} height={50} className="h-10 w-auto" />
             </div>
           </div>
-          <h1 className="text-2xl font-bold tracking-tight text-foreground">
-            Bem-vindo ao Agendo
-          </h1>
+          <h1 className="text-2xl font-bold tracking-tight text-foreground">Bem-vindo ao Agendo</h1>
           <p className="mt-3 text-[15px] font-medium leading-relaxed text-muted-foreground">
             A plataforma completa para gerir seus agendamentos com simplicidade.
           </p>
         </header>
 
-        <div className="flex flex-col gap-4">
-          <ButtonLink href="/login" variant="primary" className="h-14 text-base">
+        <div className="flex flex-col gap-3">
+          <ButtonLink href="/login" variant="primary" className="h-14 text-base font-bold">
             Começar Agora
           </ButtonLink>
-          <ButtonLink href="/servicos" variant="secondary" className="h-14 text-base">
-            Ver Serviços
+          <ButtonLink
+            href="/planos"
+            variant="secondary"
+            className="h-14 text-sm font-semibold flex items-center justify-center gap-2 border-primary/30 text-primary hover:bg-primary/5"
+          >
+            Ver Planos & Preços (a partir de R$ 22,41)
+          </ButtonLink>
+          <ButtonLink
+            href="/servicos"
+            variant="link"
+            className="h-10 text-xs text-muted-foreground"
+          >
+            Ver Serviços Cadastrados
           </ButtonLink>
         </div>
 

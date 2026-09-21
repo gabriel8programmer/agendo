@@ -14,4 +14,3 @@ export function trackServerEvent(eventName: string, properties?: EventProperties
     console.error(`Telemetry error (${eventName}):`, error)
   })
 }
-

@@ -77,17 +77,20 @@ export default function ForgotPasswordPage() {
               <Button type="submit" className="h-12 w-full text-base" disabled={loading}>
                 {loading ? "Enviando..." : "Enviar link de recuperação"}
               </Button>
-              
+
               <div className="rounded-2xl bg-muted/50 p-4 border border-border">
                 <p className="text-[11px] font-medium text-muted-foreground leading-relaxed">
-                  <span className="font-bold text-foreground">Dica:</span> Se não encontrar o e-mail em alguns minutos, verifique sua pasta de <span className="text-foreground font-bold">Spam</span> ou <span className="text-foreground font-bold">Promoções</span>.
+                  <span className="font-bold text-foreground">Dica:</span> Se não encontrar o e-mail
+                  em alguns minutos, verifique sua pasta de{" "}
+                  <span className="text-foreground font-bold">Spam</span> ou{" "}
+                  <span className="text-foreground font-bold">Promoções</span>.
                 </p>
               </div>
             </div>
 
             <footer className="pt-6 text-center">
-              <Link 
-                href="/login" 
+              <Link
+                href="/login"
                 className="inline-flex items-center gap-2 text-sm font-bold text-muted-foreground hover:text-primary transition-colors"
               >
                 <FaChevronLeft size={10} />

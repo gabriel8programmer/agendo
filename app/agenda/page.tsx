@@ -52,7 +52,9 @@ function SlotItem({ slot }: { slot: TimeSlot }) {
     >
       <div className="flex items-center gap-4">
         <div className="flex flex-col items-center border-r border-border pr-5">
-          <span className={`text-[15px] font-black ${isAvailable ? "text-foreground" : "text-muted-foreground"}`}>
+          <span
+            className={`text-[15px] font-black ${isAvailable ? "text-foreground" : "text-muted-foreground"}`}
+          >
             {slot.time}
           </span>
           <FaClock size={10} className="mt-1 text-muted-foreground/50" aria-hidden />
@@ -246,12 +248,14 @@ export default function AgendaPage() {
         <header className="mb-8">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
             <div>
-              <p className="text-xs font-black uppercase tracking-[0.2em] text-primary">Minha Agenda</p>
+              <p className="text-xs font-black uppercase tracking-[0.2em] text-primary">
+                Minha Agenda
+              </p>
               <h1 className="mt-1 text-3xl font-extrabold tracking-tight text-foreground">
                 Gestão de Horários
               </h1>
             </div>
-            
+
             <div className="flex items-center gap-1 rounded-[1.5rem] border border-border bg-card p-1 shadow-xl shadow-black/5 ring-1 ring-black/5">
               <button
                 onClick={() => changeDate(-1)}
@@ -260,7 +264,7 @@ export default function AgendaPage() {
               >
                 <FaChevronLeft size={16} />
               </button>
-              
+
               <div className="px-4 text-center w-full">
                 <p className="text-[15px] font-black text-foreground capitalize">
                   {date.isSame(dayjs(), "day") ? "Hoje" : date.format("dddd")}
@@ -297,11 +301,7 @@ export default function AgendaPage() {
               <p className="mt-2 text-[15px] font-medium text-muted-foreground">
                 Defina seus horários de atendimento para habilitar sua agenda.
               </p>
-              <ButtonLink
-                href="/configuracoes"
-                variant="primary"
-                className="mt-6 mx-auto"
-              >
+              <ButtonLink href="/configuracoes" variant="primary" className="mt-6 mx-auto">
                 Ir para Configurações
               </ButtonLink>
             </Card>
@@ -314,7 +314,7 @@ export default function AgendaPage() {
               <p className="mt-2 max-w-[240px] text-sm font-bold text-muted-foreground/60">
                 Este dia não possui horários de atendimento configurados.
               </p>
-              <button 
+              <button
                 onClick={() => setDate(dayjs().tz("America/Sao_Paulo"))}
                 className="mt-6 text-xs font-black uppercase tracking-widest text-primary hover:underline"
               >

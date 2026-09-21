@@ -31,4 +31,3 @@ const PasswordResetRequest =
   model<IPasswordResetRequest>("PasswordResetRequest", PasswordResetRequestSchema)
 
 export default PasswordResetRequest
-

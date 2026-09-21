@@ -14,6 +14,7 @@ import {
   FaSignOutAlt,
   FaMoon,
   FaSun,
+  FaCreditCard,
 } from "react-icons/fa"
 import { logoutSession } from "@/lib/api"
 import BrandLogo from "@/components/ui/BrandLogo"
@@ -30,6 +31,7 @@ export default function Header() {
     { label: "Agenda", href: "/agenda", icon: FaCalendarAlt },
     { label: "Serviços", href: "/servicos", icon: FaWrench },
     { label: "Profissionais", href: "/profissionais", icon: FaUserTie },
+    { label: "Planos", href: "/planos", icon: FaCreditCard },
     { label: "Configurações", href: "/configuracoes", icon: FaCog },
   ]
 

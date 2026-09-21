@@ -16,4 +16,3 @@ export default function BrandLogo({ width, height, className, alt = "Agendo" }: 
 
   return <Image src={src} alt={alt} width={width} height={height} className={className} />
 }
-

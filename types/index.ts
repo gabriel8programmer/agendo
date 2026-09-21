@@ -1,3 +1,6 @@
+export type SubscriptionPlan = "monthly" | "annual" | "free"
+export type SubscriptionStatus = "active" | "trialing" | "past_due" | "canceled" | "inactive"
+
 export interface User {
   id: string
   name: string
@@ -6,6 +9,11 @@ export interface User {
   slugLocked?: boolean
   email?: string
   createdAt?: string
+  stripeCustomerId?: string
+  stripeSubscriptionId?: string
+  subscriptionPlan?: SubscriptionPlan
+  subscriptionStatus?: SubscriptionStatus
+  subscriptionExpiresAt?: string
 }
 
 export interface Service {

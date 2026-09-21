@@ -112,11 +112,9 @@ export default function DashboardPage() {
       <Header />
       <main className="mx-auto w-full max-w-4xl p-4 md:p-8">
         <div className="mb-8">
-          <p className="text-sm font-bold text-primary uppercase tracking-[0.2em]">
-            Visão Geral
-          </p>
+          <p className="text-sm font-bold text-primary uppercase tracking-[0.2em]">Visão Geral</p>
           <h1 className="mt-1 text-3xl font-extrabold tracking-tight text-foreground">
-            Olá, {user?.name.split(' ')[0] || "Profissional"}
+            Olá, {user?.name.split(" ")[0] || "Profissional"}
           </h1>
         </div>
 
@@ -131,7 +129,8 @@ export default function DashboardPage() {
                   Sua agenda ainda não está configurada
                 </h3>
                 <p className="mt-1 text-[15px] font-medium text-muted-foreground leading-relaxed">
-                  Defina seus dias e horários de atendimento para que seus clientes possam realizar agendamentos online.
+                  Defina seus dias e horários de atendimento para que seus clientes possam realizar
+                  agendamentos online.
                 </p>
                 <ButtonLink
                   href="/configuracoes"
@@ -155,7 +154,9 @@ export default function DashboardPage() {
                 <div className="relative">
                   <div className="flex items-center gap-2 text-muted-foreground mb-1">
                     <FaCalendarCheck size={14} />
-                    <span className="text-xs font-bold uppercase tracking-wider">Agendamentos hoje</span>
+                    <span className="text-xs font-bold uppercase tracking-wider">
+                      Agendamentos hoje
+                    </span>
                   </div>
                   <p className="text-3xl font-black text-foreground">
                     {isPageLoading ? "..." : totalAppointments}
@@ -189,7 +190,9 @@ export default function DashboardPage() {
                 <div className="relative">
                   <div className="flex items-center gap-2 opacity-80 mb-1">
                     <FaMoneyBillWave size={14} />
-                    <span className="text-xs font-bold uppercase tracking-wider">Faturamento Estimado</span>
+                    <span className="text-xs font-bold uppercase tracking-wider">
+                      Faturamento Estimado
+                    </span>
                   </div>
                   <p className="text-4xl font-black">
                     {isPageLoading ? "..." : `R$ ${totalRevenue.toFixed(2).replace(".", ",")}`}
@@ -234,9 +237,7 @@ export default function DashboardPage() {
                             {app.clientName.charAt(0).toUpperCase()}
                           </div>
                           <div>
-                            <div className="font-bold text-foreground">
-                              {app.clientName}
-                            </div>
+                            <div className="font-bold text-foreground">{app.clientName}</div>
                             <div className="text-sm font-medium text-muted-foreground">
                               {service?.name || "Serviço"}
                             </div>

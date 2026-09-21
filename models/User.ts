@@ -7,6 +7,11 @@ export interface IUser extends Document {
   slugLocked: boolean
   email: string
   passwordHash?: string
+  stripeCustomerId?: string
+  stripeSubscriptionId?: string
+  subscriptionPlan?: string
+  subscriptionStatus?: string
+  subscriptionExpiresAt?: Date
   createdAt: Date
 }
 
@@ -18,6 +23,11 @@ const UserSchema = new Schema<IUser>(
     slugLocked: { type: Boolean, default: false },
     email: { type: String, required: true, unique: true },
     passwordHash: { type: String },
+    stripeCustomerId: { type: String },
+    stripeSubscriptionId: { type: String },
+    subscriptionPlan: { type: String, default: "free" },
+    subscriptionStatus: { type: String, default: "inactive" },
+    subscriptionExpiresAt: { type: Date },
   },
   {
     timestamps: { createdAt: true, updatedAt: false },

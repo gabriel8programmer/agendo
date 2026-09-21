@@ -87,11 +87,13 @@ describe("API /api/professionals", () => {
       vi.mocked(Service.countDocuments).mockResolvedValue(0 as never)
 
       const server = createRouteTestServer(POST)
-      const res = await request(server).post("/api/professionals").send({
-        userId: "user-1",
-        name: "João",
-        serviceIds: ["service-1"],
-      })
+      const res = await request(server)
+        .post("/api/professionals")
+        .send({
+          userId: "user-1",
+          name: "João",
+          serviceIds: ["service-1"],
+        })
 
       expect(res.status).toBe(400)
       expect(res.body.error).toBe("Um ou mais serviços não pertencem à empresa")
@@ -106,11 +108,13 @@ describe("API /api/professionals", () => {
       } as never)
 
       const server = createRouteTestServer(POST)
-      const res = await request(server).post("/api/professionals").send({
-        userId: "user-1",
-        name: "João",
-        serviceIds: ["service-1"],
-      })
+      const res = await request(server)
+        .post("/api/professionals")
+        .send({
+          userId: "user-1",
+          name: "João",
+          serviceIds: ["service-1"],
+        })
 
       expect(res.status).toBe(201)
       expect(res.body).toMatchObject({

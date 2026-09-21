@@ -12,7 +12,9 @@ export function proxy(req: NextRequest) {
   const isProtected = protectedPaths.some(
     (path) => pathname === path || pathname.startsWith(`${path}/`)
   )
-  const isAuthPage = publicAuthPaths.some((path) => pathname === path || pathname.startsWith(`${path}/`))
+  const isAuthPage = publicAuthPaths.some(
+    (path) => pathname === path || pathname.startsWith(`${path}/`)
+  )
 
   if (isProtected && !hasSession) {
     const loginUrl = new URL("/login", req.url)
@@ -37,4 +39,3 @@ export const config = {
     "/cadastro",
   ],
 }
-

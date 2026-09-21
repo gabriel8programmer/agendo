@@ -69,9 +69,7 @@ function ServiceItem({
             <FaTag size={18} />
           </div>
           <div>
-            <p className="text-[15px] font-bold text-foreground">
-              {service.name}
-            </p>
+            <p className="text-[15px] font-bold text-foreground">{service.name}</p>
             <div className="mt-1 flex items-center gap-1.5 text-xs font-bold text-muted-foreground uppercase tracking-wider">
               <FaClock size={12} className="text-primary/50" />
               <span>{service.duration} min</span>
@@ -80,7 +78,9 @@ function ServiceItem({
         </div>
         <div className="flex items-center gap-4">
           <p className="text-base font-black text-foreground">
-            {service.price ? `R$ ${Number(service.price).toFixed(2).replace(".", ",")}` : "A combinar"}
+            {service.price
+              ? `R$ ${Number(service.price).toFixed(2).replace(".", ",")}`
+              : "A combinar"}
           </p>
           {!selectionMode && (
             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-accent text-accent-foreground opacity-0 transition-opacity group-hover:opacity-100">
@@ -221,7 +221,9 @@ export default function ServicosPage() {
       })
 
       setServices((prev) =>
-        prev.map((service) => (service.id === editingService.id ? { ...service, ...updated } : service))
+        prev.map((service) =>
+          service.id === editingService.id ? { ...service, ...updated } : service
+        )
       )
       showToast("Serviço atualizado com sucesso!", "success")
       handleCloseEdit()
@@ -276,7 +278,9 @@ export default function ServicosPage() {
       <Header />
       <main className="mx-auto max-w-5xl p-4 md:p-8">
         <header className="mb-8">
-          <p className="text-xs font-black uppercase tracking-[0.2em] text-primary">Configurações</p>
+          <p className="text-xs font-black uppercase tracking-[0.2em] text-primary">
+            Configurações
+          </p>
           <h1 className="mt-1 text-3xl font-extrabold tracking-tight text-foreground">
             Meus Serviços
           </h1>
@@ -290,7 +294,9 @@ export default function ServicosPage() {
                 <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10 text-primary">
                   <FaPlus size={14} />
                 </div>
-                <h2 className="text-sm font-black uppercase tracking-wider text-foreground">Novo Serviço</h2>
+                <h2 className="text-sm font-black uppercase tracking-wider text-foreground">
+                  Novo Serviço
+                </h2>
               </div>
 
               <form className="space-y-6" onSubmit={handleSubmit}>
@@ -344,7 +350,7 @@ export default function ServicosPage() {
                     placeholder="0,00"
                   />
                 </div>
-                
+
                 {durationMode === "custom" && (
                   <Input
                     label="Duração em minutos"
@@ -359,10 +365,7 @@ export default function ServicosPage() {
                   />
                 )}
 
-                <Button
-                  type="submit"
-                  className="h-12 w-full text-base"
-                >
+                <Button type="submit" className="h-12 w-full text-base">
                   Salvar Serviço
                 </Button>
               </form>
@@ -377,9 +380,11 @@ export default function ServicosPage() {
                   <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-muted text-muted-foreground">
                     <FaList size={14} />
                   </div>
-                  <h2 className="text-sm font-black uppercase tracking-wider text-foreground">Serviços Ativos</h2>
+                  <h2 className="text-sm font-black uppercase tracking-wider text-foreground">
+                    Serviços Ativos
+                  </h2>
                 </div>
-                
+
                 <button
                   type="button"
                   onClick={handleToggleSelectionMode}
@@ -425,7 +430,9 @@ export default function ServicosPage() {
                       selectionMode={selectionMode}
                       selected={selectedServiceIds.includes(getServiceId(service))}
                       onClick={() =>
-                        selectionMode ? handleToggleServiceSelection(service) : handleOpenEdit(service)
+                        selectionMode
+                          ? handleToggleServiceSelection(service)
+                          : handleOpenEdit(service)
                       }
                     />
                   ))}
@@ -456,8 +463,11 @@ export default function ServicosPage() {
               </div>
               <h3 className="text-xl font-black text-foreground">Remover serviços?</h3>
               <p className="mt-2 text-[15px] font-medium text-muted-foreground leading-relaxed">
-                Você selecionou <span className="font-bold text-foreground">{selectedServiceIds.length} serviço(s)</span>. 
-                Esta ação é permanente e não pode ser desfeita.
+                Você selecionou{" "}
+                <span className="font-bold text-foreground">
+                  {selectedServiceIds.length} serviço(s)
+                </span>
+                . Esta ação é permanente e não pode ser desfeita.
               </p>
             </div>
 
@@ -546,7 +556,7 @@ export default function ServicosPage() {
                   placeholder="A combinar"
                 />
               </div>
-              
+
               {editDurationMode === "custom" && (
                 <Input
                   label="Duração em minutos"
@@ -562,7 +572,12 @@ export default function ServicosPage() {
                 <Button type="submit" className="h-12 w-full text-base" disabled={savingEdit}>
                   {savingEdit ? "Salvando..." : "Salvar Alterações"}
                 </Button>
-                <Button type="button" variant="ghost" className="h-12 w-full" onClick={handleCloseEdit}>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  className="h-12 w-full"
+                  onClick={handleCloseEdit}
+                >
                   Cancelar
                 </Button>
               </div>

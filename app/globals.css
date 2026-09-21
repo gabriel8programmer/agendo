@@ -79,16 +79,18 @@ html[data-theme="dark"] {
   }
   body {
     @apply bg-background text-foreground;
-    font-feature-settings: "rlig" 1, "calt" 1;
+    font-feature-settings:
+      "rlig" 1,
+      "calt" 1;
   }
-  
+
   /* Força o esquema de cores em inputs nativos */
   input[type="time"],
   input[type="date"],
   input[type="datetime-local"] {
     color-scheme: light;
   }
-  
+
   html[data-theme="dark"] input[type="time"],
   html[data-theme="dark"] input[type="date"],
   html[data-theme="dark"] input[type="datetime-local"] {

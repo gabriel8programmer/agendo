@@ -1,7 +1,13 @@
 import { NextRequest, NextResponse } from "next/server"
 import dbConnect from "@/lib/mongoose"
 import User from "@/models/User"
-import { createSessionToken, hashPassword, SESSION_COOKIE, SESSION_HINT_COOKIE, toSafeSlug } from "@/lib/auth"
+import {
+  createSessionToken,
+  hashPassword,
+  SESSION_COOKIE,
+  SESSION_HINT_COOKIE,
+  toSafeSlug,
+} from "@/lib/auth"
 import { trackServerEvent } from "@/lib/telemetry/server"
 
 function sanitizeUser(user: {

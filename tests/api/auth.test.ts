@@ -70,7 +70,9 @@ describe("API /api/auth", () => {
     })
 
     it("creates user and returns 201", async () => {
-      vi.mocked(User.findOne).mockResolvedValueOnce(null as never).mockResolvedValueOnce(null as never)
+      vi.mocked(User.findOne)
+        .mockResolvedValueOnce(null as never)
+        .mockResolvedValueOnce(null as never)
       vi.mocked(toSafeSlug).mockReturnValue("joao")
       vi.mocked(hashPassword).mockResolvedValue("hash")
       vi.mocked(createSessionToken).mockReturnValue("token")
