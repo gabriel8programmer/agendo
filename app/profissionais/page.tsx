@@ -1,7 +1,16 @@
 "use client"
 
 import { useEffect, useMemo, useState } from "react"
-import { FaClock, FaPlus, FaUserTie, FaWrench, FaTimes, FaCheck, FaPhone, FaPen } from "react-icons/fa"
+import {
+  FaClock,
+  FaPlus,
+  FaUserTie,
+  FaWrench,
+  FaTimes,
+  FaCheck,
+  FaPhone,
+  FaPen,
+} from "react-icons/fa"
 import Header from "@/components/ui/Header"
 import Card from "@/components/ui/Card"
 import Input from "@/components/ui/Input"
@@ -12,13 +21,13 @@ import { Professional, Service } from "@/types"
 import { useToast } from "@/components/ui/Toast"
 
 const DAYS = [
-  { value: 0, label: "Dom" },
-  { value: 1, label: "Seg" },
-  { value: 2, label: "Ter" },
-  { value: 3, label: "Qua" },
-  { value: 4, label: "Qui" },
-  { value: 5, label: "Sex" },
-  { value: 6, label: "Sáb" },
+  { value: 0, label: "D" },
+  { value: 1, label: "S" },
+  { value: 2, label: "T" },
+  { value: 3, label: "Q" },
+  { value: 4, label: "Q" },
+  { value: 5, label: "S" },
+  { value: 6, label: "S" },
 ]
 
 const DEFAULT_AVAILABILITY: Professional["availability"] = {
@@ -137,7 +146,7 @@ export default function ProfessionalsPage() {
       },
     })
     // Smooth scroll para o topo do formulário em mobile
-    window.scrollTo({ top: 0, behavior: 'smooth' })
+    window.scrollTo({ top: 0, behavior: "smooth" })
   }
 
   const handleToggleStatus = async (professional: Professional) => {
@@ -148,9 +157,7 @@ export default function ProfessionalsPage() {
         userId: user.id,
         isActive: !professional.isActive,
       })
-      setProfessionals((prev) =>
-        prev.map((item) => (item.id === professional.id ? updated : item))
-      )
+      setProfessionals((prev) => prev.map((item) => (item.id === professional.id ? updated : item)))
       showToast(
         updated.isActive ? "Profissional ativado com sucesso." : "Profissional desativado.",
         "success"
@@ -254,11 +261,15 @@ export default function ProfessionalsPage() {
                 />
 
                 <div className="space-y-3">
-                  <p className="text-xs font-black uppercase tracking-widest text-muted-foreground">Serviços Habilitados</p>
+                  <p className="text-xs font-black uppercase tracking-widest text-muted-foreground">
+                    Serviços Habilitados
+                  </p>
                   <div className="grid grid-cols-1 gap-2">
                     {services.length === 0 ? (
                       <div className="rounded-xl border border-dashed border-border p-4 text-center">
-                        <p className="text-[10px] font-bold text-muted-foreground uppercase">Nenhum serviço disponível</p>
+                        <p className="text-[10px] font-bold text-muted-foreground uppercase">
+                          Nenhum serviço disponível
+                        </p>
                       </div>
                     ) : (
                       services.map((service) => (
@@ -272,10 +283,14 @@ export default function ProfessionalsPage() {
                               : "border-border bg-background hover:border-muted-foreground/30"
                           }`}
                         >
-                          <span className={`text-sm font-bold ${form.serviceIds.includes(service.id) ? "text-primary" : "text-foreground"}`}>
+                          <span
+                            className={`text-sm font-bold ${form.serviceIds.includes(service.id) ? "text-primary" : "text-foreground"}`}
+                          >
                             {service.name}
                           </span>
-                          {form.serviceIds.includes(service.id) && <FaCheck className="text-primary" size={12} />}
+                          {form.serviceIds.includes(service.id) && (
+                            <FaCheck className="text-primary" size={12} />
+                          )}
                         </button>
                       ))
                     )}
@@ -285,9 +300,11 @@ export default function ProfessionalsPage() {
                 <div className="space-y-4 rounded-[2rem] border border-border bg-muted/30 p-6">
                   <div className="flex items-center gap-2 text-foreground">
                     <FaClock size={12} className="text-primary" />
-                    <p className="text-[10px] font-black uppercase tracking-wider">Expediente Padrão</p>
+                    <p className="text-[10px] font-black uppercase tracking-wider">
+                      Expediente Padrão
+                    </p>
                   </div>
-                  
+
                   <div className="grid grid-cols-2 gap-4">
                     <Input
                       label="Início"
@@ -314,7 +331,9 @@ export default function ProfessionalsPage() {
                   </div>
 
                   <div>
-                    <p className="mb-3 text-[10px] font-black uppercase tracking-wider text-muted-foreground">Dias de Atendimento</p>
+                    <p className="mb-3 text-[10px] font-black uppercase tracking-wider text-muted-foreground">
+                      Dias de Atendimento
+                    </p>
                     <div className="flex justify-between gap-1">
                       {DAYS.map((day) => {
                         const isSelected = form.availability.workDays.includes(day.value)
@@ -339,10 +358,19 @@ export default function ProfessionalsPage() {
 
                 <div className="flex flex-col gap-3">
                   <Button type="submit" className="h-12 w-full text-base" disabled={saving}>
-                    {saving ? "Salvando..." : editingId ? "Salvar Alterações" : "Adicionar Profissional"}
+                    {saving
+                      ? "Salvando..."
+                      : editingId
+                        ? "Salvar Alterações"
+                        : "Adicionar Profissional"}
                   </Button>
                   {editingId && (
-                    <Button type="button" variant="ghost" className="h-12 w-full" onClick={resetForm}>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      className="h-12 w-full"
+                      onClick={resetForm}
+                    >
                       Cancelar Edição
                     </Button>
                   )}
@@ -358,7 +386,9 @@ export default function ProfessionalsPage() {
                 <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-muted text-muted-foreground">
                   <FaUserTie size={14} />
                 </div>
-                <h2 className="text-sm font-black uppercase tracking-wider text-foreground">Equipe Cadastrada</h2>
+                <h2 className="text-sm font-black uppercase tracking-wider text-foreground">
+                  Equipe Cadastrada
+                </h2>
               </div>
 
               {loading ? (
@@ -385,23 +415,29 @@ export default function ProfessionalsPage() {
                       <li
                         key={professional.id}
                         className={`group rounded-[1.75rem] border p-5 transition-all ${
-                          professional.isActive 
-                            ? "border-border bg-card hover:border-primary/50 hover:shadow-lg hover:shadow-primary/5" 
+                          professional.isActive
+                            ? "border-border bg-card hover:border-primary/50 hover:shadow-lg hover:shadow-primary/5"
                             : "border-transparent bg-muted/20 opacity-70"
                         }`}
                       >
                         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                           <div className="flex items-center gap-4">
-                            <div className={`flex h-12 w-12 items-center justify-center rounded-2xl font-bold text-lg ${
-                              professional.isActive ? "bg-primary text-primary-foreground shadow-lg shadow-primary/20" : "bg-muted text-muted-foreground"
-                            }`}>
+                            <div
+                              className={`flex h-12 w-12 items-center justify-center rounded-2xl font-bold text-lg ${
+                                professional.isActive
+                                  ? "bg-primary text-primary-foreground shadow-lg shadow-primary/20"
+                                  : "bg-muted text-muted-foreground"
+                              }`}
+                            >
                               {professional.name.charAt(0).toUpperCase()}
                             </div>
                             <div>
                               <div className="flex items-center gap-2">
                                 <h3 className="font-black text-foreground">{professional.name}</h3>
                                 {!professional.isActive && (
-                                  <span className="rounded-full bg-muted px-2 py-0.5 text-[10px] font-black uppercase text-muted-foreground">Inativo</span>
+                                  <span className="rounded-full bg-muted px-2 py-0.5 text-[10px] font-black uppercase text-muted-foreground">
+                                    Inativo
+                                  </span>
                                 )}
                               </div>
                               {professional.whatsapp && (
@@ -412,7 +448,7 @@ export default function ProfessionalsPage() {
                               )}
                             </div>
                           </div>
-                          
+
                           <div className="flex items-center gap-2">
                             <button
                               onClick={() => handleEdit(professional)}
@@ -436,8 +472,8 @@ export default function ProfessionalsPage() {
                         <div className="mt-4 flex flex-wrap gap-2 pt-4 border-t border-border/50">
                           {linkedServices.length > 0 ? (
                             linkedServices.map((service) => (
-                              <span 
-                                key={service.id} 
+                              <span
+                                key={service.id}
                                 className="flex items-center gap-1.5 rounded-lg bg-muted px-2.5 py-1 text-[10px] font-bold text-muted-foreground uppercase tracking-tight"
                               >
                                 <FaWrench size={8} />
@@ -445,7 +481,9 @@ export default function ProfessionalsPage() {
                               </span>
                             ))
                           ) : (
-                            <span className="text-[10px] font-bold text-muted-foreground uppercase italic">Sem serviços vinculados</span>
+                            <span className="text-[10px] font-bold text-muted-foreground uppercase italic">
+                              Sem serviços vinculados
+                            </span>
                           )}
                         </div>
                       </li>

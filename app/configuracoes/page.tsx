@@ -28,7 +28,7 @@ import { normalizeTime24BR } from "@/lib/utils/date"
 import { Availability } from "@/types"
 import { useToast } from "@/components/ui/Toast"
 
-const DAYS_INITIALS = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"]
+const DAYS_INITIALS = ["D", "S", "T", "Q", "Q", "S", "S"]
 
 export default function SettingsPage() {
   const { user: authUser, loading: authLoading, refreshUser } = useAuth()
@@ -229,11 +229,10 @@ export default function SettingsPage() {
                   <FaExclamationTriangle size={24} aria-hidden />
                 </div>
                 <div className="flex-1">
-                  <h3 className="text-lg font-bold text-foreground">
-                    Complete sua configuração
-                  </h3>
+                  <h3 className="text-lg font-bold text-foreground">Complete sua configuração</h3>
                   <p className="mt-1 text-[15px] font-medium text-muted-foreground leading-relaxed">
-                    Seus clientes só poderão agendar horários após você definir os dias e horários de atendimento abaixo.
+                    Seus clientes só poderão agendar horários após você definir os dias e horários
+                    de atendimento abaixo.
                   </p>
                 </div>
               </div>
@@ -246,9 +245,11 @@ export default function SettingsPage() {
               <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10 text-primary">
                 <FaStore size={14} />
               </div>
-              <h2 className="text-sm font-black uppercase tracking-wider text-foreground">Perfil do Negócio</h2>
+              <h2 className="text-sm font-black uppercase tracking-wider text-foreground">
+                Perfil do Negócio
+              </h2>
             </div>
-            
+
             <div className="space-y-6">
               <Input
                 label="Nome Profissional"
@@ -257,7 +258,7 @@ export default function SettingsPage() {
                 onChange={(e) => setPersonName(e.target.value)}
                 placeholder="Seu nome completo"
               />
-              
+
               <Input
                 label="Nome do Estabelecimento"
                 id="companyName"
@@ -295,12 +296,16 @@ export default function SettingsPage() {
               <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10 text-primary">
                 <FaClock size={14} />
               </div>
-              <h2 className="text-sm font-black uppercase tracking-wider text-foreground">Expediente e Agenda</h2>
+              <h2 className="text-sm font-black uppercase tracking-wider text-foreground">
+                Expediente e Agenda
+              </h2>
             </div>
 
             <div className="space-y-8">
               <div className="space-y-4">
-                <p className="text-xs font-black uppercase tracking-widest text-muted-foreground">Dias de Atendimento</p>
+                <p className="text-xs font-black uppercase tracking-widest text-muted-foreground">
+                  Dias de Atendimento
+                </p>
                 <div className="flex justify-between gap-1 sm:gap-2">
                   {DAYS_INITIALS.map((day, index) => {
                     const isActive = availability?.workDays?.includes(index) ?? false
@@ -328,7 +333,9 @@ export default function SettingsPage() {
                   type="time"
                   value={availability?.startTime || "09:00"}
                   onChange={(e) =>
-                    setAvailability((prev) => (prev ? { ...prev, startTime: e.target.value } : null))
+                    setAvailability((prev) =>
+                      prev ? { ...prev, startTime: e.target.value } : null
+                    )
                   }
                 />
                 <Input
@@ -364,7 +371,9 @@ export default function SettingsPage() {
                 <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10 text-primary">
                   <FaCoffee size={14} />
                 </div>
-                <h2 className="text-sm font-black uppercase tracking-wider text-foreground">Pausas e Intervalos</h2>
+                <h2 className="text-sm font-black uppercase tracking-wider text-foreground">
+                  Pausas e Intervalos
+                </h2>
               </div>
               <button
                 type="button"
@@ -374,15 +383,19 @@ export default function SettingsPage() {
                 <FaPlus size={8} /> Adicionar
               </button>
             </div>
-            
+
             <p className="mb-6 text-xs font-medium text-muted-foreground leading-relaxed">
-              Bloqueie horários específicos em que você não realiza atendimentos, como horário de almoço ou pausas pessoais.
+              Bloqueie horários específicos em que você não realiza atendimentos, como horário de
+              almoço ou pausas pessoais.
             </p>
 
             <div className="space-y-4">
               {availability?.reservedIntervals && availability.reservedIntervals.length > 0 ? (
                 availability.reservedIntervals.map((interval, idx) => (
-                  <div key={idx} className="flex items-end gap-3 animate-in fade-in slide-in-from-right-2">
+                  <div
+                    key={idx}
+                    className="flex items-end gap-3 animate-in fade-in slide-in-from-right-2"
+                  >
                     <div className="grid grid-cols-2 gap-4 flex-1">
                       <Input
                         label="Saída"
@@ -412,14 +425,20 @@ export default function SettingsPage() {
                   <div className="mb-2 text-muted-foreground/30">
                     <FaCoffee size={24} />
                   </div>
-                  <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-widest">Nenhuma pausa configurada</p>
+                  <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-widest">
+                    Nenhuma pausa configurada
+                  </p>
                 </div>
               )}
             </div>
           </Card>
 
           <div className="pt-4">
-            <Button onClick={handleSubmit} className="h-14 w-full text-base font-black shadow-xl shadow-primary/20" disabled={saving}>
+            <Button
+              onClick={handleSubmit}
+              className="h-14 w-full text-base font-black shadow-xl shadow-primary/20"
+              disabled={saving}
+            >
               {saving ? (
                 "Salvando..."
               ) : (
