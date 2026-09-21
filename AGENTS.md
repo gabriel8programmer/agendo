@@ -60,6 +60,7 @@ Testes são essenciais para garantir estabilidade do sistema.
 - erros (400, 404, 500)
 - Testar regras de negócio (ex: evitar conflito de horários)
 - Testes devem ser rápidos e independentes
+- Sempre rodar o build (`npm run build`) como alternativa e complemento de testes para validar integridade de páginas, componentes e tipos TypeScript
 
 ### Exemplo de escopo:
 
@@ -92,6 +93,7 @@ Testes são essenciais para garantir estabilidade do sistema.
 - O projeto deve sempre buildar sem erros
 - Nenhum warning crítico deve ser ignorado
 - Validar build antes de deploy
+- Sempre rodar o build como alternativa e validação contínua de testes (TypeScript e páginas)
 
 ---
 
@@ -166,6 +168,7 @@ Regras:
 
 - Não implementar features desnecessárias no MVP
 - Não ignorar testes
+- Sempre rodar o build como alternativa e etapa de testes
 - Não commitar código sem lint/format
 - Não quebrar build
 
