@@ -271,18 +271,18 @@ export default function PlansPage() {
                 : "border-border"
             }`}
           >
-            {/* Ribbon */}
-            <div className="absolute -top-3.5 right-6 flex items-center gap-1.5 rounded-full bg-primary px-3.5 py-1 text-[11px] font-black uppercase tracking-wider text-primary-foreground shadow-md">
-              <FaStar size={11} className="text-amber-300" />
-              Recomendado • 10% OFF
-            </div>
-
             <div>
-              <div className="flex items-center justify-between">
+              <div className="flex flex-wrap items-center justify-between gap-2">
                 <h3 className="text-xl font-bold text-foreground">{PLANS.annual.name}</h3>
-                <span className="rounded-full bg-amber-500/10 px-3 py-1 text-xs font-extrabold text-amber-600">
-                  Mais de 1 Mês Grátis
-                </span>
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="inline-flex items-center gap-1.5 rounded-full bg-primary px-3 py-1 text-xs font-black uppercase tracking-wider text-primary-foreground shadow-sm">
+                    <FaStar size={11} className="text-amber-300" />
+                    Recomendado • 10% OFF
+                  </span>
+                  <span className="rounded-full bg-amber-500/10 px-3 py-1 text-xs font-extrabold text-amber-600">
+                    Mais de 1 Mês Grátis
+                  </span>
+                </div>
               </div>
               <p className="mt-2 text-sm text-muted-foreground">{PLANS.annual.description}</p>
 

@@ -14,5 +14,5 @@ export const inputStyles = {
 }
 
 export const cardStyles = {
-  base: "rounded-2xl border border-border bg-card text-card-foreground shadow-sm overflow-hidden",
+  base: "rounded-2xl border border-border bg-card text-card-foreground shadow-sm",
 }
