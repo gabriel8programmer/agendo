@@ -37,7 +37,7 @@ export default function Header() {
     { label: "Dashboard", href: "/dashboard", icon: FaChartLine },
     { label: "Agenda", href: "/agenda", icon: FaCalendarAlt },
     { label: "Serviços", href: "/servicos", icon: FaWrench },
-    { label: "Equipes", href: "/profissionais", icon: FaUserTie },
+    { label: "Equipe", href: "/profissionais", icon: FaUserTie },
     { label: "Ajustes", href: "/configuracoes", icon: FaCog },
   ]
 
