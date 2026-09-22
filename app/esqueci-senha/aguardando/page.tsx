@@ -25,7 +25,6 @@ export default function WaitForVerificationPage() {
   const [submitting, setSubmitting] = useState(false)
   const [password, setPassword] = useState("")
   const [confirmPassword, setConfirmPassword] = useState("")
-  const [message, setMessage] = useState("")
   const [error, setError] = useState("")
   const intervalRef = useRef<NodeJS.Timeout | null>(null)
 
@@ -76,7 +75,6 @@ export default function WaitForVerificationPage() {
   const handleConfirm = async (e: React.FormEvent) => {
     e.preventDefault()
     setError("")
-    setMessage("")
 
     if (!requestId) {
       setError("Solicitação inválida.")
@@ -90,7 +88,6 @@ export default function WaitForVerificationPage() {
         password,
         confirmPassword,
       })
-      setMessage("Senha redefinida com sucesso. Você já pode fazer login.")
       setPassword("")
       setConfirmPassword("")
       setStatus("used")

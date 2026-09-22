@@ -3,6 +3,7 @@ import { Schema, model, models, Document } from "mongoose"
 export interface IAppointment extends Document {
   userId: string
   serviceId: string
+  professionalId?: string
   clientName: string
   clientWhatsapp?: string
   date: string
@@ -14,6 +15,7 @@ const AppointmentSchema = new Schema<IAppointment>(
   {
     userId: { type: String, ref: "User", required: true },
     serviceId: { type: String, ref: "Service", required: true },
+    professionalId: { type: String, ref: "Professional" },
     clientName: { type: String, required: true },
     clientWhatsapp: { type: String },
     date: { type: String, required: true },

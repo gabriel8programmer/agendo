@@ -18,6 +18,8 @@ import {
   FaExclamationTriangle,
   FaLink,
   FaCreditCard,
+  FaWhatsapp,
+  FaMapMarkerAlt,
 } from "react-icons/fa"
 import {
   getAvailability,
@@ -39,6 +41,8 @@ export default function SettingsPage() {
   const [personName, setPersonName] = useState("")
   const [companyName, setCompanyName] = useState("")
   const [businessSlug, setBusinessSlug] = useState("")
+  const [phone, setPhone] = useState("")
+  const [address, setAddress] = useState("")
   const [slugLocked, setSlugLocked] = useState(false)
   const [loadedUserId, setLoadedUserId] = useState("")
   const [loading, setLoading] = useState(true)
@@ -88,6 +92,8 @@ export default function SettingsPage() {
       setPersonName("")
       setCompanyName("")
       setBusinessSlug("")
+      setPhone("")
+      setAddress("")
       setSlugLocked(false)
       setLoadedUserId("")
       setLoading(false)
@@ -115,6 +121,8 @@ export default function SettingsPage() {
           setPersonName(currentUser.name || "")
           setCompanyName(currentUser.companyName || currentUser.name || "")
           setBusinessSlug(currentUser.slug || "")
+          setPhone(currentUser.phone || "")
+          setAddress(currentUser.address || "")
           setSlugLocked(Boolean(currentUser.slugLocked))
           setLoadedUserId(userId)
         }
@@ -190,10 +198,14 @@ export default function SettingsPage() {
         name: sanitizedPersonName,
         companyName: sanitizedCompanyName,
         slug: sanitizedSlug,
+        phone: phone.trim(),
+        address: address.trim(),
       })
       setPersonName(profileResponse.user.name || sanitizedPersonName)
       setCompanyName(profileResponse.user.companyName || sanitizedCompanyName)
       setBusinessSlug(profileResponse.user.slug || sanitizedSlug)
+      setPhone(profileResponse.user.phone || "")
+      setAddress(profileResponse.user.address || "")
       setSlugLocked(Boolean(profileResponse.user.slugLocked))
       setLoadedUserId(userId)
       await refreshUser()
@@ -318,6 +330,36 @@ export default function SettingsPage() {
                     O link foi bloqueado para garantir a integridade dos seus compartilhamentos.
                   </p>
                 )}
+              </div>
+
+              <div className="space-y-2">
+                <Input
+                  label="WhatsApp da Barbearia / Estabelecimento"
+                  id="businessPhone"
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                  placeholder="(11) 99999-9999"
+                />
+                <div className="flex items-center gap-2 px-1 text-[11px] font-medium text-muted-foreground">
+                  <FaWhatsapp size={12} className="text-emerald-500" />
+                  <span>
+                    Seus clientes poderão enviar o comprovante de agendamento para este número.
+                  </span>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Input
+                  label="Endereço da Barbearia (opcional)"
+                  id="businessAddress"
+                  value={address}
+                  onChange={(e) => setAddress(e.target.value)}
+                  placeholder="Ex: Rua Augusta, 1500 - Consolação, São Paulo"
+                />
+                <div className="flex items-center gap-2 px-1 text-[11px] font-medium text-muted-foreground">
+                  <FaMapMarkerAlt size={12} className="text-primary" />
+                  <span>Será exibido na página pública com atalho para abrir no Google Maps.</span>
+                </div>
               </div>
             </div>
           </Card>

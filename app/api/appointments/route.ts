@@ -105,11 +105,16 @@ export async function POST(req: NextRequest) {
 
     // 6. Validar CONFLITO: Já existe agendamento neste horário exato?
     // Extraímos apenas a data YYYY-MM-DD para garantir a busca correta se o campo date no banco for string formatada
-    const existingAppointment = await Appointment.findOne({
+    const conflictQuery: Record<string, unknown> = {
       userId,
       time,
-      date: { $regex: date.split("T")[0] }, // Busca agendamento no mesmo dia e hora
-    })
+      date: { $regex: date.split("T")[0] },
+    }
+    if (body.professionalId) {
+      conflictQuery.professionalId = body.professionalId
+    }
+
+    const existingAppointment = await Appointment.findOne(conflictQuery)
 
     if (existingAppointment) {
       return NextResponse.json(

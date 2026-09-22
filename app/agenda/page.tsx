@@ -27,18 +27,36 @@ interface TimeSlot {
   clientWhatsapp?: string
 }
 
-function toWhatsAppUrl(phone?: string) {
+function toWhatsAppUrl(
+  phone?: string,
+  clientName?: string,
+  serviceName?: string,
+  time?: string,
+  dateFormatted?: string
+) {
   if (!phone) return null
   const digits = phone.replace(/\D/g, "")
   if (!digits) return null
   const normalized = digits.startsWith("55") ? digits : `55${digits}`
-  return `https://wa.me/${normalized}`
+  const dateText = dateFormatted ? ` no dia *${dateFormatted}*` : ""
+  const message = encodeURIComponent(
+    `Olá, ${clientName || "cliente"}! Tudo bem?\n\n` +
+      `Passando para lembrar do seu agendamento de *${serviceName || "atendimento"}*${dateText} às *${time || ""}*.\n\n` +
+      `Qualquer dúvida ou imprevisto, estamos à disposição! 💈`
+  )
+  return `https://wa.me/${normalized}?text=${message}`
 }
 
-function SlotItem({ slot }: { slot: TimeSlot }) {
+function SlotItem({ slot, dateFormatted }: { slot: TimeSlot; dateFormatted: string }) {
   const isAvailable = slot.status === "available"
   const isReserved = slot.status === "reserved"
-  const whatsappUrl = toWhatsAppUrl(slot.clientWhatsapp)
+  const whatsappUrl = toWhatsAppUrl(
+    slot.clientWhatsapp,
+    slot.clientName,
+    slot.serviceName,
+    slot.time,
+    dateFormatted
+  )
 
   if (isReserved) return null
 
@@ -93,6 +111,8 @@ function SlotItem({ slot }: { slot: TimeSlot }) {
               href={whatsappUrl}
               target="_blank"
               rel="noreferrer"
+              title="Enviar lembrete pelo WhatsApp"
+              aria-label="Enviar lembrete pelo WhatsApp"
               className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-500/10 text-emerald-600 transition-all hover:bg-emerald-500 hover:text-white hover:shadow-lg hover:shadow-emerald-500/20"
             >
               <FaWhatsapp size={20} />
@@ -221,7 +241,6 @@ export default function AgendaPage() {
     loadAgenda()
   }, [authLoading, date, user?.id])
 
-  const todayLabel = date.format("dddd, D [de] MMMM")
 
   function parseTimeToMinutes(time: string): number {
     const match = /^([01]\d|2[0-3]):([0-5]\d)$/.exec(time)
@@ -326,7 +345,11 @@ export default function AgendaPage() {
               {slots
                 .filter((s) => s.status !== "reserved")
                 .map((slot) => (
-                  <SlotItem key={`${slot.time}-${slot.status}-${slot.id}`} slot={slot} />
+                  <SlotItem
+                    key={`${slot.time}-${slot.status}-${slot.id}`}
+                    slot={slot}
+                    dateFormatted={date.format("DD/MM/YYYY")}
+                  />
                 ))}
               {slots.filter((s) => s.status !== "reserved").length === 0 && (
                 <div className="py-20 text-center">

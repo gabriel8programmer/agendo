@@ -150,4 +150,58 @@ describe("PATCH /api/users/me", () => {
       })
     )
   })
+
+  it("updates phone and address", async () => {
+    const userDoc = {
+      _id: "user-1",
+      name: "João",
+      companyName: "Barbearia João",
+      email: "joao@email.com",
+      slug: "barbearia-joao",
+      slugLocked: true,
+      phone: "11988887777",
+      address: "Rua das Flores, 123",
+      createdAt: new Date("2026-01-01T00:00:00.000Z"),
+    }
+
+    vi.mocked(verifySessionToken).mockReturnValue({
+      userId: "user-1",
+      email: "joao@email.com",
+      name: "João",
+      exp: 9999999999,
+    })
+    vi.mocked(User.findById)
+      .mockReturnValueOnce({
+        lean: vi.fn().mockResolvedValue(userDoc),
+      } as never)
+      .mockReturnValueOnce({
+        lean: vi.fn().mockResolvedValue(userDoc),
+      } as never)
+
+    const server = createRouteTestServer(PATCH)
+    const res = await request(server)
+      .patch("/api/users/me")
+      .set("Cookie", "agendo_session=valid")
+      .send({
+        phone: "(11) 98888-7777",
+        address: "Rua das Flores, 123",
+      })
+
+    expect(res.status).toBe(200)
+    expect(User.collection.updateOne).toHaveBeenCalledWith(
+      { _id: "user-1" },
+      {
+        $set: expect.objectContaining({
+          phone: "(11) 98888-7777",
+          address: "Rua das Flores, 123",
+        }),
+      }
+    )
+    expect(res.body.user).toEqual(
+      expect.objectContaining({
+        phone: "11988887777",
+        address: "Rua das Flores, 123",
+      })
+    )
+  })
 })

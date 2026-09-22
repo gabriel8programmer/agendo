@@ -10,6 +10,8 @@ function sanitizeUser(user: {
   email?: string
   slug?: string
   slugLocked?: boolean
+  phone?: string
+  address?: string
   createdAt?: Date | string
 }) {
   return {
@@ -19,6 +21,8 @@ function sanitizeUser(user: {
     email: String(user.email || ""),
     slug: String(user.slug || ""),
     slugLocked: Boolean(user.slugLocked),
+    phone: String(user.phone || ""),
+    address: String(user.address || ""),
     createdAt: user.createdAt ? new Date(user.createdAt).toISOString() : undefined,
   }
 }
@@ -44,6 +48,8 @@ export async function PATCH(req: NextRequest) {
       slug?: string
       slugLocked?: boolean
       createdAt?: Date | string
+      phone?: string
+      address?: string
     } | null
     if (!user) {
       return NextResponse.json({ error: "Usuário não encontrado" }, { status: 404 })
@@ -53,11 +59,15 @@ export async function PATCH(req: NextRequest) {
       name?: string
       companyName?: string
       slug?: string
+      phone?: string
+      address?: string
     }
 
     const name = typeof body.name === "string" ? body.name.trim() : undefined
     const companyName = typeof body.companyName === "string" ? body.companyName.trim() : undefined
     const requestedSlugRaw = typeof body.slug === "string" ? body.slug.trim() : undefined
+    const phone = typeof body.phone === "string" ? body.phone.trim() : undefined
+    const address = typeof body.address === "string" ? body.address.trim() : undefined
 
     const updates: Record<string, unknown> = {}
 
@@ -71,6 +81,14 @@ export async function PATCH(req: NextRequest) {
         return NextResponse.json({ error: "Nome da empresa inválido" }, { status: 400 })
       }
       updates.companyName = companyName
+    }
+
+    if (phone !== undefined) {
+      updates.phone = phone
+    }
+
+    if (address !== undefined) {
+      updates.address = address
     }
 
     if (requestedSlugRaw !== undefined) {

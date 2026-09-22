@@ -9,7 +9,11 @@ import {
   FaUser,
   FaMoon,
   FaSun,
-  FaCalendarAlt,
+  FaWhatsapp,
+  FaMapMarkerAlt,
+  FaBolt,
+  FaExternalLinkAlt,
+  FaMoneyBillWave,
 } from "react-icons/fa"
 import Card from "@/components/ui/Card"
 import Button from "@/components/ui/Button"
@@ -21,10 +25,11 @@ import {
   getServices,
   getAvailability,
   getAppointments,
+  getProfessionals,
   createAppointment,
 } from "@/lib/api"
 import { generateSlots } from "@/lib/utils/availability"
-import { User, Service, Availability, Appointment } from "@/types"
+import { User, Service, Availability, Appointment, Professional } from "@/types"
 import { formatToUTC, getTodayDate, dayjs } from "@/lib/utils/date"
 import { useToast } from "@/components/ui/Toast"
 import { useTheme } from "@/components/providers/ThemeProvider"
@@ -74,7 +79,9 @@ export default function PublicBookingPage({
   const { showToast, ToastComponent } = useToast()
   const { theme, toggleTheme } = useTheme()
 
+  const [professionals, setProfessionals] = useState<Professional[]>([])
   const [selectedService, setSelectedService] = useState<string | null>(null)
+  const [selectedProfessional, setSelectedProfessional] = useState<string | null>("any")
   const [selectedDate, setSelectedDate] = useState<string>(getTodayDate())
   const [selectedTime, setSelectedTime] = useState<string | null>(null)
   const [clientName, setClientName] = useState("")
@@ -94,12 +101,14 @@ export default function PublicBookingPage({
           }
           const normalizedUser: User = { ...userData, id: String(userId) }
           setUser(normalizedUser)
-          const [servicesData, availabilityData] = await Promise.all([
+          const [servicesData, availabilityData, professionalsData] = await Promise.all([
             getServices(normalizedUser.id),
             getAvailability(normalizedUser.id),
+            getProfessionals(normalizedUser.id),
           ])
           setServices(servicesData)
           setAvailability(availabilityData)
+          setProfessionals(professionalsData.filter((p) => p.isActive))
         }
       } catch (error) {
         console.error("Error loading data:", error)
@@ -124,6 +133,101 @@ export default function PublicBookingPage({
     }
     loadAppointments()
   }, [user, selectedDate])
+
+  const chosenService = services.find((s) => s.id === selectedService)
+
+  // Profissionais que realizam o serviço selecionado
+  const eligibleProfessionals = professionals.filter(
+    (p) =>
+      !p.serviceIds ||
+      p.serviceIds.length === 0 ||
+      (selectedService && p.serviceIds.includes(selectedService))
+  )
+
+  const chosenProfessional =
+    selectedProfessional && selectedProfessional !== "any"
+      ? professionals.find((p) => p.id === selectedProfessional)
+      : null
+
+  // Usar a disponibilidade do profissional específico se existir, senão a da barbearia
+  const activeAvailability: Availability | null = chosenProfessional
+    ? {
+        id: chosenProfessional.id,
+        userId: user?.id || "",
+        slotDuration:
+          chosenProfessional.availability.slotDuration || availability?.slotDuration || 30,
+        startTime: chosenProfessional.availability.startTime || availability?.startTime || "09:00",
+        endTime: chosenProfessional.availability.endTime || availability?.endTime || "18:00",
+        workDays: chosenProfessional.availability.workDays || availability?.workDays || [],
+        reservedIntervals:
+          chosenProfessional.availability.reservedIntervals ||
+          availability?.reservedIntervals ||
+          [],
+      }
+    : availability
+
+  // Filtrar os agendamentos ocupados por profissional se um foi escolhido
+  const relevantOccupiedAppointments = chosenProfessional
+    ? occupiedAppointments.filter(
+        (app) => !app.professionalId || app.professionalId === chosenProfessional.id
+      )
+    : occupiedAppointments
+
+  const availableTimes = activeAvailability
+    ? generateSlots(activeAvailability, relevantOccupiedAppointments, selectedDate)
+    : []
+
+  const isWhatsappValid = whatsappDigits.length === 10 || whatsappDigits.length === 11
+  const isFormValid =
+    selectedService && selectedTime && clientName.trim().length > 0 && isWhatsappValid
+
+  const handleConfirm = async () => {
+    if (!isFormValid || !user || isSubmitting) return
+
+    setIsSubmitting(true)
+    try {
+      await createAppointment({
+        userId: user.id,
+        serviceId: selectedService!,
+        professionalId: chosenProfessional?.id,
+        clientName,
+        clientWhatsapp: toE164BrazilPhone(whatsappDigits),
+        date: formatToUTC(selectedDate, selectedTime!),
+      })
+      setIsConfirmed(true)
+      showToast("Agendamento realizado com sucesso!", "success")
+    } catch (error) {
+      console.error("Error creating appointment:", error)
+      showToast("Erro ao confirmar agendamento.", "error")
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
+  const generateAvailableDates = () => {
+    const dates = []
+    const today = dayjs().tz("America/Sao_Paulo").startOf("day")
+    const workDays = activeAvailability?.workDays || availability?.workDays || []
+    for (let i = 0; i < 14; i++) {
+      const date = today.add(i, "day")
+      const dayOfWeek = date.day()
+      if (workDays.includes(dayOfWeek)) {
+        dates.push({
+          value: date.format("YYYY-MM-DD"),
+          label: date.format("ddd D MMM"),
+          isToday: i === 0,
+        })
+      }
+    }
+    return dates
+  }
+
+  const availableDates = generateAvailableDates()
+
+  const hasProfStep = eligibleProfessionals.length > 0
+  const dateStepNumber = hasProfStep ? 3 : 2
+  const timeStepNumber = hasProfStep ? 4 : 3
+  const infoStepNumber = hasProfStep ? 5 : 4
 
   if (loading) {
     return (
@@ -153,89 +257,122 @@ export default function PublicBookingPage({
   }
 
   if (isConfirmed) {
+    const phoneForWhatsapp = user.phone ? user.phone.replace(/\D/g, "") : ""
+    const destinationPhone = phoneForWhatsapp.startsWith("55")
+      ? phoneForWhatsapp
+      : `55${phoneForWhatsapp}`
+
+    const whatsappMessage = encodeURIComponent(
+      `💈 *Novo Agendamento*\n\n` +
+        `Olá, *${user.companyName || user.name}*!\n` +
+        `Acabei de agendar um horário pelo link:\n\n` +
+        `👤 *Cliente:* ${clientName}\n` +
+        `✂️ *Serviço:* ${chosenService?.name || "Serviço"}\n` +
+        (chosenProfessional ? `💈 *Profissional:* ${chosenProfessional.name}\n` : "") +
+        `📅 *Data:* ${dayjs(selectedDate).format("DD/MM/YYYY")} às ${selectedTime}\n` +
+        (chosenService?.price
+          ? `💵 *Valor:* R$ ${Number(chosenService.price).toFixed(2).replace(".", ",")}\n`
+          : "") +
+        (user.address ? `📍 *Local:* ${user.address}\n` : "") +
+        `\nAgendado pelo *Agendo*!`
+    )
+
+    const whatsappUrl = phoneForWhatsapp
+      ? `https://wa.me/${destinationPhone}?text=${whatsappMessage}`
+      : `https://wa.me/?text=${whatsappMessage}`
+
     return (
       <div className="flex min-h-screen items-center justify-center bg-background p-4 font-sans text-center">
-        <Card className="p-12 max-w-sm rounded-[2.5rem] shadow-2xl shadow-primary/10 border-primary/20 animate-in fade-in zoom-in duration-500">
-          <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-[2rem] bg-primary/10 text-primary">
+        <Card className="p-8 md:p-10 max-w-md w-full rounded-[2.5rem] shadow-2xl shadow-primary/10 border-primary/20 animate-in fade-in zoom-in duration-500">
+          <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-[2rem] bg-emerald-500/10 text-emerald-500 ring-8 ring-emerald-500/5">
             <FaCheck size={32} />
           </div>
-          <h1 className="text-2xl font-black text-foreground">Tudo certo!</h1>
-          <p className="mt-3 text-muted-foreground font-medium leading-relaxed">
-            Olá <span className="text-foreground font-bold">{clientName}</span>, seu agendamento foi
-            confirmado com sucesso.
+          <h1 className="text-2xl font-black text-foreground">Agendamento Confirmado!</h1>
+          <p className="mt-2 text-sm text-muted-foreground font-medium">
+            Olá <span className="text-foreground font-bold">{clientName}</span>, seu horário foi
+            reservado com sucesso.
           </p>
-          <div className="mt-8 rounded-2xl bg-muted/30 p-4 border border-border">
-            <div className="flex items-center justify-center gap-2 text-sm font-bold text-foreground">
-              <FaCalendarAlt size={14} className="text-primary" />
-              {dayjs(selectedDate).format("DD/MM/YYYY")} às {selectedTime}
+
+          <div className="mt-6 rounded-2xl bg-muted/40 p-5 border border-border text-left space-y-3">
+            <div className="flex items-center justify-between pb-3 border-b border-border/50">
+              <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
+                Serviço
+              </span>
+              <span className="text-sm font-black text-foreground">{chosenService?.name}</span>
             </div>
+
+            {chosenProfessional && (
+              <div className="flex items-center justify-between pb-3 border-b border-border/50">
+                <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
+                  Profissional
+                </span>
+                <span className="text-sm font-black text-foreground">
+                  {chosenProfessional.name}
+                </span>
+              </div>
+            )}
+
+            <div className="flex items-center justify-between pb-3 border-b border-border/50">
+              <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
+                Data & Horário
+              </span>
+              <span className="text-sm font-black text-primary">
+                {dayjs(selectedDate).format("DD/MM/YYYY")} às {selectedTime}
+              </span>
+            </div>
+
+            {chosenService?.price && (
+              <div className="flex items-center justify-between pb-3 border-b border-border/50">
+                <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
+                  Valor
+                </span>
+                <span className="text-sm font-black text-foreground">
+                  R$ {Number(chosenService.price).toFixed(2).replace(".", ",")}
+                </span>
+              </div>
+            )}
+
+            {user.address && (
+              <div className="flex items-start justify-between gap-3 pt-1">
+                <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider shrink-0">
+                  Endereço
+                </span>
+                <span className="text-xs font-semibold text-right text-foreground">
+                  {user.address}
+                </span>
+              </div>
+            )}
           </div>
+
+          <a
+            href={whatsappUrl}
+            target="_blank"
+            rel="noreferrer"
+            className="mt-6 flex h-14 w-full cursor-pointer items-center justify-center gap-3 rounded-2xl bg-emerald-600 px-6 text-sm font-black text-white shadow-xl shadow-emerald-600/20 hover:bg-emerald-500 active:scale-[0.98] transition-all"
+          >
+            <FaWhatsapp size={22} />
+            Enviar Confirmação no WhatsApp
+          </a>
+
           <Button
-            className="mt-8 w-full h-14 text-base"
+            variant="ghost"
+            className="mt-3 w-full h-12 text-sm"
             onClick={() => {
               setIsConfirmed(false)
               setSelectedService(null)
+              setSelectedProfessional("any")
               setSelectedTime(null)
               setSelectedDate(getTodayDate())
               setClientName("")
               setWhatsappDigits("")
             }}
           >
-            Novo agendamento
+            Fazer outro agendamento
           </Button>
         </Card>
       </div>
     )
   }
-
-  const availableTimes = availability
-    ? generateSlots(availability, occupiedAppointments, selectedDate)
-    : []
-
-  const isWhatsappValid = whatsappDigits.length === 10 || whatsappDigits.length === 11
-  const isFormValid =
-    selectedService && selectedTime && clientName.trim().length > 0 && isWhatsappValid
-
-  const handleConfirm = async () => {
-    if (!isFormValid || !user || isSubmitting) return
-
-    setIsSubmitting(true)
-    try {
-      await createAppointment({
-        userId: user.id,
-        serviceId: selectedService!,
-        clientName,
-        clientWhatsapp: toE164BrazilPhone(whatsappDigits),
-        date: formatToUTC(selectedDate, selectedTime!),
-      })
-      setIsConfirmed(true)
-      showToast("Agendamento realizado com sucesso!", "success")
-    } catch (error) {
-      console.error("Error creating appointment:", error)
-      showToast("Erro ao confirmar agendamento.", "error")
-    } finally {
-      setIsSubmitting(false)
-    }
-  }
-
-  const generateAvailableDates = () => {
-    const dates = []
-    const today = dayjs().tz("America/Sao_Paulo").startOf("day")
-    for (let i = 0; i < 14; i++) {
-      const date = today.add(i, "day")
-      const dayOfWeek = date.day()
-      if (availability?.workDays?.includes(dayOfWeek)) {
-        dates.push({
-          value: date.format("YYYY-MM-DD"),
-          label: date.format("ddd D MMM"),
-          isToday: i === 0,
-        })
-      }
-    }
-    return dates
-  }
-
-  const availableDates = generateAvailableDates()
 
   return (
     <div className="min-h-screen bg-background pb-12 font-sans selection:bg-primary/20">
@@ -264,9 +401,28 @@ export default function PublicBookingPage({
           <h1 className="text-3xl font-black tracking-tight text-foreground sm:text-4xl">
             {user.companyName || user.name}
           </h1>
-          <p className="mt-3 text-sm font-bold text-muted-foreground uppercase tracking-[0.2em]">
+          <p className="mt-2 text-xs font-bold text-muted-foreground uppercase tracking-[0.2em]">
             Agendamento Online
           </p>
+
+          <div className="mt-4 flex flex-wrap items-center justify-center gap-2">
+            {user.address && (
+              <a
+                href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(user.address)}`}
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex items-center gap-1.5 rounded-full bg-accent/80 px-3.5 py-1.5 text-xs font-medium text-foreground hover:bg-accent hover:text-primary transition-all shadow-sm"
+              >
+                <FaMapMarkerAlt className="text-primary text-[11px]" />
+                <span className="max-w-[240px] truncate sm:max-w-sm">{user.address}</span>
+                <FaExternalLinkAlt className="text-[9px] opacity-50" />
+              </a>
+            )}
+            <div className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/10 px-3.5 py-1.5 text-xs font-bold text-emerald-600 dark:text-emerald-400">
+              <FaMoneyBillWave className="text-[11px]" />
+              <span>Pagamento no local</span>
+            </div>
+          </div>
         </header>
 
         <div className="space-y-12">
@@ -333,12 +489,88 @@ export default function PublicBookingPage({
             </div>
           </section>
 
-          {/* STEP 2: DATA */}
-          {selectedService && (
+          {/* STEP 2: PROFISSIONAL (se houver profissionais cadastrados) */}
+          {selectedService && hasProfStep && (
             <section className="animate-in fade-in slide-in-from-bottom-4 duration-700">
               <div className="mb-5 flex items-center gap-3">
                 <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary text-[11px] font-black text-primary-foreground shadow-lg shadow-primary/20">
                   2
+                </div>
+                <h2 className="text-sm font-black uppercase tracking-widest text-foreground">
+                  Escolha o Profissional
+                </h2>
+              </div>
+              <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+                <button
+                  type="button"
+                  onClick={() => setSelectedProfessional("any")}
+                  className={`flex flex-col items-center justify-center p-4 rounded-2xl border text-center transition-all active:scale-95 ${
+                    selectedProfessional === "any"
+                      ? "border-primary bg-primary text-primary-foreground shadow-lg shadow-primary/20"
+                      : "border-border bg-card hover:border-primary/50 text-foreground"
+                  }`}
+                >
+                  <div
+                    className={`mb-2 flex h-12 w-12 items-center justify-center rounded-2xl ${
+                      selectedProfessional === "any"
+                        ? "bg-white/20 text-white"
+                        : "bg-primary/10 text-primary"
+                    }`}
+                  >
+                    <FaBolt size={18} />
+                  </div>
+                  <span className="text-xs font-bold leading-tight">Qualquer um</span>
+                  <span
+                    className={`text-[10px] mt-0.5 ${
+                      selectedProfessional === "any" ? "text-white/80" : "text-muted-foreground"
+                    }`}
+                  >
+                    Mais rápido
+                  </span>
+                </button>
+
+                {eligibleProfessionals.map((prof) => (
+                  <button
+                    key={prof.id}
+                    type="button"
+                    onClick={() => setSelectedProfessional(prof.id)}
+                    className={`flex flex-col items-center justify-center p-4 rounded-2xl border text-center transition-all active:scale-95 ${
+                      selectedProfessional === prof.id
+                        ? "border-primary bg-primary text-primary-foreground shadow-lg shadow-primary/20"
+                        : "border-border bg-card hover:border-primary/50 text-foreground"
+                    }`}
+                  >
+                    <div
+                      className={`mb-2 flex h-12 w-12 items-center justify-center rounded-2xl font-black text-sm ${
+                        selectedProfessional === prof.id
+                          ? "bg-white/20 text-white"
+                          : "bg-muted text-foreground"
+                      }`}
+                    >
+                      {prof.name.slice(0, 2).toUpperCase()}
+                    </div>
+                    <span className="text-xs font-bold truncate max-w-full leading-tight">
+                      {prof.name}
+                    </span>
+                    <span
+                      className={`text-[10px] mt-0.5 truncate max-w-full ${
+                        selectedProfessional === prof.id ? "text-white/80" : "text-muted-foreground"
+                      }`}
+                    >
+                      Barbeiro
+                    </span>
+                  </button>
+                ))}
+              </div>
+            </section>
+          )}
+
+          {/* STEP DATA */}
+          {selectedService && (
+            <section className="animate-in fade-in slide-in-from-bottom-4 duration-700">
+              <div className="mb-5 flex items-center gap-3">
+                <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary text-[11px] font-black text-primary-foreground shadow-lg shadow-primary/20">
+                  {dateStepNumber}
                 </div>
                 <h2 className="text-sm font-black uppercase tracking-widest text-foreground">
                   Selecione o Dia
@@ -371,12 +603,12 @@ export default function PublicBookingPage({
             </section>
           )}
 
-          {/* STEP 3: HORÁRIOS */}
+          {/* STEP HORÁRIOS */}
           {selectedService && selectedDate && (
             <section className="animate-in fade-in slide-in-from-bottom-4 duration-700">
               <div className="mb-5 flex items-center gap-3">
                 <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary text-[11px] font-black text-primary-foreground shadow-lg shadow-primary/20">
-                  3
+                  {timeStepNumber}
                 </div>
                 <h2 className="text-sm font-black uppercase tracking-widest text-foreground">
                   Horário Disponível
@@ -413,12 +645,12 @@ export default function PublicBookingPage({
             </section>
           )}
 
-          {/* STEP 4: DADOS */}
+          {/* STEP DADOS */}
           {selectedTime && (
             <section className="animate-in fade-in slide-in-from-bottom-4 duration-700">
               <div className="mb-5 flex items-center gap-3">
                 <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary text-[11px] font-black text-primary-foreground shadow-lg shadow-primary/20">
-                  4
+                  {infoStepNumber}
                 </div>
                 <h2 className="text-sm font-black uppercase tracking-widest text-foreground">
                   Suas Informações

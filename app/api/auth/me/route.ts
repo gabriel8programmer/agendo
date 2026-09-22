@@ -29,6 +29,8 @@ export async function GET(req: NextRequest) {
       subscriptionPlan?: string
       subscriptionStatus?: string
       subscriptionExpiresAt?: Date | string
+      phone?: string
+      address?: string
     } | null
     if (!user) {
       return NextResponse.json({ error: "Usuário não encontrado" }, { status: 404 })
@@ -62,6 +64,8 @@ export async function GET(req: NextRequest) {
         subscriptionExpiresAt: user.subscriptionExpiresAt
           ? new Date(user.subscriptionExpiresAt).toISOString()
           : undefined,
+        phone: String(user.phone || ""),
+        address: String(user.address || ""),
       },
     })
   } catch (error) {

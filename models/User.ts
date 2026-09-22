@@ -12,6 +12,8 @@ export interface IUser extends Document {
   subscriptionPlan?: string
   subscriptionStatus?: string
   subscriptionExpiresAt?: Date
+  phone?: string
+  address?: string
   createdAt: Date
 }
 
@@ -28,6 +30,8 @@ const UserSchema = new Schema<IUser>(
     subscriptionPlan: { type: String, default: "free" },
     subscriptionStatus: { type: String, default: "inactive" },
     subscriptionExpiresAt: { type: Date },
+    phone: { type: String },
+    address: { type: String },
   },
   {
     timestamps: { createdAt: true, updatedAt: false },

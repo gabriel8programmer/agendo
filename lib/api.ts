@@ -287,6 +287,8 @@ export async function updateCurrentUserProfile(data: {
   name?: string
   companyName?: string
   slug?: string
+  phone?: string
+  address?: string
 }): Promise<AuthPayload> {
   return fetchJson(`${BASE_URL}/users/me`, {
     method: "PATCH",

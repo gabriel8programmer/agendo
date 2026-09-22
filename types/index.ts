@@ -14,6 +14,8 @@ export interface User {
   subscriptionPlan?: SubscriptionPlan
   subscriptionStatus?: SubscriptionStatus
   subscriptionExpiresAt?: string
+  phone?: string
+  address?: string
 }
 
 export interface Service {

@@ -21,6 +21,8 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ slu
       companyName: user.companyName,
       slug: user.slug,
       email: user.email,
+      phone: user.phone || "",
+      address: user.address || "",
       createdAt:
         user.createdAt instanceof Date ? user.createdAt.toISOString() : String(user.createdAt),
     })
