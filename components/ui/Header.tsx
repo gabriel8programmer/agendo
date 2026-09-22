@@ -14,7 +14,6 @@ import {
   FaSignOutAlt,
   FaMoon,
   FaSun,
-  FaCreditCard,
 } from "react-icons/fa"
 import { logoutSession } from "@/lib/api"
 import BrandLogo from "@/components/ui/BrandLogo"
@@ -31,8 +30,15 @@ export default function Header() {
     { label: "Agenda", href: "/agenda", icon: FaCalendarAlt },
     { label: "Serviços", href: "/servicos", icon: FaWrench },
     { label: "Profissionais", href: "/profissionais", icon: FaUserTie },
-    { label: "Planos", href: "/planos", icon: FaCreditCard },
     { label: "Configurações", href: "/configuracoes", icon: FaCog },
+  ]
+
+  const bottomMenuItems = [
+    { label: "Dashboard", href: "/dashboard", icon: FaChartLine },
+    { label: "Agenda", href: "/agenda", icon: FaCalendarAlt },
+    { label: "Serviços", href: "/servicos", icon: FaWrench },
+    { label: "Equipes", href: "/profissionais", icon: FaUserTie },
+    { label: "Ajustes", href: "/configuracoes", icon: FaCog },
   ]
 
   const handleLogout = async () => {
@@ -126,16 +132,16 @@ export default function Header() {
 
       <nav className="fixed inset-x-0 bottom-0 z-50 border-t border-border bg-background/95 pb-[env(safe-area-inset-bottom)] shadow-[0_-8px_30px_rgb(0,0,0,0.04)] backdrop-blur md:hidden">
         <div className="flex px-2 py-1 gap-1">
-          {menuItems.map((item) => {
+          {bottomMenuItems.map((item) => {
             const isActive = pathname === item.href
             return (
               <Link
                 key={item.href}
                 href={item.href}
-                className={`flex flex-1 flex-col items-center justify-center rounded-xl px-1 py-2 text-[10px] transition-all ${
+                className={`flex flex-1 flex-col items-center justify-center rounded-xl px-1 py-2 text-[10px] bg-transparent transition-colors ${
                   isActive
-                    ? "bg-muted text-primary font-bold shadow-sm"
-                    : "text-muted-foreground font-medium hover:bg-accent hover:text-accent-foreground"
+                    ? "text-primary font-bold"
+                    : "text-muted-foreground font-medium hover:text-foreground"
                 }`}
               >
                 <item.icon
