@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import Stripe from "stripe"
+import mongoose from "mongoose"
 import dbConnect from "@/lib/mongoose"
 import User from "@/models/User"
 import { stripe } from "@/lib/stripe"
@@ -47,18 +48,24 @@ export async function POST(req: NextRequest) {
             expiresAt = new Date(now.getTime() + daysToAdd * 24 * 60 * 60 * 1000)
           }
 
-          await User.collection.updateOne(
-            { _id: userId as never },
-            {
-              $set: {
-                subscriptionPlan: plan,
-                subscriptionStatus: "active",
-                ...(customerId ? { stripeCustomerId: customerId } : {}),
-                ...(subscriptionId ? { stripeSubscriptionId: subscriptionId } : {}),
-                ...(expiresAt ? { subscriptionExpiresAt: expiresAt } : {}),
-              },
-            }
-          )
+          const userFilter = mongoose.Types.ObjectId.isValid(userId)
+            ? {
+                $or: [
+                  { _id: userId as never },
+                  { _id: new mongoose.Types.ObjectId(userId) as never },
+                ],
+              }
+            : { _id: userId as never }
+
+          await User.collection.updateOne(userFilter, {
+            $set: {
+              subscriptionPlan: plan,
+              subscriptionStatus: "active",
+              ...(customerId ? { stripeCustomerId: customerId } : {}),
+              ...(subscriptionId ? { stripeSubscriptionId: subscriptionId } : {}),
+              ...(expiresAt ? { subscriptionExpiresAt: expiresAt } : {}),
+            },
+          })
         }
         break
       }
