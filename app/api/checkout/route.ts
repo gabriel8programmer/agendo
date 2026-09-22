@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
+import Stripe from "stripe"
 import dbConnect from "@/lib/mongoose"
 import User from "@/models/User"
 import { SESSION_COOKIE, verifySessionToken } from "@/lib/auth"
@@ -93,7 +94,7 @@ export async function POST(req: NextRequest) {
           },
         ]
 
-    const session = await stripe.checkout.sessions.create({
+    const sessionParams: Stripe.Checkout.SessionCreateParams = {
       mode: checkoutMode,
       payment_method_types: paymentMethodTypes,
       customer: customerId || undefined,
@@ -107,7 +108,25 @@ export async function POST(req: NextRequest) {
         plan: planConfig.id,
         mode: checkoutMode,
       },
-    })
+    }
+
+    let session: Stripe.Checkout.Session
+    try {
+      session = await stripe.checkout.sessions.create(sessionParams)
+    } catch (createErr: unknown) {
+      const errMessage = createErr instanceof Error ? createErr.message : ""
+      if (errMessage.toLowerCase().includes("pix")) {
+        console.warn(
+          "Aviso: Pix ainda não está ativo no Stripe Dashboard desta conta. Criando checkout apenas com cartão..."
+        )
+        session = await stripe.checkout.sessions.create({
+          ...sessionParams,
+          payment_method_types: ["card"],
+        })
+      } else {
+        throw createErr
+      }
+    }
 
     return NextResponse.json({
       url: session.url,
