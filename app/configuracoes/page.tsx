@@ -24,6 +24,8 @@ import {
   updateAvailability,
   upsertAvailabilityByUser,
   updateCurrentUserProfile,
+  syncCheckoutSession,
+  createCustomerPortalSession,
 } from "@/lib/api"
 import { normalizeTime24BR } from "@/lib/utils/date"
 import { Availability } from "@/types"
@@ -41,6 +43,7 @@ export default function SettingsPage() {
   const [loadedUserId, setLoadedUserId] = useState("")
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
+  const [openingPortal, setOpeningPortal] = useState(false)
   const { showToast, ToastComponent } = useToast()
   const hasSavedAvailability =
     !!availability &&
@@ -48,6 +51,34 @@ export default function SettingsPage() {
     availability.id.trim() !== "" &&
     availability.id !== "undefined" &&
     availability.id !== "null"
+
+  useEffect(() => {
+    if (typeof window === "undefined") return
+
+    const params = new URLSearchParams(window.location.search)
+    const checkoutStatus = params.get("checkout")
+    const sessionId = params.get("session_id")
+
+    if (checkoutStatus === "success") {
+      async function handleCheckoutSuccess() {
+        if (sessionId) {
+          try {
+            await syncCheckoutSession(sessionId)
+          } catch (syncErr) {
+            console.warn("Aviso ao sincronizar sessão de checkout:", syncErr)
+          }
+        }
+        await refreshUser()
+        showToast(
+          "🎉 Seu plano foi ativado com sucesso! Aproveite seus 30 dias de teste grátis.",
+          "success"
+        )
+        window.history.replaceState({}, "", "/configuracoes")
+      }
+
+      handleCheckoutSuccess()
+    }
+  }, [refreshUser, showToast])
 
   useEffect(() => {
     if (authLoading) return
@@ -481,10 +512,30 @@ export default function SettingsPage() {
                 )}
               </div>
 
-              <div className="flex items-center gap-2">
+              <div className="flex flex-wrap items-center gap-2">
+                {authUser?.stripeCustomerId && (
+                  <button
+                    type="button"
+                    disabled={openingPortal}
+                    onClick={async () => {
+                      setOpeningPortal(true)
+                      try {
+                        const { url } = await createCustomerPortalSession()
+                        if (url) window.location.href = url
+                      } catch {
+                        showToast("Não foi possível abrir o portal de faturamento.", "error")
+                      } finally {
+                        setOpeningPortal(false)
+                      }
+                    }}
+                    className="h-10 text-xs font-bold px-4 rounded-xl border border-border bg-card text-foreground hover:bg-accent transition-colors cursor-pointer"
+                  >
+                    {openingPortal ? "Abrindo..." : "Gerenciar Assinatura"}
+                  </button>
+                )}
                 <ButtonLink
                   href="/planos"
-                  variant="primary"
+                  variant={authUser?.subscriptionStatus === "active" ? "secondary" : "primary"}
                   className="h-10 text-xs font-bold px-4"
                 >
                   {authUser?.subscriptionStatus === "active"

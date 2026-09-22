@@ -13,6 +13,7 @@ import {
   FaCopy,
   FaCheck,
   FaExternalLinkAlt,
+  FaCreditCard,
 } from "react-icons/fa"
 
 import Link from "next/link"
@@ -157,11 +158,27 @@ export default function DashboardPage() {
     <div className="min-h-screen bg-background pb-24 font-sans md:pb-0">
       <Header />
       <main className="mx-auto w-full max-w-4xl p-4 md:p-8">
-        <div className="mb-8">
-          <p className="text-sm font-bold text-primary uppercase tracking-[0.2em]">Visão Geral</p>
-          <h1 className="mt-1 text-3xl font-extrabold tracking-tight text-foreground">
-            Olá, {user?.name.split(" ")[0] || "Profissional"}
-          </h1>
+        <div className="mb-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <p className="text-sm font-bold text-primary uppercase tracking-[0.2em]">Visão Geral</p>
+            <h1 className="mt-1 text-3xl font-extrabold tracking-tight text-foreground">
+              Olá, {user?.name.split(" ")[0] || "Profissional"}
+            </h1>
+          </div>
+          {user?.subscriptionStatus === "active" ? (
+            <div className="inline-flex items-center gap-2 self-start sm:self-auto rounded-full border border-emerald-500/20 bg-emerald-500/10 px-3.5 py-1.5 text-xs font-bold text-emerald-600 shadow-sm">
+              <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+              {user.subscriptionPlan === "annual" ? "Plano Anual Ativo" : "Plano Mensal Ativo"}
+            </div>
+          ) : (
+            <Link
+              href="/planos"
+              className="inline-flex items-center gap-2 self-start sm:self-auto rounded-full border border-primary/20 bg-primary/10 px-3.5 py-1.5 text-xs font-bold text-primary hover:bg-primary/20 transition-colors"
+            >
+              <FaCreditCard size={12} />
+              Assinar Plano (30 Dias Grátis)
+            </Link>
+          )}
         </div>
 
         {!isPageLoading && needsAvailabilitySetup && (

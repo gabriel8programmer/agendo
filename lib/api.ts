@@ -342,3 +342,17 @@ export async function createCustomerPortalSession(): Promise<{ url: string }> {
     method: "POST",
   })
 }
+
+export async function syncCheckoutSession(sessionId: string): Promise<{
+  success: boolean
+  plan: string
+  status: string
+  customerId?: string
+  subscriptionId?: string
+}> {
+  return fetchJson(`${BASE_URL}/checkout/sync`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ sessionId }),
+  })
+}
