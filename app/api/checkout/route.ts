@@ -66,10 +66,8 @@ export async function POST(req: NextRequest) {
 
     const isSubscription = checkoutMode === "subscription"
 
-    // No modo payment suportamos Cartão e Pix. No modo subscription suportamos Cartão.
-    const paymentMethodTypes = isSubscription
-      ? (["card"] as Array<"card" | "pix">)
-      : (["card", "pix"] as Array<"card" | "pix">)
+    // Pagamento exclusivo com cartão de crédito/débito e carteiras digitais (Apple Pay / Google Pay)
+    const paymentMethodTypes: Array<"card"> = ["card"]
 
     const lineItems = planConfig.priceId
       ? [{ price: planConfig.priceId, quantity: 1 }]
@@ -79,7 +77,7 @@ export async function POST(req: NextRequest) {
               currency: "brl",
               product_data: {
                 name: `Agendo - ${planConfig.name}`,
-                description: planConfig.description,
+                description: `${planConfig.description} (30 dias de teste grátis)`,
               },
               unit_amount: planConfig.priceCents,
               ...(isSubscription
@@ -94,6 +92,17 @@ export async function POST(req: NextRequest) {
           },
         ]
 
+    const subscriptionData: Stripe.Checkout.SessionCreateParams.SubscriptionData | undefined =
+      isSubscription
+        ? {
+            trial_period_days: planConfig.trialDays || 30,
+            metadata: {
+              userId: String(user._id),
+              plan: planConfig.id,
+            },
+          }
+        : undefined
+
     const sessionParams: Stripe.Checkout.SessionCreateParams = {
       mode: checkoutMode,
       payment_method_types: paymentMethodTypes,
@@ -101,6 +110,7 @@ export async function POST(req: NextRequest) {
       customer_email: customerId ? undefined : user.email,
       client_reference_id: String(user._id),
       line_items: lineItems,
+      ...(subscriptionData ? { subscription_data: subscriptionData } : {}),
       success_url: `${origin}/configuracoes?checkout=success&session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${origin}/planos?checkout=canceled`,
       metadata: {
@@ -110,23 +120,7 @@ export async function POST(req: NextRequest) {
       },
     }
 
-    let session: Stripe.Checkout.Session
-    try {
-      session = await stripe.checkout.sessions.create(sessionParams)
-    } catch (createErr: unknown) {
-      const errMessage = createErr instanceof Error ? createErr.message : ""
-      if (errMessage.toLowerCase().includes("pix")) {
-        console.warn(
-          "Aviso: Pix ainda não está ativo no Stripe Dashboard desta conta. Criando checkout apenas com cartão..."
-        )
-        session = await stripe.checkout.sessions.create({
-          ...sessionParams,
-          payment_method_types: ["card"],
-        })
-      } else {
-        throw createErr
-      }
-    }
+    const session = await stripe.checkout.sessions.create(sessionParams)
 
     return NextResponse.json({
       url: session.url,

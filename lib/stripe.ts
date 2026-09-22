@@ -17,6 +17,7 @@ export interface PlanConfig {
   price: number // valor formatado em Reais (ex: 24.90)
   priceCents: number // valor em centavos para Stripe (ex: 2490)
   interval: "month" | "year"
+  trialDays?: number
   discountPercentage?: number
   monthlyEquivalent: number // valor equivalente por mês
   description: string
@@ -32,9 +33,11 @@ export const PLANS: Record<PlanKey, PlanConfig> = {
     price: 24.9,
     priceCents: 2490,
     interval: "month",
+    trialDays: 30,
     monthlyEquivalent: 24.9,
     description: "Sem fidelidade, flexibilidade total para o seu negócio.",
     features: [
+      "30 dias de teste grátis (cancele quando quiser)",
       "Agendamentos online ilimitados",
       "Página pública exclusiva de agendamentos",
       "Gestão de múltiplos serviços e durações",
@@ -51,11 +54,13 @@ export const PLANS: Record<PlanKey, PlanConfig> = {
     price: 268.92, // 24.90 * 12 = 298.80. 10% desconto = 268.92
     priceCents: 26892,
     interval: "year",
+    trialDays: 30,
     discountPercentage: 10,
     monthlyEquivalent: 22.41, // 268.92 / 12 = 22.41
     recommended: true,
     description: "Economize 10% com o plano anual e garanta estabilidade para o seu ano.",
     features: [
+      "30 dias de teste grátis (cancele quando quiser)",
       "Todos os recursos do Plano Mensal inclusos",
       "10% de desconto garantido no valor total",
       "Equivalente a apenas R$ 22,41 / mês",

@@ -7,7 +7,6 @@ import {
   FaCheckCircle,
   FaShieldAlt,
   FaBolt,
-  FaQrcode,
   FaCreditCard,
   FaArrowLeft,
   FaStar,
@@ -27,7 +26,10 @@ export default function PlansPage() {
   const [loadingPlan, setLoadingPlan] = useState<string | null>(null)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
 
-  const handleSubscribe = async (plan: "monthly" | "annual", mode: "payment" | "subscription") => {
+  const handleSubscribe = async (
+    plan: "monthly" | "annual",
+    mode: "subscription" = "subscription"
+  ) => {
     setErrorMessage(null)
 
     if (!user && !authLoading) {
@@ -113,15 +115,15 @@ export default function PlansPage() {
         <div className="text-center">
           <div className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-4 py-1.5 text-xs font-bold text-primary">
             <FaBolt className="text-primary" />
-            Planos Comerciais Transparentes
+            30 Dias de Teste Grátis em Qualquer Plano
           </div>
           <h1 className="mt-4 text-3xl font-extrabold tracking-tight text-foreground sm:text-4xl md:text-5xl">
             Escolha o plano ideal para <br className="hidden sm:inline" />
             fazer seu negócio crescer
           </h1>
           <p className="mx-auto mt-4 max-w-2xl text-base font-medium text-muted-foreground sm:text-lg">
-            Sem contratos abusivos. Todos os recursos inclusos: agendamentos ilimitados, página
-            pública exclusiva, notificações por WhatsApp e muito mais.
+            Comece hoje sem pagar nada. Cancele quando quiser com 1 clique diretamente pelo painel.
+            Acesso ilimitado a todos os recursos desde o primeiro dia.
           </p>
         </div>
 
@@ -236,30 +238,21 @@ export default function PlansPage() {
               </div>
             </div>
 
-            <div className="mt-8 space-y-2.5">
+            <div className="mt-8">
               <Button
                 variant="primary"
-                className="w-full h-12 text-sm font-bold flex items-center justify-center gap-2"
+                className="w-full h-12 text-sm font-bold flex items-center justify-center gap-2 shadow-sm"
                 disabled={loadingPlan !== null}
                 onClick={() => handleSubscribe("monthly", "subscription")}
               >
                 <FaCreditCard size={15} />
                 {loadingPlan === "monthly-subscription"
                   ? "Iniciando..."
-                  : "Assinar Mensal no Cartão"}
+                  : "Experimentar 30 Dias Grátis"}
               </Button>
-
-              <Button
-                variant="secondary"
-                className="w-full h-11 text-xs font-semibold flex items-center justify-center gap-2"
-                disabled={loadingPlan !== null}
-                onClick={() => handleSubscribe("monthly", "payment")}
-              >
-                <FaQrcode size={14} className="text-emerald-500" />
-                {loadingPlan === "monthly-payment"
-                  ? "Iniciando..."
-                  : "Pagar 1 Mês no Pix ou Cartão"}
-              </Button>
+              <p className="mt-2.5 text-center text-xs text-muted-foreground font-medium">
+                R$ 0,00 cobrado hoje • R$ 24,90/mês após o teste
+              </p>
             </div>
           </Card>
 
@@ -312,7 +305,7 @@ export default function PlansPage() {
               </div>
             </div>
 
-            <div className="mt-8 space-y-2.5">
+            <div className="mt-8">
               <Button
                 variant="primary"
                 className="w-full h-12 text-sm font-bold flex items-center justify-center gap-2 shadow-lg shadow-primary/25"
@@ -322,20 +315,11 @@ export default function PlansPage() {
                 <FaCreditCard size={15} />
                 {loadingPlan === "annual-subscription"
                   ? "Iniciando..."
-                  : "Assinar Anual com 10% OFF"}
+                  : "Experimentar 30 Dias Grátis (10% OFF)"}
               </Button>
-
-              <Button
-                variant="secondary"
-                className="w-full h-11 text-xs font-semibold flex items-center justify-center gap-2"
-                disabled={loadingPlan !== null}
-                onClick={() => handleSubscribe("annual", "payment")}
-              >
-                <FaQrcode size={14} className="text-emerald-500" />
-                {loadingPlan === "annual-payment"
-                  ? "Iniciando..."
-                  : "Pagar Anual com Pix ou Cartão à Vista"}
-              </Button>
+              <p className="mt-2.5 text-center text-xs text-emerald-600 font-semibold">
+                R$ 0,00 cobrado hoje • R$ 268,92/ano após o teste
+              </p>
             </div>
           </Card>
         </div>
@@ -345,12 +329,13 @@ export default function PlansPage() {
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-3 text-center sm:text-left">
             <div className="flex flex-col sm:flex-row items-center sm:items-start gap-3">
               <div className="rounded-2xl bg-emerald-500/10 p-3 text-emerald-600">
-                <FaQrcode size={24} />
+                <FaCheckCircle size={24} />
               </div>
               <div>
-                <h4 className="font-bold text-foreground text-sm">Pix Instantâneo</h4>
+                <h4 className="font-bold text-foreground text-sm">30 Dias Sem Compromisso</h4>
                 <p className="text-xs text-muted-foreground mt-1">
-                  Ativação na hora via QR Code ou código copia e cola Stripe.
+                  Acesso ilimitado e completo. Cancele antes do fim do período de teste e nada será
+                  cobrado.
                 </p>
               </div>
             </div>
@@ -360,9 +345,9 @@ export default function PlansPage() {
                 <FaCreditCard size={24} />
               </div>
               <div>
-                <h4 className="font-bold text-foreground text-sm">Cartões de Crédito & Débito</h4>
+                <h4 className="font-bold text-foreground text-sm">Cartões & Carteiras Digitais</h4>
                 <p className="text-xs text-muted-foreground mt-1">
-                  Visa, Mastercard, Elo, Hipercard e American Express.
+                  Visa, Mastercard, Elo, Hipercard, Amex, Apple Pay e Google Pay.
                 </p>
               </div>
             </div>
@@ -395,16 +380,12 @@ export default function PlansPage() {
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             <Card className="p-6">
               <h3 className="text-sm font-bold text-foreground">
-                Como funciona o teste de pagamentos no Stripe?
+                Como funciona o teste gratuito de 30 dias?
               </h3>
               <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
-                O Stripe oferece um ambiente de testes completo. Para cartões, você pode utilizar
-                números de teste como{" "}
-                <code className="rounded bg-muted px-1.5 py-0.5 font-mono">
-                  4242 4242 4242 4242
-                </code>
-                . Para Pix, a página do Stripe Checkout exibe um botão de simulação para aprovar o
-                pagamento instantaneamente sem gastar nenhum centavo real.
+                Você tem 30 dias para utilizar todas as funcionalidades do Agendo sem pagar nada
+                hoje (R$ 0,00 cobrado na adesão). Se você gostar e decidir continuar, sua primeira
+                mensalidade ou anuidade só será debitada automaticamente após os 30 dias.
               </p>
             </Card>
 
@@ -414,8 +395,8 @@ export default function PlansPage() {
               </h3>
               <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
                 Sim! Não há multas, fidelidade ou taxas de cancelamento. Você pode gerenciar ou
-                cancelar sua assinatura com um clique diretamente pelo portal do cliente Stripe em
-                suas configurações.
+                cancelar sua assinatura com um clique diretamente pelo portal do cliente em suas
+                configurações a qualquer momento.
               </p>
             </Card>
 
@@ -426,18 +407,19 @@ export default function PlansPage() {
               <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
                 O plano mensal custa R$ 24,90/mês (totalizando R$ 298,80 ao ano). No plano anual,
                 você tem 10% de desconto direto, pagando apenas R$ 268,92 (equivalente a R$
-                22,41/mês). Você ganha mais de 1 mês inteiramente grátis.
+                22,41/mês). Você ganha mais de 1 mês inteiramente grátis e ainda aproveita os 30
+                dias de teste inicial.
               </p>
             </Card>
 
             <Card className="p-6">
               <h3 className="text-sm font-bold text-foreground">
-                O que acontece após o pagamento?
+                Quais são as formas de pagamento aceitas?
               </h3>
               <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
-                Assim que a confirmação é recebida pelo webhook da Stripe (seja no cartão ou no
-                Pix), sua conta é atualizada imediatamente para o status Ativo, liberando todos os
-                recursos da plataforma.
+                Aceitamos todos os principais cartões de crédito e débito nacionais e internacionais
+                (Visa, Mastercard, Elo, Hipercard e American Express), além de carteiras digitais
+                como Apple Pay e Google Pay com total segurança.
               </p>
             </Card>
           </div>

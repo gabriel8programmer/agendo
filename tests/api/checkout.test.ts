@@ -71,11 +71,13 @@ describe("API /api/checkout", () => {
       expect(monthly).toBeDefined()
       expect(monthly.price).toBe(24.9)
       expect(monthly.interval).toBe("month")
+      expect(monthly.trialDays).toBe(30)
 
       expect(annual).toBeDefined()
       expect(annual.price).toBe(268.92)
       expect(annual.discountPercentage).toBe(10)
       expect(annual.interval).toBe("year")
+      expect(annual.trialDays).toBe(30)
     })
   })
 
@@ -138,7 +140,7 @@ describe("API /api/checkout", () => {
       expect(res.body.error).toBe("Usuário não encontrado")
     })
 
-    it("creates a checkout session for monthly plan and returns session url", async () => {
+    it("creates a checkout session for monthly plan with 30-day trial and returns session url", async () => {
       vi.mocked(verifySessionToken).mockReturnValue({
         userId: "user-1",
         email: "joao@email.com",
@@ -158,16 +160,19 @@ describe("API /api/checkout", () => {
       const res = await request(server)
         .post("/api/checkout")
         .set("Cookie", "agendo_session=valid")
-        .send({ plan: "monthly", mode: "payment" })
+        .send({ plan: "monthly", mode: "subscription" })
 
       expect(res.status).toBe(200)
       expect(res.body.url).toBe("https://checkout.stripe.com/pay/cs_test_mock_session")
       expect(stripe.checkout.sessions.create).toHaveBeenCalledWith(
         expect.objectContaining({
-          mode: "payment",
+          mode: "subscription",
           customer: "cus_existing_123",
           client_reference_id: "user-1",
-          payment_method_types: ["card", "pix"],
+          payment_method_types: ["card"],
+          subscription_data: expect.objectContaining({
+            trial_period_days: 30,
+          }),
           metadata: expect.objectContaining({
             plan: "monthly",
             userId: "user-1",
@@ -176,7 +181,7 @@ describe("API /api/checkout", () => {
       )
     })
 
-    it("creates a checkout session for annual plan with 10% discount in subscription mode", async () => {
+    it("creates a checkout session for annual plan with 30-day trial and 10% discount", async () => {
       vi.mocked(verifySessionToken).mockReturnValue({
         userId: "user-2",
         email: "maria@email.com",
@@ -209,6 +214,9 @@ describe("API /api/checkout", () => {
           mode: "subscription",
           client_reference_id: "user-2",
           payment_method_types: ["card"],
+          subscription_data: expect.objectContaining({
+            trial_period_days: 30,
+          }),
           metadata: expect.objectContaining({
             plan: "annual",
             userId: "user-2",
