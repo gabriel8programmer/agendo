@@ -14,6 +14,9 @@ import {
   FaCheck,
   FaExternalLinkAlt,
   FaCreditCard,
+  FaQrcode,
+  FaDownload,
+  FaTimes,
 } from "react-icons/fa"
 
 import Link from "next/link"
@@ -58,6 +61,7 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true)
   const [needsAvailabilitySetup, setNeedsAvailabilitySetup] = useState(false)
   const [copied, setCopied] = useState(false)
+  const [showQrModal, setShowQrModal] = useState(false)
   const [host, setHost] = useState("agendo.me")
   const { showToast, ToastComponent } = useToast()
 
@@ -416,11 +420,73 @@ export default function DashboardPage() {
                     )}
                   </button>
                 </div>
+                <button
+                  type="button"
+                  onClick={() => setShowQrModal(true)}
+                  className="mt-3 flex w-full items-center justify-center gap-2 rounded-xl border border-primary/20 bg-primary/10 py-2.5 text-xs font-bold text-primary transition-colors hover:bg-primary/20 cursor-pointer"
+                >
+                  <FaQrcode size={14} />
+                  Ver QR Code para Balcão
+                </button>
               </div>
             </Card>
           </aside>
         </div>
       </main>
+
+      {showQrModal && user?.slug && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm animate-in fade-in duration-200">
+          <Card className="max-w-sm w-full p-6 space-y-5 rounded-3xl shadow-2xl border-border animate-in zoom-in-95 duration-200 text-center">
+            <div className="flex items-center justify-between border-b border-border pb-3">
+              <div className="text-left">
+                <h3 className="text-base font-bold text-foreground">QR Code da Barbearia</h3>
+                <p className="text-xs text-muted-foreground">Imprima ou coloque no balcão</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowQrModal(false)}
+                className="text-muted-foreground hover:text-foreground p-1.5 cursor-pointer rounded-lg hover:bg-muted"
+                aria-label="Fechar modal"
+              >
+                <FaTimes size={16} />
+              </button>
+            </div>
+
+            <div className="flex flex-col items-center justify-center rounded-2xl bg-white p-6 shadow-inner">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={`https://api.qrserver.com/v1/create-qr-code/?size=240x240&data=${encodeURIComponent(
+                  `${typeof window !== "undefined" ? window.location.origin : "https://agendo.me"}/${user.slug}`
+                )}&margin=10`}
+                alt="QR Code do Agendamento"
+                width={240}
+                height={240}
+                className="rounded-lg shadow-sm"
+              />
+              <p className="mt-3 text-xs font-bold text-slate-800">{user.name}</p>
+              <p className="text-[11px] font-mono text-slate-500">
+                {host}/{user.slug}
+              </p>
+            </div>
+
+            <div className="flex gap-2">
+              <a
+                href={`https://api.qrserver.com/v1/create-qr-code/?size=600x600&data=${encodeURIComponent(
+                  `${typeof window !== "undefined" ? window.location.origin : "https://agendo.me"}/${user.slug}`
+                )}&margin=15`}
+                download={`qrcode-${user.slug}.png`}
+                target="_blank"
+                rel="noreferrer"
+                className="flex-1 inline-flex items-center justify-center gap-2 rounded-xl bg-primary py-2.5 text-xs font-bold text-primary-foreground hover:bg-primary/90 transition-all cursor-pointer shadow-sm"
+              >
+                <FaDownload size={12} />
+                Baixar Imagem Alta Resolução
+              </a>
+            </div>
+          </Card>
+        </div>
+      )}
+
       {ToastComponent}
     </div>
   )

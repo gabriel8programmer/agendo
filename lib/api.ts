@@ -191,6 +191,20 @@ export async function createAppointment(
   })
 }
 
+export async function deleteAppointment(
+  id: string,
+  userId?: string
+): Promise<{ success: boolean; message?: string }> {
+  if (!isValidEntityId(id)) {
+    throw new Error("ID de agendamento inválido")
+  }
+
+  const query = userId ? `?userId=${encodeURIComponent(userId)}` : ""
+  return fetchJson(`${BASE_URL}/appointments/${id}${query}`, {
+    method: "DELETE",
+  })
+}
+
 export async function getAvailability(userId: string): Promise<Availability | null> {
   try {
     const availabilities = await fetchJson(`${BASE_URL}/availability?userId=${userId}`)
