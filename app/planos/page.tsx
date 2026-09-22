@@ -265,17 +265,12 @@ export default function PlansPage() {
             }`}
           >
             <div>
-              <div className="flex flex-wrap items-center justify-between gap-2">
+              <div className="flex items-center justify-between">
                 <h3 className="text-xl font-bold text-foreground">{PLANS.annual.name}</h3>
-                <div className="flex flex-wrap items-center gap-2">
-                  <span className="inline-flex items-center gap-1.5 rounded-full bg-primary px-3 py-1 text-xs font-black uppercase tracking-wider text-primary-foreground shadow-sm">
-                    <FaStar size={11} className="text-amber-300" />
-                    Recomendado • 10% OFF
-                  </span>
-                  <span className="rounded-full bg-amber-500/10 px-3 py-1 text-xs font-extrabold text-amber-600">
-                    Mais de 1 Mês Grátis
-                  </span>
-                </div>
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-primary px-3 py-1 text-xs font-black uppercase tracking-wider text-primary-foreground shadow-sm">
+                  <FaStar size={11} className="text-amber-300" />
+                  Recomendado • 10% OFF
+                </span>
               </div>
               <p className="mt-2 text-sm text-muted-foreground">{PLANS.annual.description}</p>
 
@@ -405,10 +400,9 @@ export default function PlansPage() {
                 Como funciona o desconto do Plano Anual?
               </h3>
               <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
-                O plano mensal custa R$ 24,90/mês (totalizando R$ 298,80 ao ano). No plano anual,
-                você tem 10% de desconto direto, pagando apenas R$ 268,92 (equivalente a R$
-                22,41/mês). Você ganha mais de 1 mês inteiramente grátis e ainda aproveita os 30
-                dias de teste inicial.
+                No plano anual você economiza 10% no valor total anual (pagando R$ 268,92 ao ano,
+                equivalente a apenas R$ 22,41/mês) e ainda aproveita os 30 dias de teste inicial
+                gratuito.
               </p>
             </Card>
 

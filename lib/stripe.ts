@@ -64,7 +64,7 @@ export const PLANS: Record<PlanKey, PlanConfig> = {
       "Todos os recursos do Plano Mensal inclusos",
       "10% de desconto garantido no valor total",
       "Equivalente a apenas R$ 22,41 / mês",
-      "Economia de quase R$ 30,00 por ano (mais de 1 mês grátis)",
+      "Economia de R$ 29,88 por ano garantida",
       "Garantia de congelamento de preço durante 1 ano",
       "Suporte técnico prioritário",
       "Acesso antecipado a novos recursos e melhorias",
