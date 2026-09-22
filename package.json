@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "next dev -p 3003",
     "backend": "json-server --watch db.json --port 3001",
+    "stripe:webhook": "stripe listen --all-snapshot --forward-to localhost:3003/api/webhooks/stripe",
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
