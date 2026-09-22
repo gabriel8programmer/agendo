@@ -17,6 +17,7 @@ import {
   FaQrcode,
   FaDownload,
   FaTimes,
+  FaUsers,
 } from "react-icons/fa"
 
 import Link from "next/link"
@@ -361,6 +362,10 @@ export default function DashboardPage() {
                 <ButtonLink href="/agenda" variant="secondary" className="justify-start">
                   <FaCalendarAlt className="text-primary" />
                   Abrir Agenda
+                </ButtonLink>
+                <ButtonLink href="/clientes" variant="secondary" className="justify-start">
+                  <FaUsers className="text-primary" />
+                  Base de Clientes
                 </ButtonLink>
                 <ButtonLink href="/servicos" variant="secondary" className="justify-start">
                   <FaWrench className="text-primary" />

@@ -16,6 +16,9 @@ export interface User {
   subscriptionExpiresAt?: string
   phone?: string
   address?: string
+  bio?: string
+  pixKey?: string
+  paymentMethods?: string[]
 }
 
 export interface Service {
@@ -73,4 +76,16 @@ export interface Professional {
   availability: ProfessionalAvailability
   photoUrl?: string
   createdAt: string
+}
+
+export interface ClientSummary {
+  id: string
+  name: string
+  whatsapp?: string
+  totalAppointments: number
+  lastAppointmentDate: string
+  firstAppointmentDate: string
+  lastServiceName?: string
+  daysSinceLastVisit: number
+  status: "active" | "warning" | "inactive" | "upcoming"
 }

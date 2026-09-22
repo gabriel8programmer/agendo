@@ -20,6 +20,7 @@ import {
   FaCreditCard,
   FaWhatsapp,
   FaMapMarkerAlt,
+  FaQrcode,
 } from "react-icons/fa"
 import {
   getAvailability,
@@ -43,6 +44,9 @@ export default function SettingsPage() {
   const [businessSlug, setBusinessSlug] = useState("")
   const [phone, setPhone] = useState("")
   const [address, setAddress] = useState("")
+  const [bio, setBio] = useState("")
+  const [pixKey, setPixKey] = useState("")
+  const [paymentMethods, setPaymentMethods] = useState<string[]>(["pix", "cash"])
   const [slugLocked, setSlugLocked] = useState(false)
   const [loadedUserId, setLoadedUserId] = useState("")
   const [loading, setLoading] = useState(true)
@@ -94,6 +98,9 @@ export default function SettingsPage() {
       setBusinessSlug("")
       setPhone("")
       setAddress("")
+      setBio("")
+      setPixKey("")
+      setPaymentMethods(["pix", "cash"])
       setSlugLocked(false)
       setLoadedUserId("")
       setLoading(false)
@@ -123,6 +130,11 @@ export default function SettingsPage() {
           setBusinessSlug(currentUser.slug || "")
           setPhone(currentUser.phone || "")
           setAddress(currentUser.address || "")
+          setBio(currentUser.bio || "")
+          setPixKey(currentUser.pixKey || "")
+          setPaymentMethods(
+            Array.isArray(currentUser.paymentMethods) ? currentUser.paymentMethods : ["pix", "cash"]
+          )
           setSlugLocked(Boolean(currentUser.slugLocked))
           setLoadedUserId(userId)
         }
@@ -172,6 +184,14 @@ export default function SettingsPage() {
     setAvailability({ ...availability, reservedIntervals: newReserved })
   }
 
+  const handleTogglePaymentMethod = (method: string) => {
+    if (paymentMethods.includes(method)) {
+      setPaymentMethods(paymentMethods.filter((m) => m !== method))
+    } else {
+      setPaymentMethods([...paymentMethods, method])
+    }
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!availability || !authUser?.id) return
@@ -200,12 +220,18 @@ export default function SettingsPage() {
         slug: sanitizedSlug,
         phone: phone.trim(),
         address: address.trim(),
+        bio: bio.trim(),
+        pixKey: pixKey.trim(),
+        paymentMethods,
       })
       setPersonName(profileResponse.user.name || sanitizedPersonName)
       setCompanyName(profileResponse.user.companyName || sanitizedCompanyName)
       setBusinessSlug(profileResponse.user.slug || sanitizedSlug)
       setPhone(profileResponse.user.phone || "")
       setAddress(profileResponse.user.address || "")
+      setBio(profileResponse.user.bio || bio.trim())
+      setPixKey(profileResponse.user.pixKey || pixKey.trim())
+      setPaymentMethods(profileResponse.user.paymentMethods || paymentMethods)
       setSlugLocked(Boolean(profileResponse.user.slugLocked))
       setLoadedUserId(userId)
       await refreshUser()
@@ -359,6 +385,66 @@ export default function SettingsPage() {
                 <div className="flex items-center gap-2 px-1 text-[11px] font-medium text-muted-foreground">
                   <FaMapMarkerAlt size={12} className="text-primary" />
                   <span>Será exibido na página pública com atalho para abrir no Google Maps.</span>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Input
+                  label="Bio / Slogan da Barbearia (opcional)"
+                  id="businessBio"
+                  value={bio}
+                  onChange={(e) => setBio(e.target.value)}
+                  placeholder="Ex: Ambiente climatizado, chopp gelado e os melhores cortes da região."
+                />
+                <div className="flex items-center gap-2 px-1 text-[11px] font-medium text-muted-foreground">
+                  <span>Aparecerá como subtítulo no topo da sua página pública.</span>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Input
+                  label="Chave Pix (opcional)"
+                  id="businessPixKey"
+                  value={pixKey}
+                  onChange={(e) => setPixKey(e.target.value)}
+                  placeholder="Ex: seu-email@pix.com ou telefone/CPF"
+                />
+                <div className="flex items-center gap-2 px-1 text-[11px] font-medium text-muted-foreground">
+                  <FaQrcode size={12} className="text-emerald-500" />
+                  <span>
+                    Clientes poderão copiar sua chave Pix na tela de confirmação do agendamento.
+                  </span>
+                </div>
+              </div>
+
+              <div className="space-y-3 pt-1">
+                <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground block">
+                  Formas de Pagamento Aceitas
+                </label>
+                <div className="flex flex-wrap gap-2">
+                  {[
+                    { id: "pix", label: "Pix" },
+                    { id: "credit_card", label: "Cartão de Crédito" },
+                    { id: "debit_card", label: "Cartão de Débito" },
+                    { id: "cash", label: "Dinheiro no Local" },
+                  ].map((method) => {
+                    const isSelected = paymentMethods.includes(method.id)
+                    return (
+                      <button
+                        key={method.id}
+                        type="button"
+                        onClick={() => handleTogglePaymentMethod(method.id)}
+                        className={`inline-flex items-center gap-1.5 rounded-xl border px-3 py-2 text-xs font-bold transition-all cursor-pointer ${
+                          isSelected
+                            ? "border-primary bg-primary text-primary-foreground shadow-sm"
+                            : "border-border bg-background text-muted-foreground hover:border-primary/50 hover:text-foreground"
+                        }`}
+                      >
+                        <span>{method.label}</span>
+                        {isSelected && <span>✓</span>}
+                      </button>
+                    )
+                  })}
                 </div>
               </div>
             </div>

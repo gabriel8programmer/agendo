@@ -23,6 +23,9 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ slu
       email: user.email,
       phone: user.phone || "",
       address: user.address || "",
+      bio: user.bio || "",
+      pixKey: user.pixKey || "",
+      paymentMethods: Array.isArray(user.paymentMethods) ? user.paymentMethods : ["pix", "cash"],
       createdAt:
         user.createdAt instanceof Date ? user.createdAt.toISOString() : String(user.createdAt),
     })

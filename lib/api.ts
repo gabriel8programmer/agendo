@@ -1,4 +1,4 @@
-import { User, Service, Appointment, Availability, Professional } from "@/types"
+import { User, Service, Appointment, Availability, Professional, ClientSummary } from "@/types"
 import { getDayRangeUTC } from "@/lib/utils/date"
 
 const getBaseUrl = () => {
@@ -205,6 +205,11 @@ export async function deleteAppointment(
   })
 }
 
+export async function getClients(userId?: string): Promise<ClientSummary[]> {
+  const query = userId ? `?userId=${encodeURIComponent(userId)}` : ""
+  return fetchJson(`${BASE_URL}/clients${query}`)
+}
+
 export async function getAvailability(userId: string): Promise<Availability | null> {
   try {
     const availabilities = await fetchJson(`${BASE_URL}/availability?userId=${userId}`)
@@ -303,6 +308,9 @@ export async function updateCurrentUserProfile(data: {
   slug?: string
   phone?: string
   address?: string
+  bio?: string
+  pixKey?: string
+  paymentMethods?: string[]
 }): Promise<AuthPayload> {
   return fetchJson(`${BASE_URL}/users/me`, {
     method: "PATCH",

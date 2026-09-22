@@ -204,4 +204,61 @@ describe("PATCH /api/users/me", () => {
       })
     )
   })
+
+  it("updates bio, pixKey, and paymentMethods", async () => {
+    const userDoc = {
+      _id: "user-1",
+      name: "João",
+      companyName: "Barbearia João",
+      email: "joao@email.com",
+      slug: "barbearia-joao",
+      slugLocked: true,
+      bio: "Ambiente top",
+      pixKey: "pix@barbearia.com",
+      paymentMethods: ["pix", "credit_card"],
+    }
+
+    vi.mocked(verifySessionToken).mockReturnValue({
+      userId: "user-1",
+      email: "joao@email.com",
+      name: "João",
+      exp: 9999999999,
+    })
+    vi.mocked(User.findById)
+      .mockReturnValueOnce({
+        lean: vi.fn().mockResolvedValue(userDoc),
+      } as never)
+      .mockReturnValueOnce({
+        lean: vi.fn().mockResolvedValue(userDoc),
+      } as never)
+
+    const server = createRouteTestServer(PATCH)
+    const res = await request(server)
+      .patch("/api/users/me")
+      .set("Cookie", "agendo_session=valid")
+      .send({
+        bio: "Ambiente top",
+        pixKey: "pix@barbearia.com",
+        paymentMethods: ["pix", "credit_card"],
+      })
+
+    expect(res.status).toBe(200)
+    expect(User.collection.updateOne).toHaveBeenCalledWith(
+      { _id: "user-1" },
+      {
+        $set: expect.objectContaining({
+          bio: "Ambiente top",
+          pixKey: "pix@barbearia.com",
+          paymentMethods: ["pix", "credit_card"],
+        }),
+      }
+    )
+    expect(res.body.user).toEqual(
+      expect.objectContaining({
+        bio: "Ambiente top",
+        pixKey: "pix@barbearia.com",
+        paymentMethods: ["pix", "credit_card"],
+      })
+    )
+  })
 })

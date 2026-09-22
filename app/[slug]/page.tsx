@@ -14,6 +14,10 @@ import {
   FaBolt,
   FaExternalLinkAlt,
   FaMoneyBillWave,
+  FaCalendarPlus,
+  FaCalendarAlt,
+  FaQrcode,
+  FaCopy,
 } from "react-icons/fa"
 import Card from "@/components/ui/Card"
 import Button from "@/components/ui/Button"
@@ -63,6 +67,63 @@ function toE164BrazilPhone(digits: string) {
   return `+${BRAZIL_COUNTRY_CODE}${digits}`
 }
 
+function buildGoogleCalendarUrl(
+  title: string,
+  dateFormatted: string,
+  time: string,
+  durationMinutes: number,
+  description: string,
+  location?: string
+) {
+  const startDayjs = dayjs(`${dateFormatted} ${time}`, "YYYY-MM-DD HH:mm").tz("America/Sao_Paulo")
+  const start = startDayjs.utc().format("YYYYMMDDTHHmmss[Z]")
+  const end = startDayjs.add(durationMinutes, "minute").utc().format("YYYYMMDDTHHmmss[Z]")
+  return `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(
+    title
+  )}&dates=${start}/${end}&details=${encodeURIComponent(description)}&location=${encodeURIComponent(
+    location || ""
+  )}`
+}
+
+function downloadIcsFile(
+  title: string,
+  dateFormatted: string,
+  time: string,
+  durationMinutes: number,
+  description: string,
+  location?: string
+) {
+  const startDayjs = dayjs(`${dateFormatted} ${time}`, "YYYY-MM-DD HH:mm").tz("America/Sao_Paulo")
+  const start = startDayjs.utc().format("YYYYMMDDTHHmmss[Z]")
+  const end = startDayjs.add(durationMinutes, "minute").utc().format("YYYYMMDDTHHmmss[Z]")
+  const icsLines = [
+    "BEGIN:VCALENDAR",
+    "VERSION:2.0",
+    "PRODID:-//Agendo//Agendamento Online//PT",
+    "CALSCALE:GREGORIAN",
+    "BEGIN:VEVENT",
+    `UID:${Date.now()}@agendo.me`,
+    `DTSTAMP:${start}`,
+    `DTSTART:${start}`,
+    `DTEND:${end}`,
+    `SUMMARY:${title}`,
+    `DESCRIPTION:${description.replace(/\n/g, "\\n")}`,
+    `LOCATION:${location || ""}`,
+    "STATUS:CONFIRMED",
+    "END:VEVENT",
+    "END:VCALENDAR",
+  ]
+  const blob = new Blob([icsLines.join("\r\n")], { type: "text/calendar;charset=utf-8" })
+  const url = window.URL.createObjectURL(blob)
+  const a = document.createElement("a")
+  a.href = url
+  a.download = `agendamento-${dateFormatted}.ics`
+  document.body.appendChild(a)
+  a.click()
+  document.body.removeChild(a)
+  window.URL.revokeObjectURL(url)
+}
+
 export default function PublicBookingPage({
   params: paramsPromise,
 }: {
@@ -76,6 +137,7 @@ export default function PublicBookingPage({
   const [availability, setAvailability] = useState<Availability | null>(null)
   const [occupiedAppointments, setOccupiedAppointments] = useState<Appointment[]>([])
   const [loading, setLoading] = useState(true)
+  const [pixCopied, setPixCopied] = useState(false)
   const { showToast, ToastComponent } = useToast()
   const { theme, toggleTheme } = useTheme()
 
@@ -299,19 +361,69 @@ export default function PublicBookingPage({
       ? `https://wa.me/${destinationPhone}?text=${whatsappMessage}`
       : `https://wa.me/?text=${whatsappMessage}`
 
+    const eventTitle = `${chosenService?.name || "Atendimento"} - ${user.companyName || user.name}`
+    const eventDescription = `Agendamento com ${user.companyName || user.name}.\nServiço: ${chosenService?.name || "Serviço"}${chosenProfessional ? `\nProfissional: ${chosenProfessional.name}` : ""}\nCliente: ${clientName}`
+    const eventDuration = chosenService?.duration || 30
+    const googleCalendarUrl = buildGoogleCalendarUrl(
+      eventTitle,
+      selectedDate,
+      selectedTime!,
+      eventDuration,
+      eventDescription,
+      user.address
+    )
+
+    const handleDownloadIcs = () => {
+      downloadIcsFile(
+        eventTitle,
+        selectedDate,
+        selectedTime!,
+        eventDuration,
+        eventDescription,
+        user.address
+      )
+    }
+
+    const handleCopyPixKey = async () => {
+      if (!user.pixKey) return
+      try {
+        if (navigator?.clipboard?.writeText) {
+          await navigator.clipboard.writeText(user.pixKey)
+        } else {
+          const textarea = document.createElement("textarea")
+          textarea.value = user.pixKey
+          textarea.style.position = "fixed"
+          textarea.style.left = "-9999px"
+          textarea.style.top = "-9999px"
+          document.body.appendChild(textarea)
+          textarea.focus()
+          textarea.select()
+          document.execCommand("copy")
+          document.body.removeChild(textarea)
+        }
+        setPixCopied(true)
+        showToast("Chave Pix copiada com sucesso!", "success")
+        setTimeout(() => setPixCopied(false), 2500)
+      } catch {
+        showToast("Não foi possível copiar a chave Pix.", "error")
+      }
+    }
+
     return (
       <div className="flex min-h-screen items-center justify-center bg-background p-4 font-sans text-center">
-        <Card className="p-8 md:p-10 max-w-md w-full rounded-[2.5rem] shadow-2xl shadow-primary/10 border-primary/20 animate-in fade-in zoom-in duration-500">
-          <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-[2rem] bg-emerald-500/10 text-emerald-500 ring-8 ring-emerald-500/5">
+        <Card className="p-8 md:p-10 max-w-md w-full rounded-[2.5rem] shadow-2xl shadow-primary/10 border-primary/20 animate-in fade-in zoom-in duration-500 space-y-4">
+          <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-[2rem] bg-emerald-500/10 text-emerald-500 ring-8 ring-emerald-500/5">
             <FaCheck size={32} />
           </div>
-          <h1 className="text-2xl font-black text-foreground">Agendamento Confirmado!</h1>
-          <p className="mt-2 text-sm text-muted-foreground font-medium">
-            Olá <span className="text-foreground font-bold">{clientName}</span>, seu horário foi
-            reservado com sucesso.
-          </p>
+          <div>
+            <h1 className="text-2xl font-black text-foreground">Agendamento Confirmado!</h1>
+            <p className="mt-2 text-sm text-muted-foreground font-medium">
+              Olá <span className="text-foreground font-bold">{clientName}</span>, seu horário foi
+              reservado com sucesso.
+            </p>
+          </div>
 
-          <div className="mt-6 rounded-2xl bg-muted/40 p-5 border border-border text-left space-y-3">
+          <div className="rounded-2xl bg-muted/40 p-5 border border-border text-left space-y-3">
             <div className="flex items-center justify-between pb-3 border-b border-border/50">
               <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
                 Serviço
@@ -362,11 +474,65 @@ export default function PublicBookingPage({
             )}
           </div>
 
+          {/* Box de Pagamento Pix */}
+          {user.pixKey && (
+            <div className="rounded-2xl border border-emerald-500/30 bg-emerald-500/5 p-4 text-left space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold text-emerald-600 uppercase tracking-wider flex items-center gap-1.5">
+                  <FaQrcode size={12} />
+                  Pagar via Pix (Opcional)
+                </span>
+                <span className="text-[10px] text-muted-foreground font-semibold">
+                  Pague agora ou no local
+                </span>
+              </div>
+              <div className="flex items-center gap-2 rounded-xl border border-emerald-500/20 bg-background p-2">
+                <span className="flex-1 truncate text-xs font-mono font-bold text-foreground px-1 select-all">
+                  {user.pixKey}
+                </span>
+                <button
+                  type="button"
+                  onClick={handleCopyPixKey}
+                  className="inline-flex items-center gap-1 rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-bold text-white hover:bg-emerald-500 active:scale-95 transition-all cursor-pointer shadow-sm"
+                >
+                  <FaCopy size={11} />
+                  <span>{pixCopied ? "Copiado!" : "Copiar"}</span>
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Salvar na Agenda */}
+          <div className="space-y-2 pt-1">
+            <p className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground text-left px-1">
+              Salvar na sua Agenda:
+            </p>
+            <div className="grid grid-cols-2 gap-2">
+              <a
+                href={googleCalendarUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex items-center justify-center gap-2 rounded-2xl border border-border bg-card py-3 px-3 text-xs font-bold text-foreground hover:border-primary/50 hover:bg-accent transition-all cursor-pointer shadow-sm"
+              >
+                <FaCalendarPlus className="text-primary text-sm" />
+                <span>Google Agenda</span>
+              </a>
+              <button
+                type="button"
+                onClick={handleDownloadIcs}
+                className="inline-flex items-center justify-center gap-2 rounded-2xl border border-border bg-card py-3 px-3 text-xs font-bold text-foreground hover:border-primary/50 hover:bg-accent transition-all cursor-pointer shadow-sm"
+              >
+                <FaCalendarAlt className="text-primary text-sm" />
+                <span>Apple / Celular</span>
+              </button>
+            </div>
+          </div>
+
           <a
             href={whatsappUrl}
             target="_blank"
             rel="noreferrer"
-            className="mt-6 flex h-14 w-full cursor-pointer items-center justify-center gap-3 rounded-2xl bg-emerald-600 px-6 text-sm font-black text-white shadow-xl shadow-emerald-600/20 hover:bg-emerald-500 active:scale-[0.98] transition-all"
+            className="flex h-14 w-full cursor-pointer items-center justify-center gap-3 rounded-2xl bg-emerald-600 px-6 text-sm font-black text-white shadow-xl shadow-emerald-600/20 hover:bg-emerald-500 active:scale-[0.98] transition-all"
           >
             <FaWhatsapp size={22} />
             Enviar Confirmação no WhatsApp
@@ -374,7 +540,7 @@ export default function PublicBookingPage({
 
           <Button
             variant="ghost"
-            className="mt-3 w-full h-12 text-sm"
+            className="w-full h-12 text-sm"
             onClick={() => {
               setIsConfirmed(false)
               setSelectedService(null)
@@ -419,9 +585,15 @@ export default function PublicBookingPage({
           <h1 className="text-3xl font-black tracking-tight text-foreground sm:text-4xl">
             {user.companyName || user.name}
           </h1>
-          <p className="mt-2 text-xs font-bold text-muted-foreground uppercase tracking-[0.2em]">
-            Agendamento Online
-          </p>
+          {user.bio ? (
+            <p className="mt-2 text-sm font-medium text-muted-foreground max-w-md mx-auto leading-relaxed">
+              {user.bio}
+            </p>
+          ) : (
+            <p className="mt-2 text-xs font-bold text-muted-foreground uppercase tracking-[0.2em]">
+              Agendamento Online
+            </p>
+          )}
 
           <div className="mt-4 flex flex-wrap items-center justify-center gap-2">
             {user.address && (
@@ -436,10 +608,29 @@ export default function PublicBookingPage({
                 <FaExternalLinkAlt className="text-[9px] opacity-50" />
               </a>
             )}
-            <div className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/10 px-3.5 py-1.5 text-xs font-bold text-emerald-600 dark:text-emerald-400">
-              <FaMoneyBillWave className="text-[11px]" />
-              <span>Pagamento no local</span>
-            </div>
+            {user.paymentMethods && user.paymentMethods.length > 0 ? (
+              user.paymentMethods.map((m) => {
+                const labels: Record<string, string> = {
+                  pix: "Aceita Pix",
+                  credit_card: "Cartão de Crédito",
+                  debit_card: "Cartão de Débito",
+                  cash: "Dinheiro no Local",
+                }
+                return (
+                  <div
+                    key={m}
+                    className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/10 px-3 py-1 text-[11px] font-bold text-emerald-600 dark:text-emerald-400 border border-emerald-500/20"
+                  >
+                    <span>{labels[m] || m}</span>
+                  </div>
+                )
+              })
+            ) : (
+              <div className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/10 px-3.5 py-1.5 text-xs font-bold text-emerald-600 dark:text-emerald-400">
+                <FaMoneyBillWave className="text-[11px]" />
+                <span>Pagamento no local</span>
+              </div>
+            )}
           </div>
         </header>
 

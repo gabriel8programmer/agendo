@@ -14,6 +14,9 @@ export interface IUser extends Document {
   subscriptionExpiresAt?: Date
   phone?: string
   address?: string
+  bio?: string
+  pixKey?: string
+  paymentMethods?: string[]
   createdAt: Date
 }
 
@@ -32,6 +35,9 @@ const UserSchema = new Schema<IUser>(
     subscriptionExpiresAt: { type: Date },
     phone: { type: String },
     address: { type: String },
+    bio: { type: String },
+    pixKey: { type: String },
+    paymentMethods: { type: [String], default: ["pix", "cash"] },
   },
   {
     timestamps: { createdAt: true, updatedAt: false },

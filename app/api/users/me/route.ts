@@ -12,6 +12,9 @@ function sanitizeUser(user: {
   slugLocked?: boolean
   phone?: string
   address?: string
+  bio?: string
+  pixKey?: string
+  paymentMethods?: string[]
   createdAt?: Date | string
 }) {
   return {
@@ -23,6 +26,9 @@ function sanitizeUser(user: {
     slugLocked: Boolean(user.slugLocked),
     phone: String(user.phone || ""),
     address: String(user.address || ""),
+    bio: String(user.bio || ""),
+    pixKey: String(user.pixKey || ""),
+    paymentMethods: Array.isArray(user.paymentMethods) ? user.paymentMethods : ["pix", "cash"],
     createdAt: user.createdAt ? new Date(user.createdAt).toISOString() : undefined,
   }
 }
@@ -50,6 +56,9 @@ export async function PATCH(req: NextRequest) {
       createdAt?: Date | string
       phone?: string
       address?: string
+      bio?: string
+      pixKey?: string
+      paymentMethods?: string[]
     } | null
     if (!user) {
       return NextResponse.json({ error: "Usuário não encontrado" }, { status: 404 })
@@ -61,6 +70,9 @@ export async function PATCH(req: NextRequest) {
       slug?: string
       phone?: string
       address?: string
+      bio?: string
+      pixKey?: string
+      paymentMethods?: string[]
     }
 
     const name = typeof body.name === "string" ? body.name.trim() : undefined
@@ -68,6 +80,9 @@ export async function PATCH(req: NextRequest) {
     const requestedSlugRaw = typeof body.slug === "string" ? body.slug.trim() : undefined
     const phone = typeof body.phone === "string" ? body.phone.trim() : undefined
     const address = typeof body.address === "string" ? body.address.trim() : undefined
+    const bio = typeof body.bio === "string" ? body.bio.trim() : undefined
+    const pixKey = typeof body.pixKey === "string" ? body.pixKey.trim() : undefined
+    const paymentMethods = Array.isArray(body.paymentMethods) ? body.paymentMethods : undefined
 
     const updates: Record<string, unknown> = {}
 
@@ -89,6 +104,18 @@ export async function PATCH(req: NextRequest) {
 
     if (address !== undefined) {
       updates.address = address
+    }
+
+    if (bio !== undefined) {
+      updates.bio = bio
+    }
+
+    if (pixKey !== undefined) {
+      updates.pixKey = pixKey
+    }
+
+    if (paymentMethods !== undefined) {
+      updates.paymentMethods = paymentMethods
     }
 
     if (requestedSlugRaw !== undefined) {

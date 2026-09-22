@@ -11,6 +11,7 @@ import {
   FaCog,
   FaChartLine,
   FaUserTie,
+  FaUsers,
   FaSignOutAlt,
   FaMoon,
   FaSun,
@@ -28,6 +29,7 @@ export default function Header() {
   const menuItems = [
     { label: "Dashboard", href: "/dashboard", icon: FaChartLine },
     { label: "Agenda", href: "/agenda", icon: FaCalendarAlt },
+    { label: "Clientes", href: "/clientes", icon: FaUsers },
     { label: "Serviços", href: "/servicos", icon: FaWrench },
     { label: "Profissionais", href: "/profissionais", icon: FaUserTie },
     { label: "Configurações", href: "/configuracoes", icon: FaCog },

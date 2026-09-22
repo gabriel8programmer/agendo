@@ -31,6 +31,9 @@ export async function GET(req: NextRequest) {
       subscriptionExpiresAt?: Date | string
       phone?: string
       address?: string
+      bio?: string
+      pixKey?: string
+      paymentMethods?: string[]
     } | null
     if (!user) {
       return NextResponse.json({ error: "Usuário não encontrado" }, { status: 404 })
@@ -66,6 +69,9 @@ export async function GET(req: NextRequest) {
           : undefined,
         phone: String(user.phone || ""),
         address: String(user.address || ""),
+        bio: String(user.bio || ""),
+        pixKey: String(user.pixKey || ""),
+        paymentMethods: Array.isArray(user.paymentMethods) ? user.paymentMethods : ["pix", "cash"],
       },
     })
   } catch (error) {
