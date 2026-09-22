@@ -41,7 +41,22 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: "userId é obrigatório" }, { status: 400 })
     }
 
-    const availability = await Availability.findOne({ userId })
+    let availability = await Availability.findOne({ userId })
+
+    if (!availability) {
+      try {
+        availability = await Availability.create({
+          userId,
+          slotDuration: 30,
+          startTime: "09:00",
+          endTime: "18:00",
+          workDays: [1, 2, 3, 4, 5],
+          reservedIntervals: [],
+        })
+      } catch {
+        availability = await Availability.findOne({ userId })
+      }
+    }
 
     if (!availability) {
       return NextResponse.json([])

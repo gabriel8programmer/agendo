@@ -158,13 +158,28 @@ export default function PublicBookingPage({
           chosenProfessional.availability.slotDuration || availability?.slotDuration || 30,
         startTime: chosenProfessional.availability.startTime || availability?.startTime || "09:00",
         endTime: chosenProfessional.availability.endTime || availability?.endTime || "18:00",
-        workDays: chosenProfessional.availability.workDays || availability?.workDays || [],
+        workDays:
+          chosenProfessional.availability.workDays &&
+          chosenProfessional.availability.workDays.length > 0
+            ? chosenProfessional.availability.workDays
+            : availability?.workDays || [1, 2, 3, 4, 5],
         reservedIntervals:
           chosenProfessional.availability.reservedIntervals ||
           availability?.reservedIntervals ||
           [],
       }
-    : availability
+    : availability ||
+      (user
+        ? {
+            id: "default",
+            userId: user.id,
+            slotDuration: 30,
+            startTime: "09:00",
+            endTime: "18:00",
+            workDays: [1, 2, 3, 4, 5],
+            reservedIntervals: [],
+          }
+        : null)
 
   // Filtrar os agendamentos ocupados por profissional se um foi escolhido
   const relevantOccupiedAppointments = chosenProfessional
@@ -207,7 +222,10 @@ export default function PublicBookingPage({
   const generateAvailableDates = () => {
     const dates = []
     const today = dayjs().tz("America/Sao_Paulo").startOf("day")
-    const workDays = activeAvailability?.workDays || availability?.workDays || []
+    const workDays =
+      activeAvailability?.workDays && activeAvailability.workDays.length > 0
+        ? activeAvailability.workDays
+        : [1, 2, 3, 4, 5]
     for (let i = 0; i < 14; i++) {
       const date = today.add(i, "day")
       const dayOfWeek = date.day()

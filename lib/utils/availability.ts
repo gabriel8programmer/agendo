@@ -20,6 +20,10 @@ export function generateSlots(
 
   if (!isOpen) return []
 
+  const now = dayjs().tz("America/Sao_Paulo")
+  const isToday = dateObj.isSame(now, "day")
+  const nowMinutes = now.hour() * 60 + now.minute()
+
   const slots: Slot[] = []
   let current = parseTimeToMinutes(startTime)
   const end = parseTimeToMinutes(endTime)
@@ -36,16 +40,21 @@ export function generateSlots(
     })
 
     if (!isReservedInterval) {
-      // 2. Verificar se está ocupado por um agendamento -> DISABLE
-      const isOccupied = occupiedAppointments.some((app) => {
-        const appTime = app.time || formatToLocalTime(app.date)
-        return appTime === timeString
-      })
+      // 2. Não permitir agendar em horários que já passaram para o dia de hoje
+      const isPast = isToday && current <= nowMinutes
 
-      slots.push({
-        time: timeString,
-        isAvailable: !isOccupied,
-      })
+      if (!isPast) {
+        // 3. Verificar se está ocupado por um agendamento -> DISABLE
+        const isOccupied = occupiedAppointments.some((app) => {
+          const appTime = app.time || formatToLocalTime(app.date)
+          return appTime === timeString
+        })
+
+        slots.push({
+          time: timeString,
+          isAvailable: !isOccupied,
+        })
+      }
     }
 
     current += slotDuration

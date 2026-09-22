@@ -32,6 +32,13 @@ vi.mock("@/models/User", () => ({
   },
 }))
 
+vi.mock("@/models/Availability", () => ({
+  default: {
+    create: vi.fn().mockResolvedValue({}),
+    findOne: vi.fn(),
+  },
+}))
+
 vi.mock("@/lib/auth", () => ({
   SESSION_COOKIE: "agendo_session",
   SESSION_HINT_COOKIE: "agendo_logged",

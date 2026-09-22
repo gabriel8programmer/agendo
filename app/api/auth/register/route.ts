@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import dbConnect from "@/lib/mongoose"
 import User from "@/models/User"
+import Availability from "@/models/Availability"
 import {
   createSessionToken,
   hashPassword,
@@ -79,6 +80,19 @@ export async function POST(req: NextRequest) {
         },
       }
     )
+
+    try {
+      await Availability.create({
+        userId: user._id,
+        slotDuration: 30,
+        startTime: "09:00",
+        endTime: "18:00",
+        workDays: [1, 2, 3, 4, 5],
+        reservedIntervals: [],
+      })
+    } catch (err) {
+      console.error("Erro ao criar disponibilidade inicial:", err)
+    }
 
     const safeUser = sanitizeUser(user)
     const token = createSessionToken({

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import dbConnect from "@/lib/mongoose"
 import Appointment from "@/models/Appointment"
 import Availability from "@/models/Availability"
+import Professional from "@/models/Professional"
 import { formatToLocalTime, dayjs } from "@/lib/utils/date"
 import { parseTimeToMinutes } from "@/lib/utils/availability"
 import { WorkInterval } from "@/types"
@@ -58,39 +59,113 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Campos obrigatórios ausentes" }, { status: 400 })
     }
 
-    // 2. Buscar configurações de disponibilidade
-    const availability = await Availability.findOne({ userId })
-    if (!availability) {
+    // 2. Validar se a data e o horário não estão no passado
+    const now = dayjs().tz("America/Sao_Paulo")
+    const dateObj = dayjs.tz(date, "America/Sao_Paulo")
+    const requestedMinutes = parseTimeToMinutes(time)
+    const isToday = dateObj.isSame(now, "day")
+    const nowMinutes = now.hour() * 60 + now.minute()
+
+    if (dateObj.isBefore(now, "day") || (isToday && requestedMinutes <= nowMinutes)) {
       return NextResponse.json(
-        { error: "Configurações de agenda não encontradas" },
-        { status: 404 }
+        { error: "Não é possível agendar em um horário que já passou" },
+        { status: 400 }
       )
     }
 
-    // 3. Validar se o dia da semana está ativo
-    const dateObj = dayjs.tz(date, "America/Sao_Paulo")
+    // 3. Buscar configurações de disponibilidade (Profissional ou Barbearia)
+    let activeAvailability: {
+      slotDuration: number
+      startTime: string
+      endTime: string
+      workDays: number[]
+      reservedIntervals: WorkInterval[]
+    } | null = null
+
+    if (
+      body.professionalId &&
+      typeof body.professionalId === "string" &&
+      body.professionalId.trim() !== "" &&
+      body.professionalId !== "any"
+    ) {
+      try {
+        const prof = await Professional.findOne({ _id: body.professionalId, userId })
+        if (
+          prof?.availability &&
+          Array.isArray(prof.availability.workDays) &&
+          prof.availability.workDays.length > 0
+        ) {
+          activeAvailability = {
+            slotDuration: prof.availability.slotDuration || 30,
+            startTime: prof.availability.startTime || "09:00",
+            endTime: prof.availability.endTime || "18:00",
+            workDays: prof.availability.workDays,
+            reservedIntervals: prof.availability.reservedIntervals || [],
+          }
+        }
+      } catch (e) {
+        console.warn("Não foi possível buscar disponibilidade do profissional:", e)
+      }
+    }
+
+    if (!activeAvailability) {
+      let bizAvailability = await Availability.findOne({ userId })
+      if (!bizAvailability) {
+        try {
+          bizAvailability = await Availability.create({
+            userId,
+            slotDuration: 30,
+            startTime: "09:00",
+            endTime: "18:00",
+            workDays: [1, 2, 3, 4, 5],
+            reservedIntervals: [],
+          })
+        } catch {
+          bizAvailability = await Availability.findOne({ userId })
+        }
+      }
+
+      if (bizAvailability) {
+        activeAvailability = {
+          slotDuration: bizAvailability.slotDuration || 30,
+          startTime: bizAvailability.startTime || "09:00",
+          endTime: bizAvailability.endTime || "18:00",
+          workDays: bizAvailability.workDays || [1, 2, 3, 4, 5],
+          reservedIntervals: bizAvailability.reservedIntervals || [],
+        }
+      } else {
+        activeAvailability = {
+          slotDuration: 30,
+          startTime: "09:00",
+          endTime: "18:00",
+          workDays: [1, 2, 3, 4, 5],
+          reservedIntervals: [],
+        }
+      }
+    }
+
+    // 4. Validar se o dia da semana está ativo
     const dayOfWeek = dateObj.day()
-    if (!availability.workDays.includes(dayOfWeek)) {
+    if (!activeAvailability.workDays.includes(dayOfWeek)) {
       return NextResponse.json(
         { error: "O profissional não atende neste dia da semana" },
         { status: 400 }
       )
     }
 
-    // 4. Validar se está dentro do horário de expediente
-    const requestedMinutes = parseTimeToMinutes(time)
-    const startMinutes = parseTimeToMinutes(availability.startTime)
-    const endMinutes = parseTimeToMinutes(availability.endTime)
+    // 5. Validar se está dentro do horário de expediente
+    const startMinutes = parseTimeToMinutes(activeAvailability.startTime)
+    const endMinutes = parseTimeToMinutes(activeAvailability.endTime)
 
     if (requestedMinutes < startMinutes || requestedMinutes >= endMinutes) {
       return NextResponse.json({ error: "Horário fora do expediente" }, { status: 400 })
     }
 
-    // 5. Validar se cai em um horário reservado (pausa)
-    const slotDuration = availability.slotDuration
+    // 6. Validar se cai em um horário reservado (pausa)
+    const slotDuration = activeAvailability.slotDuration
     const slotEnd = requestedMinutes + slotDuration
 
-    const isReserved = availability.reservedIntervals?.some((interval: WorkInterval) => {
+    const isReserved = activeAvailability.reservedIntervals?.some((interval: WorkInterval) => {
       const resStart = parseTimeToMinutes(interval.startTime)
       const resEnd = parseTimeToMinutes(interval.endTime)
       return requestedMinutes < resEnd && slotEnd > resStart

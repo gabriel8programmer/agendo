@@ -241,7 +241,6 @@ export default function AgendaPage() {
     loadAgenda()
   }, [authLoading, date, user?.id])
 
-
   function parseTimeToMinutes(time: string): number {
     const match = /^([01]\d|2[0-3]):([0-5]\d)$/.exec(time)
     if (!match) return -1
