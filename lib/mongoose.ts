@@ -1,4 +1,16 @@
+import dns from "node:dns"
 import mongoose from "mongoose"
+
+if (process.env.NODE_ENV !== "production") {
+  try {
+    dns.setServers(["8.8.8.8", "1.1.1.1"])
+    if (typeof dns.setDefaultResultOrder === "function") {
+      dns.setDefaultResultOrder("ipv4first")
+    }
+  } catch (e) {
+    console.warn("Não foi possível definir servidores DNS customizados:", e)
+  }
+}
 
 /**
  * Global is used here to maintain a cached connection across hot reloads
