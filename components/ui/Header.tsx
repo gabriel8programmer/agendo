@@ -13,18 +13,15 @@ import {
   FaUserTie,
   FaUsers,
   FaSignOutAlt,
-  FaMoon,
-  FaSun,
 } from "react-icons/fa"
 import { logoutSession } from "@/lib/api"
 import BrandLogo from "@/components/ui/BrandLogo"
-import { useTheme } from "@/components/providers/ThemeProvider"
+import ThemeToggle from "@/components/ui/ThemeToggle"
 
 export default function Header() {
   const [isOpen, setIsOpen] = useState(false)
   const router = useRouter()
   const pathname = usePathname()
-  const { theme, toggleTheme } = useTheme()
 
   const menuItems = [
     { label: "Dashboard", href: "/dashboard", icon: FaChartLine },
@@ -64,14 +61,7 @@ export default function Header() {
           </Link>
 
           <div className="flex items-center gap-2">
-            <button
-              type="button"
-              onClick={toggleTheme}
-              className="inline-flex h-10 w-10 cursor-pointer items-center justify-center rounded-xl text-muted-foreground hover:bg-accent hover:text-accent-foreground transition-colors"
-              aria-label={theme === "dark" ? "Ativar tema claro" : "Ativar tema escuro"}
-            >
-              {theme === "dark" ? <FaSun size={18} /> : <FaMoon size={18} />}
-            </button>
+            <ThemeToggle />
             <div className="relative hidden md:block">
               <button
                 onClick={() => setIsOpen(!isOpen)}

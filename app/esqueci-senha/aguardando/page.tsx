@@ -13,6 +13,7 @@ import Button from "@/components/ui/Button"
 import Card from "@/components/ui/Card"
 import Input from "@/components/ui/Input"
 import BrandLogo from "@/components/ui/BrandLogo"
+import ThemeToggle from "@/components/ui/ThemeToggle"
 import { confirmPasswordReset, getPasswordResetStatus } from "@/lib/api"
 
 type ResetStatus = "pending" | "verified" | "used" | "expired" | "not_found"
@@ -102,7 +103,10 @@ export default function WaitForVerificationPage() {
   const isFinalState = status === "used" || status === "expired" || status === "not_found"
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background p-4 md:p-6">
+    <div className="relative flex min-h-screen items-center justify-center bg-background p-4 md:p-6">
+      <div className="absolute top-4 right-4 md:top-6 md:right-6 z-10">
+        <ThemeToggle className="border border-border/60 bg-card/60 backdrop-blur-xs shadow-xs" />
+      </div>
       <main className="w-full max-w-md">
         <Card className="border-none shadow-2xl shadow-black/5 md:p-8 p-6 rounded-[2.5rem]">
           <header className="mb-10 text-center">
