@@ -12,7 +12,7 @@ type BrandLogoProps = {
 
 export default function BrandLogo({ width, height, className, alt = "Agendo" }: BrandLogoProps) {
   const { theme } = useTheme()
-  const src = theme === "dark" ? "/logo-dark.svg" : "/logo.svg"
+  const src = theme === "dark" ? "/logo-dark.png" : "/logo.png"
 
   return <Image src={src} alt={alt} width={width} height={height} className={className} />
 }

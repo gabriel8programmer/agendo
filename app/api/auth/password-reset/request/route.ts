@@ -76,7 +76,7 @@ export async function POST(req: NextRequest) {
         verifyUrl,
         recipientName: user.name,
         productName: "Agendo",
-        logoUrl: `${getAssetsUrl(req)}/logo-dark.svg`,
+        logoUrl: `${getAssetsUrl(req)}/logo-dark.png`,
       })
 
       await sendEmail({

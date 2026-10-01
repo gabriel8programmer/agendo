@@ -95,7 +95,7 @@ export async function GET(req: NextRequest) {
   try {
     await dbConnect()
     const appUrl = getAppUrl(req)
-    const logoUrl = `${getAssetsUrl(req)}/logo-dark.svg`
+    const logoUrl = `${getAssetsUrl(req)}/logo-dark.png`
     const forgotPasswordUrl = `${appUrl}/esqueci-senha`
 
     const token = req.nextUrl.searchParams.get("token") || ""
@@ -153,7 +153,7 @@ export async function GET(req: NextRequest) {
       buildHtml({
         title: "Erro interno",
         message: "Não foi possível verificar este link agora. Tente novamente.",
-        logoUrl: `${getAssetsUrl(req)}/logo-dark.svg`,
+        logoUrl: `${getAssetsUrl(req)}/logo-dark.png`,
         ctaHref: `${appUrl}/esqueci-senha`,
         ctaLabel: "Tentar novamente",
       }),
