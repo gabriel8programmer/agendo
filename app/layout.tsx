@@ -30,7 +30,6 @@ export const metadata: Metadata = {
   title: "Agendo",
   description: "Sistema de agendamento online",
   applicationName: "Agendo",
-  manifest: "/favicon/site.webmanifest",
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",

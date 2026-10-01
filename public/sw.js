@@ -1,15 +1,12 @@
-const CACHE_NAME = "agendo-pwa-v1"
+const CACHE_NAME = "agendo-pwa-v2"
 
 const STATIC_ASSETS = [
   "/",
   "/manifest.webmanifest",
-  "/site.webmanifest",
-  "/icon.svg",
-  "/favicon.ico",
-  "/apple-touch-icon.png",
-  "/android-chrome-192x192.png",
-  "/android-chrome-512x512.png",
-  "/maskable-icon-512x512.png",
+  "/favicon/favicon.ico",
+  "/favicon/apple-touch-icon.png",
+  "/favicon/android-chrome-192x192.png",
+  "/favicon/android-chrome-512x512.png",
 ]
 
 self.addEventListener("install", (event) => {
